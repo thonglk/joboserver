@@ -567,8 +567,6 @@ app.get('/api/dashboard', function (req, res) {
             res.send(dashboard)
         })
     })
-
-
 })
 
 app.get('/createuser', function (req, res) {
@@ -1140,9 +1138,10 @@ app.get('/update/review', function (req, res) {
 
 app.get('/update/job', function (req, res) {
     var userId = req.param('userId')
-    var jobData = req.param('job')
+    var jobDataStr = req.param('job')
 
     if (userId) {
+        var jobData = JSON.parse(jobDataStr)
         for (var i in jobData) {
             var job = jobData[i]
             if (job.job) {
