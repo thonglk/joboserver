@@ -1172,7 +1172,6 @@ app.get('/update/log', function (req, res) {
 
     if (userId) {
         if (log && key) {
-            console.log(log)
             logRef.child(key).update(log).then(function () {
                 res.send('result')
             }, function (err) {
