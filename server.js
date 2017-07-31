@@ -1246,7 +1246,7 @@ app.get('/view/profile', function (req, res) {
                 profileData.act = likeActivity[myStoreId + ':' + profileId]
             }
 
-            if (dataUser[userId].admin) {
+            if (dataUser[userId] && dataUser[userId].admin == true) {
                 profileData.adminData = dataUser[profileId]
             }
         }
