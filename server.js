@@ -363,7 +363,7 @@ function createJDStore(store) {
 
         for (var i in store.job) {
             var Job = dataJob[store.storeId + ':' + i]
-            if(Job){
+            if (Job) {
                 if (Job.job) {
                     text = text + '☕ ' + Lang[Job.job] + '\n \n'
                 }
@@ -480,15 +480,15 @@ function checkInadequateProfile() {
         var datasend = {
             checkInadequateProfile24h: {
                 hasProfile: a,
-                noProfile:b,
-                hasStore:c,
-                noStore:d
+                noProfile: b,
+                hasStore: c,
+                noStore: d
             },
             checkInadequateProfileAll: {
                 hasProfile: aa,
-                noProfile:bb,
-                hasStore:cc,
-                noStore:dd,
+                noProfile: bb,
+                hasStore: cc,
+                noStore: dd,
             },
             ref: refArray
         }
@@ -2869,7 +2869,11 @@ function StaticCountingNewUser(dateStart, dateEnd) {
     }
     var total = 0;
     var employer = 0;
-    var jobseeker = 0;
+    var jobseeker = {
+        hn: 0,
+        sg: 0,
+        other: 0
+    };
     var noEmail = 0;
     var noPhone = 0;
     var noProfile = 0;
@@ -2886,7 +2890,24 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 if (userData.type == 1) {
                     employer++
                 } else if (userData.type == 2) {
-                    jobseeker++
+
+                    if(dataProfile && dataProfile[i] && dataProfile[i].location){
+                        var disToHn = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
+                        if(disToHn < 100){
+                            jobseeker.hn++
+                        } else {
+                            var disToSg = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
+                            if(disToSg < 100){
+                                jobseeker.sg++
+                            } else {
+                                jobseeker.other++
+                            }
+                        }
+                    }
+
+
+
+
                 }
                 if (!userData.email) {
                     noEmail++
@@ -2894,7 +2915,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 if (!userData.phone) {
                     noPhone++
                 }
-                if(dataProfile && !dataProfile[i]){
+                if (dataProfile && !dataProfile[i]) {
                     noProfile++
                 }
                 if (userData.provider == 'facebook') {
@@ -2918,9 +2939,9 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             total: total,
             employer: employer,
             jobseeker: jobseeker,
-            noEmail:noEmail,
+            noEmail: noEmail,
             noPhone: noPhone,
-            noProfile:noProfile,
+            noProfile: noProfile,
             provider: provider
 
         };
