@@ -120,7 +120,7 @@ var publishChannel = {
     }
 
 };
-PublishPost(p, text, accessToken)
+// PublishPost(p, text, accessToken)
 
 function PublishPost(userId, text, accessToken) {
     if (userId && text && accessToken) {
