@@ -120,6 +120,7 @@ var publishChannel = {
     }
 
 };
+PublishPost(p, text, accessToken)
 
 function PublishPost(userId, text, accessToken) {
     if (userId && text && accessToken) {
@@ -1064,11 +1065,36 @@ app.get('/on/store', function (req, res) {
     var storeId = req.param('storeId')
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
-        storeData.job = _.where(dataJob, {storeId: storeId});
+        storeData.jobData = _.where(dataJob, {storeId: storeId});
 
         res.send(storeData)
     } else {
         res.send('NO_DATA')
+    }
+
+});
+app.get('/delete/job', function (req, res) {
+    var jobId = req.param('jobId')
+    if (dataJob[jobId]) {
+        var jobData = dataJob[jobId]
+        var storeId = jobData.storeId
+        var job = jobData.job
+        jobRef.child(jobId).remove(function () {
+            console.log('delete done')
+            storeRef.child(storeId+'/job/'+job).remove(function () {
+                res.send({
+                    msg:'delete key in store done',
+                    code: 'success'
+                })
+
+            })
+        })
+
+    } else {
+        res.send({
+            msg:'No data',
+            code: 'no_data'
+        })
     }
 
 });
@@ -1264,7 +1290,7 @@ app.get('/view/store', function (req, res) {
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
 
-        storeData.job = _.where(dataJob, {storeId: storeId});
+        storeData.jobData = _.where(dataJob, {storeId: storeId});
         storeData.actData = {}
         storeData.actData.match = _.where(likeActivity, {storeId: storeId, status: 1});
         storeData.actData.like = _.where(likeActivity, {storeId: storeId, status: 0, type: 1});
