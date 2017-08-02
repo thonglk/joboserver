@@ -116,11 +116,10 @@ var publishChannel = {
     },
     viecLamNhaHang: {
         pageId: '282860701742519',
-        token: 'EAAEMfZASjMhgBAP3kcFVaxtfppkTG2uxHrWpUTa56SZA7WKipTakRtkTZAZCRg4PPAn8HJqDWehThPmXraWVPEsJtrEzpfDI6eejsfZBEoSZBVRZCVWfjbDCYVPEAI555SRZAZBJz2hsI8zQ38ZBhxvbWZBse7ZCChokg5IYCnKumfeoiQZDZD'
+        token: 'EAAEMfZASjMhgBAIeW7dEVfhrQjZCtKszDRfuzsn1nDhOTaZBsejy1Xf71XxbvZBlSSHaFBg5L9eSwmNTDURRxdAetC9V1cArFnV1dM7sISSZB7weBIycRagE2RZCGZCaiQbDpFuy2cXiVyynKWpDbz9SM29yU273UkynZCBgmxU74gZDZD'
     }
 
 };
-// PublishPost(p, text, accessToken)
 
 function PublishPost(userId, text, accessToken) {
     if (userId && text && accessToken) {
@@ -439,6 +438,11 @@ function checkInadequateProfile() {
     var refArray = {}
     var a = 0, b = 0, c = 0, d = 0
     var aa = 0, bb = 0, cc = 0, dd = 0
+    var jobseeker = {
+        hn: 0,
+        sg: 0,
+        other: 0
+    };
     var time = new Date().getTime() - 86400 * 1000 * 1
     for (var i in dataUser) {
         if (dataUser[i].createdAt > time) {
@@ -455,7 +459,21 @@ function checkInadequateProfile() {
         }
 
         if (dataProfile[i] && dataUser[i].type == 2) {
-            aa++
+
+            if(dataProfile && dataProfile[i] && dataProfile[i].location){
+                var disToHn = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
+                if(disToHn < 100){
+                    jobseeker.hn++
+                } else {
+                    var disToSg = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
+                    if(disToSg < 100){
+                        jobseeker.sg++
+                    } else {
+                        jobseeker.other++
+                    }
+                }
+            }
+
 
         } else if (!dataProfile[i] && dataUser[i].type == 2) {
             bb++
@@ -486,7 +504,7 @@ function checkInadequateProfile() {
                 noStore: d
             },
             checkInadequateProfileAll: {
-                hasProfile: aa,
+                hasProfile: jobseeker,
                 noProfile: bb,
                 hasStore: cc,
                 noStore: dd,
@@ -1301,7 +1319,7 @@ app.get('/view/store', function (req, res) {
             if (likeActivity[storeId + ':' + userId]) {
                 storeData.act = likeActivity[storeId + ':' + userId]
             }
-            if (dataUser[userId].admin) {
+            if (dataUser[userId].admin == true) {
                 storeData.adminData = dataUser[storeData.createdBy]
             }
         }
