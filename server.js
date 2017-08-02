@@ -1570,8 +1570,8 @@ app.get('/query', function (req, res) {
 
     for (var i in dataProfile) {
         if ((dataProfile[i].name && S(dataProfile[i].name.toLowerCase()).latinise().s.match(qr) && b < 6)
-            || (dataUser[i] && dataUser[i].phone && dataUser[i].phone.match(qr))
-            || (dataUser[i] && dataUser[i].email && dataUser[i].phone.match(qr))
+            || (dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr))
+            || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr))
 
         ) {
             b++
