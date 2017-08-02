@@ -1610,6 +1610,7 @@ app.get('/admin/createuser', function (req, res) {
 
         });
 })
+
 app.get('/admin/scheduleemail', function (req, res) {
     var userId = req.param('userId')
     var subject = req.param('subject')
@@ -1624,6 +1625,7 @@ app.get('/admin/scheduleemail', function (req, res) {
     res.send(date, body)
 
 })
+
 app.get('/admin/deleteuser', function (req, res) {
     var userId = req.param('id');
 
@@ -1665,6 +1667,7 @@ app.get('/admin/storeEmail', function (req, res) {
     }
     res.send(send)
 })
+
 app.get('/admin/api', function (req, res) {
     var send = ''
     for (var i in dataUser) {
@@ -1805,16 +1808,6 @@ function getStringJob(listJob) {
 
 }
 
-function getArrayJob(listJob) {
-    var array = [];
-    var k = 0;
-    for (var i in listJob) {
-        array.push(i)
-        k++
-    }
-    return array
-}
-
 function addCountJob(storeId, userId, job) {
     var jobData = dataJob[storeId]
     for (var key in job) {
@@ -1826,6 +1819,7 @@ function addCountJob(storeId, userId, job) {
     }
     console.log(JSON.stringify(jobData))
 }
+
 function countAllPoint(a) {
     if (a) {
 
@@ -2460,6 +2454,7 @@ function sendJobtoPage(store) {
         } else {
             PublishPost(publishChannel.viecLamNhaHang.pageId, createJDStore(store), publishChannel.viecLamNhaHang.token)
         }
+
         if (store.package == 'premium') {
             if (store.avatar) {
                 PublishPhoto(publishChannel.Jobo.pageId, createJDStore(store), publishChannel.Jobo.token)
@@ -2916,7 +2911,10 @@ function StaticCountingNewUser(dateStart, dateEnd) {
     var jobseeker = {
         hn: 0,
         sg: 0,
-        other: 0
+        other: 0,
+        hn_ve:0,
+        sg_ve:0,
+        other_ve:0
     };
     var noEmail = 0;
     var noPhone = 0;
@@ -2939,18 +2937,24 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                         var disToHn = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
                         if(disToHn < 100){
                             jobseeker.hn++
+                            if(dataProfile[i].verify = true){
+                                jobseeker.hn_ve++
+                            }
                         } else {
                             var disToSg = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
                             if(disToSg < 100){
                                 jobseeker.sg++
+                                if(dataProfile[i].verify = true){
+                                    jobseeker.sg_ve++
+                                }
                             } else {
                                 jobseeker.other++
+                                if(dataProfile[i].verify = true){
+                                    jobseeker.other_ve++
+                                }
                             }
                         }
                     }
-
-
-
 
                 }
                 if (!userData.email) {
