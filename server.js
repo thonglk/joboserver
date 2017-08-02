@@ -253,6 +253,8 @@ function init() {
         });
         profileRef.child('undefined').remove()
 
+        Email_happyBirthDayProfile()
+
         // var profileCollection = md.collection('profile')
         // for(var i in dataProfile){
         //     var profileData = dataProfile[i]
@@ -3242,6 +3244,36 @@ function ReminderAvatarUpdate() {
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
     ReminderAvatarUpdate()
 });
+
+function Email_happyBirthDayProfile() {
+    for (var i in dataProfile) {
+        console.log('start')
+        var profileData = dataProfile[i]
+        var userData = dataUser[i]
+
+        if (userData.userId && dataProfile && profileData && profileData.birth) {
+            var mail = {
+                title: "Chúc mừng sinh nhật "+ getLastName(profileData.name) +" <3 <3 <3",
+                body: "Hãy để những lời chúc sâu lắng của chúng tôi luôn ở bên cạnh cuộc sống tuyệt vời của bạn. Jobo hy vọng trong năm tới bạn luôn khỏe mạnh và thuận buồm xuôi gió trong công việc. Sinh nhật vui vẻ!!",
+                subtitle: '',
+                description1: 'Dear ' + getLastName(dataProfile[userData.userId].name),
+                description2: 'Hãy để những lời chúc sâu lắng của chúng tôi luôn ở bên cạnh cuộc sống tuyệt vời của bạn. Jovo hy vọng trong năm tới bạn luôn khỏe mạnh và thuận buồm xuôi gió trong công việc. Sinh nhật vui vẻ!!',
+                description3: 'Jobo luôn cố gắng giúp bạn tìm được việc làm phù hợp nhanh nhất có thể',
+                calltoaction: 'Xem chi tiết',
+                linktoaction: CONFIG.WEBURL,
+                image: ''
+            };
+            schedule.scheduleJob(profileData.birth, function () {
+                sendNotification(userData, mail, true, true, true)
+            });
+
+        }
+    }
+}
+
+
+
+
 
 
 // start the server
