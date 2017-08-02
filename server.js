@@ -157,6 +157,25 @@ function PublishPhoto(userId, text, accessToken) {
     }
 }
 
+function PublishComment(postId, text, accessToken) {
+    if (postId && text && accessToken) {
+        graph.post(postId + "/comments?access_token=" + accessToken,
+            {
+                "message": text
+            },
+            function (err, res) {
+                // returns the post id
+                console.log(res, err);
+            }
+        )
+
+    } else {
+        console.log('PublishComment error')
+
+    }
+}
+
+
 
 var db = firebase.database();
 var firsttime;
@@ -377,7 +396,7 @@ function createJDStore(store) {
     if (store.job) {
         text = text + store.storeName + ' tuyển dụng ' + getStringJob(store.job) + '\n \n'
         if (store.description) {
-            text = text + '🛣 ' + store.address + '\n '
+            text = text + '🛣 ' + store.address + '\n \n '
         }
 
         if (store.description) {
@@ -3015,8 +3034,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
 
         } else {
-            console.log('StaticCountingNewUser', i)
-
+            console.log('Static_User_No_CreatedAt', i)
         }
     }
     for (var i in dataStore) {
@@ -3034,7 +3052,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
 
         } else {
-            console.log('StaticCountingNewUser', i)
+            console.log('Static_Store_No_CreatedAt', i)
 
         }
     }
