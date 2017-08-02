@@ -2932,24 +2932,24 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 if (userData.type == 1) {
                     employer++
                 } else if (userData.type == 2) {
-
-                    if(dataProfile && dataProfile[i] && dataProfile[i].location){
-                        var disToHn = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
+                    var profileData = dataProfile[i]
+                    if(dataProfile && profileData && profileData.location){
+                        var disToHn = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
                         if(disToHn < 100){
                             jobseeker.hn++
-                            if(dataProfile[i].verify = true){
+                            if(profileData.verify == true){
                                 jobseeker.hn_ve++
                             }
                         } else {
-                            var disToSg = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
+                            var disToSg = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
                             if(disToSg < 100){
                                 jobseeker.sg++
-                                if(dataProfile[i].verify = true){
+                                if(profileData.verify == true){
                                     jobseeker.sg_ve++
                                 }
                             } else {
                                 jobseeker.other++
-                                if(dataProfile[i].verify = true){
+                                if(profileData.verify == true){
                                     jobseeker.other_ve++
                                 }
                             }
