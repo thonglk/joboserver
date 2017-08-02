@@ -2932,8 +2932,8 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 if (userData.type == 1) {
                     employer++
                 } else if (userData.type == 2) {
-                    var profileData = dataProfile[i]
-                    if(dataProfile && profileData && profileData.location){
+                    if(dataProfile && dataProfile[i] && dataProfile[i].location){
+                        var profileData = dataProfile[i]
                         var disToHn = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
                         if(disToHn < 100){
                             jobseeker.hn++
