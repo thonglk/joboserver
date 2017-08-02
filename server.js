@@ -19,6 +19,7 @@ var async = require("async");
 var multipart = require('connect-multiparty');
 var cors = require('cors')
 var graph = require('fbgraph');
+var json2csv = require('json2csv');
 
 var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
@@ -234,6 +235,26 @@ function init() {
         dataUser = snap.val()
         userRef.child('undefined').remove();
         analyticsUserToday()
+        // var fields = ['email', 'phone'];
+        // var myUser = []
+        // for (var i in dataUser) {
+        //     myUser.push({
+        //         email: dataUser[i].email || '',
+        //         phone: dataUser[i].phone
+        //     })
+        // }
+        // return new Promise(function (resolve, reject) {
+        //     resolve(myUser)
+        // }).then(function (myUser) {
+        //     var csv = json2csv({data: myUser, fields: fields});
+        //
+        //     fs.writeFile('file.csv', csv, function (err) {
+        //         if (err) throw err;
+        //         console.log('file saved');
+        //     });
+        //
+        // })
+
 
     })
     // profileCol.find({}).toArray(function (err, suc) {
@@ -2918,7 +2939,11 @@ function StaticCountingNewUser(dateStart, dateEnd) {
         dateEnd = 0
     }
     var total = 0;
-    var employer = 0;
+    var employer = {
+        employer:0,
+        store:0,
+        premium:0
+    };
     var jobseeker = {
         hn: 0,
         sg: 0,
@@ -2941,7 +2966,10 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             if ((userData.createdAt > dateStart || dateStart == 0) && (userData.createdAt < dateEnd || dateEnd == 0)) {
                 total++
                 if (userData.type == 1) {
-                    employer++
+                    employer.employer++
+
+
+
                 } else if (userData.type == 2) {
                     if (dataProfile && dataProfile[i] && dataProfile[i].location) {
                         var profileData = dataProfile[i]
@@ -2991,6 +3019,26 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
         }
     }
+    for (var i in dataStore) {
+        var storeData = dataStore[i];
+        if (storeData.createdAt) {
+            if ((storeData.createdAt > dateStart || dateStart == 0) && (storeData.createdAt < dateEnd || dateEnd == 0)) {
+                employer.store++
+                if (storeData.createdBy
+                    && dataUser[storeData.createdBy]
+                    && dataUser[storeData.createdBy].package == 'premium') {
+                    employer.premium++
+                }
+
+            }
+
+
+        } else {
+            console.log('StaticCountingNewUser', i)
+
+        }
+    }
+
     return new Promise(function (resolve, reject) {
         var data = {
             dateStart: dateStart,
@@ -3291,3 +3339,4 @@ function Email_happyBirthDayProfile() {
 http.createServer(app).listen(port);
 https.createServer(credentials, app).listen(8443);
 console.log('Server started!', port);
+
