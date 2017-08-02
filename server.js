@@ -2937,19 +2937,19 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                         var disToHn = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
                         if(disToHn < 100){
                             jobseeker.hn++
-                            if(profileData.verify == true){
+                            if(profileData.verify){
                                 jobseeker.hn_ve++
                             }
                         } else {
                             var disToSg = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
                             if(disToSg < 100){
                                 jobseeker.sg++
-                                if(profileData.verify == true){
+                                if(profileData.verify){
                                     jobseeker.sg_ve++
                                 }
                             } else {
                                 jobseeker.other++
-                                if(profileData.verify == true){
+                                if(profileData.verify){
                                     jobseeker.other_ve++
                                 }
                             }
