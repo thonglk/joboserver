@@ -3046,6 +3046,23 @@ app.get('/admin/analytics', function (req, res) {
     }
 );
 
+app.get('/admin/getEmailProfile', function (req, res) {
+        var n = ''
+        for (var i in dataUser) {
+            var userData = dataUser[i]
+            if (userData.type == 2 && userData.email) {
+                n = n + userData.email + '\n'
+            }
+        }
+        return new Promise(function (resolve, reject) {
+            resolve(n)
+        }).then(function (n) {
+            res.send(n)
+        })
+    }
+);
+
+
 function analyticsUserToday() {
     var dateStart = new Date();
     dateStart.setHours(0, 0, 0, 0);
@@ -3247,16 +3264,14 @@ schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
 
 function Email_happyBirthDayProfile() {
     for (var i in dataProfile) {
-        console.log('start')
         var profileData = dataProfile[i]
-        var userData = dataUser[i]
-
-        if (userData.userId && dataProfile && profileData && profileData.birth) {
+        if (profileData.userId && dataProfile && profileData && profileData.birth) {
+            var userData = dataUser[i]
             var mail = {
-                title: "Chúc mừng sinh nhật "+ getLastName(profileData.name) +" <3 <3 <3",
+                title: "Chúc mừng sinh nhật " + getLastName(profileData.name) + " <3 <3 <3",
                 body: "Hãy để những lời chúc sâu lắng của chúng tôi luôn ở bên cạnh cuộc sống tuyệt vời của bạn. Jobo hy vọng trong năm tới bạn luôn khỏe mạnh và thuận buồm xuôi gió trong công việc. Sinh nhật vui vẻ!!",
                 subtitle: '',
-                description1: 'Dear ' + getLastName(dataProfile[userData.userId].name),
+                description1: 'Dear ' + getLastName(profileData.name),
                 description2: 'Hãy để những lời chúc sâu lắng của chúng tôi luôn ở bên cạnh cuộc sống tuyệt vời của bạn. Jovo hy vọng trong năm tới bạn luôn khỏe mạnh và thuận buồm xuôi gió trong công việc. Sinh nhật vui vẻ!!',
                 description3: 'Jobo luôn cố gắng giúp bạn tìm được việc làm phù hợp nhanh nhất có thể',
                 calltoaction: 'Xem chi tiết',
@@ -3270,10 +3285,6 @@ function Email_happyBirthDayProfile() {
         }
     }
 }
-
-
-
-
 
 
 // start the server
