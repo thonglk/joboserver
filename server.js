@@ -137,6 +137,7 @@ function PublishPost(userId, text, accessToken) {
     }
 
 }
+
 function PublishPhoto(userId, text, accessToken) {
     if (userId && text && accessToken) {
 
@@ -177,7 +178,8 @@ var logRef = db.ref('log')
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
 var buyRef = db.ref('activity/buy');
-var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, filterProfile, filterStore, dataLog, dataNoti, Lang
+var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, filterProfile, filterStore, dataLog, dataNoti,
+    Lang
 
 function init() {
     console.log('init')
@@ -460,13 +462,13 @@ function checkInadequateProfile() {
 
         if (dataProfile[i] && dataUser[i].type == 2) {
 
-            if(dataProfile && dataProfile[i] && dataProfile[i].location){
-                var disToHn = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
-                if(disToHn < 100){
+            if (dataProfile && dataProfile[i] && dataProfile[i].location) {
+                var disToHn = getDistanceFromLatLonInKm(dataProfile[i].location.lat, dataProfile[i].location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+                if (disToHn < 100) {
                     jobseeker.hn++
                 } else {
-                    var disToSg = getDistanceFromLatLonInKm(dataProfile[i].location.lat,dataProfile[i].location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
-                    if(disToSg < 100){
+                    var disToSg = getDistanceFromLatLonInKm(dataProfile[i].location.lat, dataProfile[i].location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+                    if (disToSg < 100) {
                         jobseeker.sg++
                     } else {
                         jobseeker.other++
@@ -558,6 +560,7 @@ function checkNotCreate() {
         }
     }
 }
+
 schedule.scheduleJob({hour: 12, minute: 30, dayOfWeek: 2}, function () {
     checkNotCreate()
 });
@@ -1099,9 +1102,9 @@ app.get('/delete/job', function (req, res) {
         var job = jobData.job
         jobRef.child(jobId).remove(function () {
             console.log('delete done')
-            storeRef.child(storeId+'/job/'+job).remove(function () {
+            storeRef.child(storeId + '/job/' + job).remove(function () {
                 res.send({
-                    msg:'delete key in store done',
+                    msg: 'delete key in store done',
                     code: 'success'
                 })
 
@@ -1110,7 +1113,7 @@ app.get('/delete/job', function (req, res) {
 
     } else {
         res.send({
-            msg:'No data',
+            msg: 'No data',
             code: 'no_data'
         })
     }
@@ -1566,7 +1569,11 @@ app.get('/query', function (req, res) {
     }
 
     for (var i in dataProfile) {
-        if (dataProfile[i].name && S(dataProfile[i].name.toLowerCase()).latinise().s.match(qr) && b < 6) {
+        if ((dataProfile[i].name && S(dataProfile[i].name.toLowerCase()).latinise().s.match(qr) && b < 6)
+            || (dataUser[i] && dataUser[i].phone && dataUser[i].phone.match(qr))
+            || (dataUser[i] && dataUser[i].email && dataUser[i].phone.match(qr))
+
+        ) {
             b++
             result.profile.push(dataProfile[i])
         }
@@ -1759,10 +1766,10 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     var dLat = deg2rad(lat2 - lat1);  // deg2rad below
     var dLon = deg2rad(lon2 - lon1);
     var a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        ;
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    ;
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var x = R * c; // Distance in km
     var n = parseFloat(x);
@@ -2472,6 +2479,7 @@ function sendVerifyEmail(email, userId, name) {
     if (email) {
 
     }
+
     function who() {
         if (dataUser[userId] && dataUser[userId].type) {
             var who = dataUser[userId].type
@@ -2661,6 +2669,7 @@ function sendNotiSubcribleToEmployer(userData) {
     }
 
 }
+
 function sendNotiSubcribleToProfile(storeData) {
     if (storeData.storeName && storeData.avatar && storeData.job && storeData.location) {
 
@@ -2912,9 +2921,9 @@ function StaticCountingNewUser(dateStart, dateEnd) {
         hn: 0,
         sg: 0,
         other: 0,
-        hn_ve:0,
-        sg_ve:0,
-        other_ve:0
+        hn_ve: 0,
+        sg_ve: 0,
+        other_ve: 0
     };
     var noEmail = 0;
     var noPhone = 0;
@@ -2932,24 +2941,24 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 if (userData.type == 1) {
                     employer++
                 } else if (userData.type == 2) {
-                    if(dataProfile && dataProfile[i] && dataProfile[i].location){
+                    if (dataProfile && dataProfile[i] && dataProfile[i].location) {
                         var profileData = dataProfile[i]
-                        var disToHn = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.hn.lat,CONFIG.address.hn.lng)
-                        if(disToHn < 100){
+                        var disToHn = getDistanceFromLatLonInKm(profileData.location.lat, profileData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+                        if (disToHn < 100) {
                             jobseeker.hn++
-                            if(profileData.verify){
+                            if (profileData.verify) {
                                 jobseeker.hn_ve++
                             }
                         } else {
-                            var disToSg = getDistanceFromLatLonInKm(profileData.location.lat,profileData.location.lng,CONFIG.address.sg.lat,CONFIG.address.sg.lng)
-                            if(disToSg < 100){
+                            var disToSg = getDistanceFromLatLonInKm(profileData.location.lat, profileData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+                            if (disToSg < 100) {
                                 jobseeker.sg++
-                                if(profileData.verify){
+                                if (profileData.verify) {
                                     jobseeker.sg_ve++
                                 }
                             } else {
                                 jobseeker.other++
-                                if(profileData.verify){
+                                if (profileData.verify) {
                                     jobseeker.other_ve++
                                 }
                             }
@@ -2998,6 +3007,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
     })
 
 }
+
 app.get('/admin/analyticsUser', function (req, res) {
         var dateStart = new Date()
         dateStart.setHours(0, 0, 0, 0)
@@ -3096,6 +3106,7 @@ function ReminderInstallApp() {
         }
     }
 }
+
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 0}, function () {
     ReminderInstallApp()
 });
@@ -3120,6 +3131,7 @@ function ReminderJobseekerUpdateAvatar() {
         }
     }
 }
+
 schedule.scheduleJob({hour: 12, minute: 30, dayOfWeek: 1}, function () {
     ReminderJobseekerUpdateAvatar()
 })
@@ -3149,6 +3161,7 @@ function ReminderUpdateDeadline() {
     }
 
 }
+
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 2}, function () {
     ReminderUpdateDeadline()
 });
@@ -3173,6 +3186,7 @@ function ReminderUpdateExpect_Job() {
         }
     }
 }
+
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 4}, function () {
     ReminderUpdateExpect_Job()
 });
@@ -3198,6 +3212,7 @@ function ReminderUpdateSalary() {
         }
     }
 }
+
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 5}, function () {
     ReminderUpdateSalary()
 });
@@ -3223,6 +3238,7 @@ function ReminderAvatarUpdate() {
         }
     }
 }
+
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
     ReminderAvatarUpdate()
 });
