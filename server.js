@@ -624,7 +624,7 @@ app.get('/', function (req, res) {
 app.get('/api/dashboard', function (req, res) {
     var dashboard = {}
     dashboard.jobseeker = _.where(dataProfile,{feature:true})
-    dashboard.jobseeker = _.where(dataStore,{feature:true})
+    dashboard.employer = _.where(dataStore,{feature:true})
     res.send(dashboard)
 
     // profileCol.find({feature: true}).toArray(function (err, suc) {
