@@ -51,9 +51,9 @@ var staticData = {
 //Mongo//
 const MongoClient = require('mongodb');
 
-// var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-// var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
-//
+var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
+var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
+
 // MongoClient.connect(uri, function (err, db) {
 //     md = db
 //     userCol = md.collection('user');
@@ -253,7 +253,7 @@ function init() {
         dataUser = snap.val()
         userRef.child('undefined').remove();
 
-        analyticsUserToday()
+        // analyticsUserToday()
 
         // var fields = ['email', 'phone'];
         // var myUser = []
@@ -292,8 +292,6 @@ function init() {
         });
         profileRef.child('undefined').remove()
 
-        Email_happyBirthDayProfile()
-
         // var profileCollection = md.collection('profile')
         // for(var i in dataProfile){
         //     var profileData = dataProfile[i]
@@ -301,6 +299,29 @@ function init() {
         //         console.log(err)
         //     })
         // }
+
+        // var fields = ['name','address'];
+        // var myUser = []
+        // for (var i in dataProfile) {
+        //     var profileData = dataProfile[i]
+        //     if(profileData.address && profileData.name)
+        //         myUser.push({
+        //             name: profileData.name || '',
+        //             address: profileData.address,
+        //         })
+        // }
+        // return new Promise(function (resolve, reject) {
+        //     resolve(myUser)
+        // }).then(function (myUser) {
+        //     var csv = json2csv({data: myUser, fields: fields});
+        //
+        //     fs.writeFile('profilelocation.csv', csv, function (err) {
+        //         if (err) throw err;
+        //         console.log('file saved');
+        //     });
+        //
+        // })
+        //
 
     });
 
@@ -318,6 +339,30 @@ function init() {
             return card.location && !card.hide
         });
         storeRef.child('undefined').remove()
+
+        // var fields = ['name','address','location'];
+        // var myUser = []
+        // for (var i in dataStore) {
+        //     var storeData = dataStore[i]
+        //     if(storeData.location && storeData.createdBy && dataUser[storeData.createdBy] && dataUser[storeData.createdBy].package == 'premium')
+        //     myUser.push({
+        //         name: dataStore[i].storeName || '',
+        //         address: dataStore[i].address,
+        //         location: dataStore[i].location
+        //
+        //     })
+        // }
+        // return new Promise(function (resolve, reject) {
+        //     resolve(myUser)
+        // }).then(function (myUser) {
+        //     var csv = json2csv({data: myUser, fields: fields});
+        //
+        //     fs.writeFile('storelocation.csv', csv, function (err) {
+        //         if (err) throw err;
+        //         console.log('file saved');
+        //     });
+        //
+        // })
 
         // var storeCollection = md.collection('store')
         // for(var i in dataStore){
@@ -385,6 +430,7 @@ function init() {
         resolve(dataProfile)
     }).then(function () {
         startList()
+        Email_happyBirthDayProfile()
 
 
     })
