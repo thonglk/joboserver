@@ -274,8 +274,6 @@ function init() {
         //     });
         //
         // })
-
-
     })
     // profileCol.find({}).toArray(function (err, suc) {
     //     dataProfile = {}
@@ -295,22 +293,7 @@ function init() {
         profileRef.child('undefined').remove()
 
         Email_happyBirthDayProfile()
-        // for (var i in obj) {
-        //     var date = new Date(obj[i].createdAt)
-        //     if (!dataProfile[i]) {
-        //         console.log('hiih,'+ new Date(obj[i].createdAt))
-        //         secondary.database().ref('profile').child(i).once('value',function (snap) {
-        //             if(snap.val()){
-        //                 console.log('has snap val',date )
-        //                 profileRef.child(i).update(snap.val())
-        //             } else {
-        //                 console.log('no snap val',date )
-        //             }
-        //         })
-        //     } else {
-        //         console.log('doe')
-        //     }
-        // }
+
         // var profileCollection = md.collection('profile')
         // for(var i in dataProfile){
         //     var profileData = dataProfile[i]
@@ -695,7 +678,6 @@ app.get('/createuser', function (req, res) {
         });
 
 })
-
 
 
 app.get('/verifyemail', function (req, res) {
@@ -2123,7 +2105,7 @@ function startList() {
                         profileRef.child(card.userId).update({expect_salary: x})
                     }
                 }
-                if(dataUser[card.userId] &&dataUser[card.userId].email){
+                if (dataUser[card.userId] && dataUser[card.userId].email) {
                     var email = dataUser[card.userId].email
 
                     sendVerifyEmail(email, userId, name)
@@ -2139,7 +2121,6 @@ function startList() {
                     console.log('createProfile error email ' + card.userId)
 
                 }
-
 
 
             } else {
