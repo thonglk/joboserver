@@ -67,7 +67,6 @@ const MongoClient = require('mongodb');
 //
 //
 // });
-init();
 
 
 // TODO(DEVELOPER): Configure your email transport.
@@ -3382,3 +3381,4 @@ http.createServer(app).listen(port);
 https.createServer(credentials, app).listen(8443);
 console.log('Server started!', port);
 
+init();
