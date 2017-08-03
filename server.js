@@ -1260,7 +1260,8 @@ app.get('/update/review', function (req, res) {
     if (reviewsStr) {
         var reviews = JSON.parse(reviewsStr)
 
-        res.send(dataUser[userId])
+        res.send({msg:'done',
+        code:'success'})
     }
 
 
