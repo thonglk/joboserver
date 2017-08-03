@@ -623,13 +623,17 @@ app.get('/', function (req, res) {
 
 app.get('/api/dashboard', function (req, res) {
     var dashboard = {}
-    profileCol.find({feature: true}).toArray(function (err, suc) {
-        dashboard.jobseeker = suc
-        storeCol.find({feature: true}).toArray(function (err, suc) {
-            dashboard.employer = suc
-            res.send(dashboard)
-        })
-    })
+    dashboard.jobseeker = _.where(dataProfile,{feature:true})
+    dashboard.jobseeker = _.where(dataStore,{feature:true})
+    res.send(dashboard)
+
+    // profileCol.find({feature: true}).toArray(function (err, suc) {
+    //     dashboard.jobseeker = suc
+    //     storeCol.find({feature: true}).toArray(function (err, suc) {
+    //         dashboard.employer = suc
+    //         res.send(dashboard)
+    //     })
+    // })
 })
 
 app.get('/createuser', function (req, res) {
