@@ -51,23 +51,23 @@ var staticData = {
 //Mongo//
 const MongoClient = require('mongodb');
 
-var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
-
-MongoClient.connect(uri, function (err, db) {
-    md = db
-    userCol = md.collection('user');
-    profileCol = md.collection('profile');
-    storeCol = md.collection('store');
-    jobCol = md.collection('job');
-    notificationCol = md.collection('notification');
-    staticCol = md.collection('static');
-
-    console.log("Connected correctly to server.");
-    init();
-
-
-});
+// var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
+// var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
+//
+// MongoClient.connect(uri, function (err, db) {
+//     md = db
+//     userCol = md.collection('user');
+//     profileCol = md.collection('profile');
+//     storeCol = md.collection('store');
+//     jobCol = md.collection('job');
+//     notificationCol = md.collection('notification');
+//     staticCol = md.collection('static');
+//
+//     console.log("Connected correctly to server.");
+//
+//
+// });
+init();
 
 
 // TODO(DEVELOPER): Configure your email transport.
