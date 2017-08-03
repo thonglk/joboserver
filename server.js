@@ -8,7 +8,8 @@ var fs = require('fs');
 var http = require('http')
 var https = require('https')
 var S = require('string');
-
+// var obj = JSON.parse(fs.readFileSync('jobo-b8204-user-export.json', 'utf8'));
+// console.log(obj['vSa9WpnB4DYLtjj3OavvYhVT7Je2'])
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
 var schedule = require('node-schedule');
@@ -176,7 +177,6 @@ function PublishComment(postId, text, accessToken) {
 }
 
 
-
 var db = firebase.database();
 var firsttime;
 
@@ -253,7 +253,9 @@ function init() {
     userRef.on('value', function (snap) {
         dataUser = snap.val()
         userRef.child('undefined').remove();
+
         analyticsUserToday()
+
         // var fields = ['email', 'phone'];
         // var myUser = []
         // for (var i in dataUser) {
@@ -294,7 +296,22 @@ function init() {
         profileRef.child('undefined').remove()
 
         Email_happyBirthDayProfile()
-
+        // for (var i in obj) {
+        //     var date = new Date(obj[i].createdAt)
+        //     if (!dataProfile[i]) {
+        //         console.log('hiih,'+ new Date(obj[i].createdAt))
+        //         secondary.database().ref('profile').child(i).once('value',function (snap) {
+        //             if(snap.val()){
+        //                 console.log('has snap val',date )
+        //                 profileRef.child(i).update(snap.val())
+        //             } else {
+        //                 console.log('no snap val',date )
+        //             }
+        //         })
+        //     } else {
+        //         console.log('doe')
+        //     }
+        // }
         // var profileCollection = md.collection('profile')
         // for(var i in dataProfile){
         //     var profileData = dataProfile[i]
@@ -679,6 +696,7 @@ app.get('/createuser', function (req, res) {
         });
 
 })
+
 
 
 app.get('/verifyemail', function (req, res) {
@@ -2090,7 +2108,6 @@ function startList() {
 
                 var userData = dataProfile[card.userId]
                 var name = userData.name || 'bạn'
-                var email = dataUser[card.userId].email
                 var userId = card.userId
                 staticRef.child(card.userId).update(staticData);
 
@@ -2107,16 +2124,24 @@ function startList() {
                         profileRef.child(card.userId).update({expect_salary: x})
                     }
                 }
+                if(dataUser[card.userId] &&dataUser[card.userId].email){
+                    var email = dataUser[card.userId].email
 
-                sendVerifyEmail(email, userId, name)
+                    sendVerifyEmail(email, userId, name)
 
-                setTimeout(function () {
-                    sendWelcomeEmailToProfile(dataUser[card.userId], userData)
-                    sendNotiSubcribleToEmployer(userData);
+                    setTimeout(function () {
+                        sendWelcomeEmailToProfile(dataUser[card.userId], userData)
+                        sendNotiSubcribleToEmployer(userData);
 
-                    actRef.child(key).remove()
+                        actRef.child(key).remove()
 
-                }, 50000)
+                    }, 50000)
+                } else {
+                    console.log('createProfile error email ' + card.userId)
+
+                }
+
+
 
             } else {
                 console.log('createProfile error ' + card.userId)
@@ -2959,9 +2984,9 @@ function StaticCountingNewUser(dateStart, dateEnd) {
     }
     var total = 0;
     var employer = {
-        employer:0,
-        store:0,
-        premium:0
+        employer: 0,
+        store: 0,
+        premium: 0
     };
     var jobseeker = {
         hn: 0,
@@ -2986,7 +3011,6 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 total++
                 if (userData.type == 1) {
                     employer.employer++
-
 
 
                 } else if (userData.type == 2) {
