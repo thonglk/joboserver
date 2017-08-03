@@ -669,8 +669,8 @@ app.get('/', function (req, res) {
 
 app.get('/api/dashboard', function (req, res) {
     var dashboard = {}
-    dashboard.jobseeker = _.where(dataProfile,{feature:true})
-    dashboard.employer = _.where(dataStore,{feature:true})
+    dashboard.jobseeker = _.where(dataProfile, {feature: true})
+    dashboard.employer = _.where(dataStore, {feature: true})
     res.send(dashboard)
 
     // profileCol.find({feature: true}).toArray(function (err, suc) {
@@ -918,9 +918,7 @@ app.get('/api/job', function (req, res) {
             }
 
 
-            if (show == 'hot' && card.package == 'premium') {
-                joblist.push(card)
-            } else if (
+            if (
                 (card.job == jobfilter || !jobfilter)
                 && (card.distance < 50)
                 && (card.working_type == working_typefilter || !working_typefilter )
@@ -1149,7 +1147,7 @@ app.get('/api/users', function (req, res) {
             }
         )
     } else {
-        res.send('update location'+ userId)
+        res.send('update location' + userId)
     }
 });
 
@@ -1260,8 +1258,10 @@ app.get('/update/review', function (req, res) {
     if (reviewsStr) {
         var reviews = JSON.parse(reviewsStr)
 
-        res.send({msg:'done',
-        code:'success'})
+        res.send({
+            msg: 'done',
+            code: 'success'
+        })
     }
 
 
@@ -3108,7 +3108,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
         } else {
             console.log('Static_Store_No_CreatedAt', i)
-            if(!storeData.storeName){
+            if (!storeData.storeName) {
                 storeRef.child(i).remove(function (a) {
                     console.log('store_Delete')
                 })
