@@ -1149,7 +1149,7 @@ app.get('/api/users', function (req, res) {
             }
         )
     } else {
-        res.send('update location', userId)
+        res.send('update location'+ userId)
     }
 });
 
@@ -1319,7 +1319,7 @@ app.get('/update/log', function (req, res) {
 
         }
     }
-    ;
+
 
 });
 
@@ -3108,6 +3108,11 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
         } else {
             console.log('Static_Store_No_CreatedAt', i)
+            if(!storeData.storeName){
+                storeRef.child(i).remove(function (a) {
+                    console.log('store_Delete')
+                })
+            }
 
         }
     }
