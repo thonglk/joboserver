@@ -1049,7 +1049,7 @@ app.get('/api/users', function (req, res) {
     var userId = req.param('userId')
     var jobfilter = req.param('job');
     var working_typefilter = req.param('working_type');
-    var distancefilter = req.param('distance') || 100;
+    var distancefilter = req.param('distance') || 20;
     var sexfilter = req.param('sex');
     var expfilter = req.param('experience');
     var figurefilter = req.param('figure');
@@ -3212,181 +3212,181 @@ function analyticsUserToday() {
 
 // Remind:
 // Cài app //chưa hoàn thiện
-
-function ReminderInstallApp() {
-
-    for (var i in dataUser) {
-        var userData = dataUser[i]
-        if (!userData.mobileToken) {
-            if (userData.type == 1) {
-                var mail = {
-                    title: "Không bỏ lỡ ứng viên ứng tuyển vào thương hiệu của bạn",
-                    preview: "Hãy cài app jobo để nhận thông báo ngay từ ứng viên",
-                    subtitle: '',
-                    description1: 'Chào ' + getLastName(userData.name),
-                    description2: "Cài app jobo để nhận thông báo ngay, hãy nhớ bật cho phép gửi thông báo để Jobo có thể gửi những thông tin công việc quan trọng nhé",
-                    description3: 'Tài khoản để anh/chị sử dụng là: Email:' + userData.email,
-                    calltoaction: 'Cài đặt App',
-                    linktoaction: CONFIG.WEBURL + '/go',
-                    image: ''
-                }
-                sendNotification(userData, mail, true, true, true)
-
-            } else if (userData.type == 2) {
-                var mail = {
-                    title: "Tìm việc nhanh hơn trên ứng dụng mobile",
-                    preview: "Hãy cài app jobo để nhận thông báo việc làm phù hợp ngay",
-                    subtitle: '',
-                    description1: 'Chào ' + getLastName(userData.name),
-                    description2: "Như bạn đã biết, mỗi khi nhà tuyển dụng có nhu cầu tuyển bạn, chúng tôi sẽ thông báo tới bạn ngay bằng email hoặc gọi điện, tuy nhiên tốt hơn bạn hãy cài app và mở thông báo, để chúng tôi gửi thông báo trực tiếp trong app nhanh hơn",
-                    description3: 'Tài khoản để bạn sử dụng là: Email: ' + userData.email,
-                    calltoaction: 'Cài đặt App',
-                    linktoaction: CONFIG.WEBURL + '/go',
-                    image: ''
-                }
-                sendNotification(userData, mail, true, true, true)
-            }
-
-
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 0}, function () {
-    ReminderInstallApp()
-});
-
-function ReminderJobseekerUpdateAvatar() {
-    for (var i in dataProfile) {
-        var profile = dataProfile[i]
-        if (!profile.avatar) {
-            var mail = {
-                title: "Bạn không thể nhận được việc làm vì không có ảnh đại diện!",
-                body: "Dear " + getLastName(profile.name) + " bạn còn chần chừ gì nữa mà không nhanh tay hoàn thiện hồ sơ (ảnh, SĐT, …) để có được cơ hội các nhà tuyển dụng lựa chọn cao hơn!",
-                subtitle: '',
-                description1: 'Dear ' + getLastName(profile.name),
-                description2: 'Hiện tại hồ sơ của bạn đang thiếu ảnh đại diện, để giúp bạn ứng tuyển và được nhà tuyển dụng lựa chọn, chúng tôi sẽ gửi bộ hồ sơ của bạn sang nhà tuyển dụng để xét duyệt, trong đó yêu cầu có ảnh đại diện, và một đoạn video phỏng vấn ngắn giới thiệu bản thân',
-                description3: 'Do đó, bạn hãy hoàn thiện hồ sơ nhé, nếu không tự cập nhật được, bạn hãy gọi tới Jobo (0968269860) để được trợ giúp nhé',
-                calltoaction: 'Cật nhật ngay!',
-                linktoaction: CONFIG.WEBURL,
-                description4: ''
-            }
-            var userData = dataUser[i]
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 30, dayOfWeek: 1}, function () {
-    ReminderJobseekerUpdateAvatar()
-})
-
-function ReminderUpdateDeadline() {
-    for (var i in dataJob) {
-        var job = dataJob[i]
-        if (!job.deadline) {
-            var storeData = dataStore[job.storeId]
-            var userData = dataUser[storeData.createdBy]
-            var mail = {
-                title: "Bạn đã tuyển đủ nhân viên chưa?",
-                body: "Hãy cập nhật lại thông tin các vị trí bạn cần tuyển!",
-                subtitle: '',
-                description1: 'Chào ' + storeData.storeName,
-                description2: 'Hãy cập nhật lại các thông tin và hạn chót để chúng tôi tuyển nhân viên kịp thời cho bạn!',
-                description3: 'Sau đó lướt hơn +4000 hồ sơ phù hợp để tuyển nhé!',
-                calltoaction: 'Cật nhật ngay!',
-                linktoaction: CONFIG.WEBURL,
-                description4: '',
-                image: storeData.avatar || ''
-            };
-            sendNotification(userData, mail, true, true, true)
-        } else {
-            console.log('ReminderUpdateDeadline error', storeId)
-        }
-    }
-
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 2}, function () {
-    ReminderUpdateDeadline()
-});
-
-function ReminderUpdateExpect_Job() {
-    for (var i in dataProfile) {
-        var profile = dataProfile[i]
-        if (!profile.job) {
-            var userData = dataUser[i]
-            var mail = {
-                title: "Bạn đang cần tìm việc gì?",
-                body: "Hãy cập nhật vị trí mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!",
-                subtitle: '',
-                description1: 'Chào ' + getLastName(userData.name),
-                description2: 'Hãy cập nhật vị trí mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!',
-                description3: 'Sau đó lướt hơn 300 công việc đang tuyển xung quanh bạn',
-                calltoaction: 'Xem profile của bạn',
-                linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
-                image: ''
-            };
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 4}, function () {
-    ReminderUpdateExpect_Job()
-});
-
-function ReminderUpdateSalary() {
-    for (var i in dataUser) {
-        console.log('start')
-        var userData = dataUser[i]
-        if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].expect_salary) {
-            var mail = {
-                title: "Nhận việc mà mức lương không như ý?",
-                body: "Hãy cập nhật mức lương mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!",
-                subtitle: '',
-                description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
-                description2: 'Hãy cập nhật mức lương mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!',
-                description3: 'Sau đó lướt hơn 300 công việc đang tuyển xung quanh bạn',
-                calltoaction: 'Xem profile của bạn',
-                linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
-                image: ''
-            };
-            sendNotification(userData, mail, true, true, true)
-
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 5}, function () {
-    ReminderUpdateSalary()
-});
-
-function ReminderAvatarUpdate() {
-    for (var i in dataUser) {
-        console.log('start')
-        var userData = dataUser[i]
-        if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].avatar) {
-            var mail = {
-                title: "Để nhận được việc làm, bạn bắt buộc phải có ảnh đại diện",
-                body: "Hãy cập nhật ảnh đại diện ngay!",
-                subtitle: '',
-                description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
-                description2: 'Có rất nhiều nhà tuyển dụng đang muốn tuyển bạn nhưng bạn chưa cập nhật ảnh đại diện nên họ không thể tuyển bạn được',
-                description3: 'Hãy cập nhật ảnh đại diện ngay và lướt hơn 300 công việc đang tuyển xung quanh bạn',
-                calltoaction: 'Xem chi tiết',
-                linktoaction: CONFIG.WEBURL,
-                image: ''
-            };
-            sendNotification(userData, mail, true, true, true)
-
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
-    ReminderAvatarUpdate()
-});
+//
+// function ReminderInstallApp() {
+//
+//     for (var i in dataUser) {
+//         var userData = dataUser[i]
+//         if (!userData.mobileToken) {
+//             if (userData.type == 1) {
+//                 var mail = {
+//                     title: "Không bỏ lỡ ứng viên ứng tuyển vào thương hiệu của bạn",
+//                     preview: "Hãy cài app jobo để nhận thông báo ngay từ ứng viên",
+//                     subtitle: '',
+//                     description1: 'Chào ' + getLastName(userData.name),
+//                     description2: "Cài app jobo để nhận thông báo ngay, hãy nhớ bật cho phép gửi thông báo để Jobo có thể gửi những thông tin công việc quan trọng nhé",
+//                     description3: 'Tài khoản để anh/chị sử dụng là: Email:' + userData.email,
+//                     calltoaction: 'Cài đặt App',
+//                     linktoaction: CONFIG.WEBURL + '/go',
+//                     image: ''
+//                 }
+//                 sendNotification(userData, mail, true, true, true)
+//
+//             } else if (userData.type == 2) {
+//                 var mail = {
+//                     title: "Tìm việc nhanh hơn trên ứng dụng mobile",
+//                     preview: "Hãy cài app jobo để nhận thông báo việc làm phù hợp ngay",
+//                     subtitle: '',
+//                     description1: 'Chào ' + getLastName(userData.name),
+//                     description2: "Như bạn đã biết, mỗi khi nhà tuyển dụng có nhu cầu tuyển bạn, chúng tôi sẽ thông báo tới bạn ngay bằng email hoặc gọi điện, tuy nhiên tốt hơn bạn hãy cài app và mở thông báo, để chúng tôi gửi thông báo trực tiếp trong app nhanh hơn",
+//                     description3: 'Tài khoản để bạn sử dụng là: Email: ' + userData.email,
+//                     calltoaction: 'Cài đặt App',
+//                     linktoaction: CONFIG.WEBURL + '/go',
+//                     image: ''
+//                 }
+//                 sendNotification(userData, mail, true, true, true)
+//             }
+//
+//
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 0}, function () {
+//     ReminderInstallApp()
+// });
+//
+// function ReminderJobseekerUpdateAvatar() {
+//     for (var i in dataProfile) {
+//         var profile = dataProfile[i]
+//         if (!profile.avatar) {
+//             var mail = {
+//                 title: "Bạn không thể nhận được việc làm vì không có ảnh đại diện!",
+//                 body: "Dear " + getLastName(profile.name) + " bạn còn chần chừ gì nữa mà không nhanh tay hoàn thiện hồ sơ (ảnh, SĐT, …) để có được cơ hội các nhà tuyển dụng lựa chọn cao hơn!",
+//                 subtitle: '',
+//                 description1: 'Dear ' + getLastName(profile.name),
+//                 description2: 'Hiện tại hồ sơ của bạn đang thiếu ảnh đại diện, để giúp bạn ứng tuyển và được nhà tuyển dụng lựa chọn, chúng tôi sẽ gửi bộ hồ sơ của bạn sang nhà tuyển dụng để xét duyệt, trong đó yêu cầu có ảnh đại diện, và một đoạn video phỏng vấn ngắn giới thiệu bản thân',
+//                 description3: 'Do đó, bạn hãy hoàn thiện hồ sơ nhé, nếu không tự cập nhật được, bạn hãy gọi tới Jobo (0968269860) để được trợ giúp nhé',
+//                 calltoaction: 'Cật nhật ngay!',
+//                 linktoaction: CONFIG.WEBURL,
+//                 description4: ''
+//             }
+//             var userData = dataUser[i]
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 30, dayOfWeek: 1}, function () {
+//     ReminderJobseekerUpdateAvatar()
+// })
+//
+// function ReminderUpdateDeadline() {
+//     for (var i in dataJob) {
+//         var job = dataJob[i]
+//         if (!job.deadline) {
+//             var storeData = dataStore[job.storeId]
+//             var userData = dataUser[storeData.createdBy]
+//             var mail = {
+//                 title: "Bạn đã tuyển đủ nhân viên chưa?",
+//                 body: "Hãy cập nhật lại thông tin các vị trí bạn cần tuyển!",
+//                 subtitle: '',
+//                 description1: 'Chào ' + storeData.storeName,
+//                 description2: 'Hãy cập nhật lại các thông tin và hạn chót để chúng tôi tuyển nhân viên kịp thời cho bạn!',
+//                 description3: 'Sau đó lướt hơn +4000 hồ sơ phù hợp để tuyển nhé!',
+//                 calltoaction: 'Cật nhật ngay!',
+//                 linktoaction: CONFIG.WEBURL,
+//                 description4: '',
+//                 image: storeData.avatar || ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//         } else {
+//             console.log('ReminderUpdateDeadline error', storeId)
+//         }
+//     }
+//
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 2}, function () {
+//     ReminderUpdateDeadline()
+// });
+//
+// function ReminderUpdateExpect_Job() {
+//     for (var i in dataProfile) {
+//         var profile = dataProfile[i]
+//         if (!profile.job) {
+//             var userData = dataUser[i]
+//             var mail = {
+//                 title: "Bạn đang cần tìm việc gì?",
+//                 body: "Hãy cập nhật vị trí mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!",
+//                 subtitle: '',
+//                 description1: 'Chào ' + getLastName(userData.name),
+//                 description2: 'Hãy cập nhật vị trí mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!',
+//                 description3: 'Sau đó lướt hơn 300 công việc đang tuyển xung quanh bạn',
+//                 calltoaction: 'Xem profile của bạn',
+//                 linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
+//                 image: ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 4}, function () {
+//     ReminderUpdateExpect_Job()
+// });
+//
+// function ReminderUpdateSalary() {
+//     for (var i in dataUser) {
+//         console.log('start')
+//         var userData = dataUser[i]
+//         if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].expect_salary) {
+//             var mail = {
+//                 title: "Nhận việc mà mức lương không như ý?",
+//                 body: "Hãy cập nhật mức lương mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!",
+//                 subtitle: '',
+//                 description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
+//                 description2: 'Hãy cập nhật mức lương mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!',
+//                 description3: 'Sau đó lướt hơn 300 công việc đang tuyển xung quanh bạn',
+//                 calltoaction: 'Xem profile của bạn',
+//                 linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
+//                 image: ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 5}, function () {
+//     ReminderUpdateSalary()
+// });
+//
+// function ReminderAvatarUpdate() {
+//     for (var i in dataUser) {
+//         console.log('start')
+//         var userData = dataUser[i]
+//         if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].avatar) {
+//             var mail = {
+//                 title: "Để nhận được việc làm, bạn bắt buộc phải có ảnh đại diện",
+//                 body: "Hãy cập nhật ảnh đại diện ngay!",
+//                 subtitle: '',
+//                 description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
+//                 description2: 'Có rất nhiều nhà tuyển dụng đang muốn tuyển bạn nhưng bạn chưa cập nhật ảnh đại diện nên họ không thể tuyển bạn được',
+//                 description3: 'Hãy cập nhật ảnh đại diện ngay và lướt hơn 300 công việc đang tuyển xung quanh bạn',
+//                 calltoaction: 'Xem chi tiết',
+//                 linktoaction: CONFIG.WEBURL,
+//                 image: ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
+//     ReminderAvatarUpdate()
+// });
 
 function Email_happyBirthDayProfile() {
     for (var i in dataProfile) {
