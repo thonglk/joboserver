@@ -8,8 +8,7 @@ var fs = require('fs');
 var http = require('http')
 var https = require('https')
 var S = require('string');
-// var obj = JSON.parse(fs.readFileSync('jobo-b8204-user-export.json', 'utf8'));
-// console.log(obj['vSa9WpnB4DYLtjj3OavvYhVT7Je2'])
+var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
 var schedule = require('node-schedule');
@@ -138,6 +137,11 @@ function PublishPost(userId, text, accessToken) {
     }
 
 }
+
+// for (var i in groupData) {
+//     PublishPost(groupData[i].groupId, {text: createListPremiumJob()}, 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm')
+// }
+
 
 function PublishPhoto(userId, text, accessToken) {
     if (userId && text && accessToken) {
@@ -435,6 +439,14 @@ function init() {
 
     })
 }
+
+
+function createListPremiumJob() {
+    var text = "#Job Chuỗi nhà hàng Jobo đang cần tuyển \n 🆙TP HCM:\n ◆ Phục vụ | The Pizza Company | 333 Lê Văn Hưu | https://goo.gl/G38645\n◆ Phục vụ | Lá Phong Sushi House | 9 Trần Cao Vân | https://goo.gl/g3spoq\n◆ Bán bánh | Kebab Sài Gòn | 9 Nguyễn Thượng Hiền | https://goo.gl/QptvpY\n◆ Phục vụ | Ụt Ụt | 60 Trường Sa| https://goo.gl/mxYfvD\n◆ Pha chế | The Maker | 42 Nguyễn Huệ | https://goo.gl/uUhhvC\n◆ Phục vụ | Phở Việt Nam | 66 Trần Quốc Toản | https://goo.gl/Z5yRhb\n◆ Phục vụ | Rạn Biển | Nam Kỳ Khởi Nghĩa | https://goo.gl/NSmLFs\n◆ Lễ tân | Nhà hàng Remix | 442 Cao Thắng | https://goo.gl/u5aEaF.\n◆ Phục vụ | Waring Zone |219 Nguyển Văn Thủ | https://goo.gl/i7aVdY\n◆ Phục vụ | Pha chế | Thu ngân | Oia Castle | 28 Lê Thúc https://goo.gl/2X7ofH\n◆ Thu ngân | Ashoka | 33 Tống Hữu Định| https://goo.gl/J9mxhL\n◆ Phục vụ | Arirang BBQ | Công trường Lam Sơn| https://goo.gl/4wqN1F\n◆ Phục vụ | Mr Dee | 185 Võ Văn Tần| https://goo.gl/wmFtRS\n 🆙HÀ NỘI ( liên tục):\n◆ Phục vụ I Bảo vệ I NH Lẩu Dính I Tôn Đức Thắng I https://goo.gl/yWwfgD\n◆ Thu ngân I Phục vụ I Sunshine Coffee I Tây Hồ I https://goo.gl/XAuwZx\n◆ Phục vụ I Nhà hàng Vị Sơn I Trung Yên 6 I https://goo.gl/omE5UP\n◆ Phục vụ I Bar I Lễ tân I Đường Bưởi I https://goo.gl/S8QFEr\n◆ NV Tư vấn I MKT I Học viên pha chế Jarvis I Xã Đàn I https://goo.gl/S1dyUz\n◆Phục vụ I Moobeef Steak I Trần Quốc Toản I https://goo.gl/rC5gvT\n◆Phục vụ, Thu ngân I Cơm Sườn Đào Duy Từ I Nguyễn Thị Định I https://goo.gl/5WZW2T\n◆Phục vụ I Nhà hàng Punda I Cầu Giấy I https://goo.gl/kBFebD\n◆Order I Modern Cafe I Trung Kính I https://goo.gl/g7LAFm\n◆Phục vụ I Club America Latina I Lê Phụng Hiểu I Phục vụ I https://goo.gl/ogF32u\n◆ Phục vụ I M5+ I Ô Chợ Dừa I Phục vụ I https://goo.gl/MASNiJ\n◆Order I C14 I Trung Văn, HĐông I https://goo.gl/SsgDDJ\n◆Phục vụ I 6degree I Phục vụ I https://goo.gl/VXqWhL\n◆NV Bán hàng I Kenny Thái I Mai Hắc Đế \n◆Pha chế I Oriental Park I Quán Thánh I https://goo.gl/xqXxpp\n◆Quản lý cửa hàng I Chè ngon Quên Sầu I Hàng Mành\nhttps://goo.gl/F7qDRM"
+    return text
+
+}
+
 
 function createJDStore(store) {
     var text = '#Job #' + store.industry + ' \n '
@@ -3145,6 +3157,9 @@ app.get('/admin/analyticsUser', function (req, res) {
         var day = 360
         var i = 0
         var dateNow = dateStart;
+        StaticCountingNewUser().then(function (data) {
+            ObjectData.all = data
+        })
 
         function myloop() {
             if (i < day && dateNow > 1482598800000) {
@@ -3155,8 +3170,6 @@ app.get('/admin/analyticsUser', function (req, res) {
                     myloop()
                 })
             } else {
-                db.ref('analytics/user/').update(ObjectData)
-
                 res.send(ObjectData)
             }
         }
