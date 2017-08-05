@@ -7,8 +7,10 @@ var port = process.env.PORT || 8080;
 var fs = require('fs');
 var http = require('http')
 var https = require('https')
+var request = require('request');
+
 var S = require('string');
-// var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
+var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
 var schedule = require('node-schedule');
@@ -20,6 +22,7 @@ var multipart = require('connect-multiparty');
 var cors = require('cors')
 var graph = require('fbgraph');
 var json2csv = require('json2csv');
+var shortLinkData = {}
 
 var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
@@ -118,8 +121,14 @@ var publishChannel = {
         pageId: '282860701742519',
         token: 'EAAEMfZASjMhgBAIeW7dEVfhrQjZCtKszDRfuzsn1nDhOTaZBsejy1Xf71XxbvZBlSSHaFBg5L9eSwmNTDURRxdAetC9V1cArFnV1dM7sISSZB7weBIycRagE2RZCGZCaiQbDpFuy2cXiVyynKWpDbz9SM29yU273UkynZCBgmxU74gZDZD'
     }
-
 };
+
+var facebookAccount = {
+    thuythuy: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
+    thong: 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm',
+    thao: 'EAAEMfZASjMhgBAKZBYPtpKzBtdnmeGzDv3RR1VN0Hqa5BZAhRMpHLjcEfjSN0MA1m4aUVi3zkT68lX4gWdN7RHl6dMVWz3DVIx9xAFFzQjLy84eKmFkPRL1QyZA4WvXfCHNXDBCnnGb63FoPXtNGMbLv74XLktkZD'
+
+}
 
 function PublishPost(userId, text, accessToken) {
     if (userId && text && accessToken) {
@@ -135,12 +144,7 @@ function PublishPost(userId, text, accessToken) {
     } else {
         console.log('PublishPost error')
     }
-
 }
-
-// for (var i in groupData) {
-//     PublishPost(groupData[i].groupId, {text: createListPremiumJob()}, 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm')
-// }
 
 
 function PublishPhoto(userId, text, accessToken) {
@@ -216,7 +220,6 @@ function init() {
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
-
     })
     // userCol.find({}).toArray(function (err, suc) {
     //     dataUser = {}
@@ -278,7 +281,7 @@ function init() {
         //     });
         //
         // })
-    })
+    });
     // profileCol.find({}).toArray(function (err, suc) {
     //     dataProfile = {}
     //     for (var i in suc) {
@@ -343,7 +346,7 @@ function init() {
             return card.location && !card.hide
         });
         storeRef.child('undefined').remove()
-
+        console.log('Store \n', createListPremiumJob())
         // var fields = ['name','address','location'];
         // var myUser = []
         // for (var i in dataStore) {
@@ -388,6 +391,41 @@ function init() {
     // })
     jobRef.on('value', function (snap) {
         dataJob = snap.val()
+
+        // for (var i in dataJob) {
+        //     var job = dataJob[i]
+        //     if (!job.createdBy) {
+        //         if (job.storeId) {
+        //             if (dataStore[job.storeId]) {
+        //                 if (dataStore[job.storeId].createdBy) {
+        //                     if (dataUser[dataStore[job.storeId].createdBy]) {
+        //                         jobRef.child(i).update({createdBy: dataStore[job.storeId].createdBy}, function (a) {
+        //                             console.log('done', i, a)
+        //                         })
+        //                     } else {
+        //                         console.log('!dataUser[dataStore[job.storeId].createdBy', i)
+        //
+        //                     }
+        //                 } else {
+        //                     console.log('!dataStore[job.storeId].createdBy', i)
+        //
+        //                 }
+        //
+        //             } else {
+        //                 console.log('!dataStore[job.storeId]', i)
+        //                 jobRef.child(i).remove(function (a) {
+        //                     console.log('xoa', i, a)
+        //                 })
+        //             }
+        //
+        //
+        //         } else {
+        //             console.log('!job.storeId ', i)
+        //         }
+        //     }
+        //
+        //
+        // }
         // var jobCollection = md.collection('job')
         // for(var i in dataJob){
         //     var jobData = dataJob[i]
@@ -395,6 +433,8 @@ function init() {
         //         console.log(err)
         //     })
         // }
+
+
     });
 
     likeActivityRef.on('value', function (snap) {
@@ -441,10 +481,100 @@ function init() {
 }
 
 
-function createListPremiumJob() {
-    var text = "#Job Chuỗi nhà hàng Jobo đang cần tuyển \n 🆙TP HCM:\n ◆ Phục vụ | The Pizza Company | 333 Lê Văn Hưu | https://goo.gl/G38645\n◆ Phục vụ | Lá Phong Sushi House | 9 Trần Cao Vân | https://goo.gl/g3spoq\n◆ Bán bánh | Kebab Sài Gòn | 9 Nguyễn Thượng Hiền | https://goo.gl/QptvpY\n◆ Phục vụ | Ụt Ụt | 60 Trường Sa| https://goo.gl/mxYfvD\n◆ Pha chế | The Maker | 42 Nguyễn Huệ | https://goo.gl/uUhhvC\n◆ Phục vụ | Phở Việt Nam | 66 Trần Quốc Toản | https://goo.gl/Z5yRhb\n◆ Phục vụ | Rạn Biển | Nam Kỳ Khởi Nghĩa | https://goo.gl/NSmLFs\n◆ Lễ tân | Nhà hàng Remix | 442 Cao Thắng | https://goo.gl/u5aEaF.\n◆ Phục vụ | Waring Zone |219 Nguyển Văn Thủ | https://goo.gl/i7aVdY\n◆ Phục vụ | Pha chế | Thu ngân | Oia Castle | 28 Lê Thúc https://goo.gl/2X7ofH\n◆ Thu ngân | Ashoka | 33 Tống Hữu Định| https://goo.gl/J9mxhL\n◆ Phục vụ | Arirang BBQ | Công trường Lam Sơn| https://goo.gl/4wqN1F\n◆ Phục vụ | Mr Dee | 185 Võ Văn Tần| https://goo.gl/wmFtRS\n 🆙HÀ NỘI ( liên tục):\n◆ Phục vụ I Bảo vệ I NH Lẩu Dính I Tôn Đức Thắng I https://goo.gl/yWwfgD\n◆ Thu ngân I Phục vụ I Sunshine Coffee I Tây Hồ I https://goo.gl/XAuwZx\n◆ Phục vụ I Nhà hàng Vị Sơn I Trung Yên 6 I https://goo.gl/omE5UP\n◆ Phục vụ I Bar I Lễ tân I Đường Bưởi I https://goo.gl/S8QFEr\n◆ NV Tư vấn I MKT I Học viên pha chế Jarvis I Xã Đàn I https://goo.gl/S1dyUz\n◆Phục vụ I Moobeef Steak I Trần Quốc Toản I https://goo.gl/rC5gvT\n◆Phục vụ, Thu ngân I Cơm Sườn Đào Duy Từ I Nguyễn Thị Định I https://goo.gl/5WZW2T\n◆Phục vụ I Nhà hàng Punda I Cầu Giấy I https://goo.gl/kBFebD\n◆Order I Modern Cafe I Trung Kính I https://goo.gl/g7LAFm\n◆Phục vụ I Club America Latina I Lê Phụng Hiểu I Phục vụ I https://goo.gl/ogF32u\n◆ Phục vụ I M5+ I Ô Chợ Dừa I Phục vụ I https://goo.gl/MASNiJ\n◆Order I C14 I Trung Văn, HĐông I https://goo.gl/SsgDDJ\n◆Phục vụ I 6degree I Phục vụ I https://goo.gl/VXqWhL\n◆NV Bán hàng I Kenny Thái I Mai Hắc Đế \n◆Pha chế I Oriental Park I Quán Thánh I https://goo.gl/xqXxpp\n◆Quản lý cửa hàng I Chè ngon Quên Sầu I Hàng Mành\nhttps://goo.gl/F7qDRM"
-    return text
+function createListPremiumStore() {
+    var jobHN = "HN \n"
+    var jobHCM = " \n SG \n"
 
+    for (var i in dataStore) {
+        var storeData = dataStore[i]
+        if (storeData.createdBy
+            && dataUser[storeData.createdBy]
+            && dataUser[storeData.createdBy].package == 'premium') {
+            var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+            var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+            if (disToHN < 100) {
+                jobHN = jobHN + '◆ ' + getStringJob(storeData.job) + ' | ' + storeData.storeName + ' | ' + shortAddress(storeData.address) + ' ' + i + ' \n'
+            } else if (disToSG < 100) {
+                jobHCM = jobHCM + '◆ ' + getStringJob(storeData.job) + ' | ' + storeData.storeName + ' | ' + shortAddress(storeData.address) + ' ' + i + ' \n'
+            }
+        }
+
+    }
+    return jobHN + jobHCM
+}
+
+var today = new Date().getTime()
+
+function getShortPremiumJob(ref) {
+    for (var i in dataJob) {
+        var job = dataJob[i]
+        if (job.createdBy && job.storeId
+            && dataUser[job.createdBy]
+            && dataUser[job.createdBy].package == 'premium'
+            && dataStore[job.storeId]
+            && job.deadline
+            && job.deadline > today
+        ) {
+            var longURL = CONFIG.WEBURL + '/view/store/' + job.storeId + '?job=' + job.job + '#ref=' + ref + job.storeId + job.job;
+            console.log(longURL)
+            shortenURL(longURL, i)
+        }
+    }
+}
+
+function createListPremiumJob() {
+    var jobHN = "HN \n"
+    var jobHCM = " \n SG \n"
+    var today = new Date().getTime()
+    for (var i in dataJob) {
+        var job = dataJob[i]
+        if (job.createdBy && job.storeId
+            && dataUser[job.createdBy]
+            && dataUser[job.createdBy].package == 'premium'
+            && dataStore[job.storeId]
+            && job.deadline
+            && job.deadline > today
+        ) {
+
+            var jobname = Lang[job.job] || job.other
+            var storeData = dataStore[job.storeId]
+            var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+            var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+            if (disToHN < 100) {
+
+                jobHN = jobHN + '◆ ' + jobname + ' | ' + storeData.storeName + ' | ' + shortAddress(storeData.address) + ' | ' + shortLinkData[i] + ' \n'
+            } else if (disToSG < 100) {
+                jobHCM = jobHCM + '◆ ' + jobname + ' | ' + storeData.storeName + ' | ' + shortAddress(storeData.address) + ' | ' + shortLinkData[i] + ' \n'
+            }
+
+        }
+
+    }
+    return jobHN + jobHCM
+}
+
+function shortenURL(longURL, key) {
+    var shorturl = '';
+    var options = {
+        url: 'https://api-ssl.bitly.com/v3/shorten?access_token=3324d23b69543241ca05d5bbd96da2b17bf523cb&longUrl=' + longURL + '&format=json',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+
+// Start the request
+    request(options, function (error, response, body) {
+        var res = JSON.parse(body)
+        if (res.data && res.data.url) {
+            shorturl = res.data.url
+            shortLinkData[key] = shorturl
+
+        }
+    })
+    return new Promise(function (resolve, reject) {
+        resolve(shorturl)
+    })
 }
 
 
@@ -535,6 +665,19 @@ function checkInadequate() {
 
 }
 
+function shortAddress(fullAddress) {
+    if (fullAddress) {
+        var mixAddress = fullAddress.split(",")
+        if (mixAddress.length == 1) {
+            return fullAddress
+        } else {
+            var address = mixAddress[0] + ', ' + mixAddress[1]
+            return address
+        }
+
+    }
+}
+
 function checkInadequateProfile() {
     var refArray = {}
     var a = 0, b = 0, c = 0, d = 0
@@ -618,12 +761,9 @@ function checkInadequateProfile() {
 }
 
 function checkNotCreate() {
-    var a = 0, b = 0
-
     for (var i in dataUser) {
         if (!dataProfile[i] && dataUser[i].type == 2) {
-            a++
-            console.log('checkNotCreate Profile', a)
+
             var user = dataUser[i]
             var mail = {
                 title: "Chỉ còn 1 bước nữa là bạn có thể tìm được việc phù hợp",
@@ -639,9 +779,6 @@ function checkNotCreate() {
             sendNotification(user, mail, true, true, true)
         }
         if (!dataUser[i].currentStore && dataUser[i].type == 1) {
-            b++
-
-            console.log('checkNotCreate Store', b)
             var user = dataUser[i]
             var mail = {
                 title: "Chỉ còn 1 bước nữa là bạn có thể tìm được ứng viên phù hợp",
@@ -748,6 +885,7 @@ app.get('/verifyemail', function (req, res) {
     res.send('Bạn đã xác thực tài khoản thành công, click vào đây để tiếp tục sử dụng: ' + CONFIG.WEBURL)
     res.redirect(CONFIG.WEBURL)
 })
+
 app.get('/api/places', function (req, res) {
     var query = req.param('query')
     var type = req.param('type')
@@ -769,58 +907,19 @@ app.get('/api/places', function (req, res) {
 });
 
 
-app.get('/getuseronline', function (req, res) {
-    var output = []
-    var type = req.param('type')
-    console.log('type', type)
-    if (type == 1) {
-        for (var i in dataPresence) {
-            var cardType = dataUser[i].type
-            var card = dataPresence[i]
-            if (cardType == 2) {
-                var User = dataProfile[i]
-                var obj = {
-                    name: User.name,
-                    avatar: User.avatar,
-                    userId: i,
-                    at: card.at,
-                    status: card.status,
-                    job: User.job
+app.get('/getjob', function (req, res) {
+    var ref = req.param('ref')
+    getShortPremiumJob(ref)
+    setTimeout(function () {
+        var job = 'Tổng hợp 1 số việc làm lương cao đi làm ngay trên Jobo \n' + createListPremiumJob() + '\n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n ️🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1'
 
-                }
-                output.push(obj)
-
-            }
-
+        for (var i in groupData) {
+            PublishPost(groupData[i].groupId, {text: job}, facebookAccount.thuythuy)
         }
-    } else {
-        for (var i in dataPresence) {
-            console.log(i)
-            var cardType = dataUser[i].type
-            var card = dataPresence[i]
-            console.log(card)
+        res.send(job)
+    }, 4000)
 
-            if (cardType == 1) {
-                var store = dataStore[i]
-                var obj = {
-                    name: store.storeName,
-                    avatar: store.avatar,
-                    userId: i,
-                    at: card.at,
-                    status: card.status,
-                    job: store.job
-
-                }
-                console.log(obj)
-
-                output.push(obj)
-            }
-
-        }
-    }
-    res.send(output)
-
-})
+});
 
 app.get('/dash/job', function (req, res) {
 
@@ -1052,7 +1151,6 @@ app.get('/api/employer', function (req, res) {
         )
     } else {
         res.send('update location')
-
     }
 
 });
@@ -1163,7 +1261,6 @@ app.get('/api/users', function (req, res) {
     }
 });
 
-
 app.get('/on/user', function (req, res) {
     var userId = req.param('userId');
     if (dataUser[userId]) {
@@ -1195,6 +1292,7 @@ app.get('/on/store', function (req, res) {
     }
 
 });
+
 app.get('/delete/job', function (req, res) {
     var jobId = req.param('jobId')
     if (dataJob[jobId]) {
@@ -1220,6 +1318,7 @@ app.get('/delete/job', function (req, res) {
     }
 
 });
+
 // app.get('/on/setting', function (req, res) {
 //     var userId = req.param('userId')
 //     if (dataSetting[userId]) {
@@ -1229,7 +1328,6 @@ app.get('/delete/job', function (req, res) {
 //         res.send('NO_DATA')
 //     }
 // });
-//
 
 app.get('/update/user', function (req, res) {
     var userData = JSON.parse(req.param('user'))
@@ -1314,6 +1412,25 @@ app.get('/update/job', function (req, res) {
     }
 
 });
+
+app.get('/getLongToken', function (req, res) {
+    var shortToken = req.param('token')
+    https.get('https://graph.facebook.com/oauth/access_token?\n' +
+        'grant_type=fb_exchange_token&\n' +
+        'client_id= 295208480879128&\n' +
+        'client_secret=4450decf6ea88c391f4100b5740792ae&\n' +
+        'fb_exchange_token=' + shortToken, function (response) {
+        var body = '';
+        response.on('data', function (chunk) {
+            body += chunk;
+        });
+
+        response.on('end', function () {
+            res.send(body);
+        });
+    })
+})
+
 app.get('/update/log', function (req, res) {
     var userId = req.param('userId')
     var key = req.param('key')
@@ -1438,117 +1555,6 @@ app.get('/view/store', function (req, res) {
     }
 });
 
-app.get('/api/filterUser', function (req, res) {
-    var q = req.param('q');
-    var page = req.param('p');
-    var obj = JSON.parse(q);
-    console.log(obj);
-    filterUser(obj).then(function (data) {
-        var sorded = _.sortBy(data, function (card) {
-            return -card.createdAt
-        });
-
-        var card = getPaginatedItems(sorded, page);
-        res.send(card)
-    })
-});
-
-app.get('/api/filterEmployer', function (req, res) {
-    var q = req.param('q');
-    var page = req.param('p');
-    var obj = JSON.parse(q);
-    console.log(obj);
-    filterEmployer(obj).then(function (data) {
-        var sorded = _.sortBy(data, function (card) {
-            return -card.createdAt
-        });
-
-        var card = getPaginatedItems(sorded, page);
-        res.send(card)
-    })
-});
-
-function filterUser(obj) {
-
-    var location = obj.location || '';
-    var distance = obj.distance || '';
-    var job = obj.job || '';
-    var time = obj.time || '';
-    var industry = obj.industry || '';
-    var height = obj.height || '';
-    var sex = obj.sex || '';
-
-    var usercard = [];
-    for (var i in dataProfile) {
-        var card = dataProfile[i];
-        if (card.location) {
-            var mylat = card.location.lat;
-            var mylng = card.location.lng;
-
-            var yourlat = location.lat;
-            var yourlng = location.lng;
-
-            var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng);
-
-            if (
-                (dis <= distance || !distance)
-                && ((card.job && card.job[job]) || !job)
-                && ((card.time && card.time[time]) || !time)
-                && ((card.industry && card.industry[industry]) || !industry)
-                && (card.height >= height || !height)
-                && (card.sex == sex || !sex)
-            ) {
-                console.log('push');
-                card.distance = distance
-                usercard.push(card)
-            }
-
-        }
-
-    }
-    return new Promise(function (resolve, reject) {
-        resolve(usercard)
-    })
-}
-
-function filterEmployer(obj) {
-
-    var location = obj.location || '';
-    var distance = obj.distance || '';
-    var job = obj.job || '';
-    var industry = obj.industry || '';
-
-
-    var usercard = [];
-    for (var i in dataStore) {
-        var card = dataStore[i];
-        if (card.location) {
-            var mylat = card.location.lat;
-            var mylng = card.location.lng;
-
-            var yourlat = location.lat;
-            var yourlng = location.lng;
-
-            var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng);
-
-            if ((dis <= distance || !distance)
-                && ((card.job && card.job[job]) || !job)
-                && ((card.industry && card.industry[industry]) || !industry)
-
-            ) {
-                console.log('push');
-                card.distance = distance
-                usercard.push(card)
-            }
-
-        }
-
-    }
-    return new Promise(function (resolve, reject) {
-        resolve(usercard)
-    })
-}
-
 app.get('/api/profile', function (req, res) {
     var userId = req.param('id');
     var infoUserData = dataUser[userId] || {};
@@ -1560,21 +1566,6 @@ app.get('/api/profile', function (req, res) {
 
 });
 
-app.get('/api/store', function (req, res) {
-    var storeId = req.param('id');
-    var storeData = dataStore[storeId];
-    var userData = dataUser[storeData.createdBy];
-
-    var allData = Object.assign(storeData, userData);
-    res.send(allData);
-
-});
-
-app.get('/getname', function (req, res) {
-    var id = req.param('id')
-    var send = getNameById(id)
-    res.send(send)
-});
 
 app.get('/log/activity', function (req, res) {
     var page = req.param('page') || 1
@@ -1779,15 +1770,6 @@ app.get('/admin/storeEmail', function (req, res) {
     res.send(send)
 })
 
-app.get('/admin/api', function (req, res) {
-    var send = ''
-    for (var i in dataUser) {
-        if (dataUser[i].type == 1 && dataUser[i].email) {
-            send = send + dataUser[i].email + '\n'
-        }
-    }
-    res.send(send)
-})
 
 /**
  * Send the new star notification email to the given email.
@@ -1814,11 +1796,19 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta) {
 // registration token with the provided options.
     secondary.messaging().sendToDevice(registrationToken, payload, options)
         .then(function (response) {
-            console.log("Successfully sent message:", response);
+            console.log("secondary sent message:", JSON.stringify(response));
         })
         .catch(function (error) {
             console.log("Error sending message:", error);
         });
+    firebase.messaging().sendToDevice(registrationToken, payload, options)
+        .then(function (response) {
+            console.log("firebase sent message:", JSON.stringify(response));
+        })
+        .catch(function (error) {
+            console.log("Error sending message:", error);
+        });
+
 
 }
 
@@ -1905,8 +1895,11 @@ function getStringJob(listJob) {
     var stringJob = '';
     for (var i in listJob) {
         if (Lang[i]) {
-            stringJob += Lang[i] + ', ';
+            stringJob += Lang[i] + ', '
+        } else {
+            stringJob += listJob[i] + ', ';
         }
+
     }
     if (stringJob.length > 1) {
         var lengaf = stringJob.length - 2
@@ -2721,23 +2714,6 @@ function sendFirstContentToStore(storeData, userInfo) {
     }
 }
 
-app.get('/sendFirstContentToStore', function (req, res) {
-    var id = req.param('id')
-
-    if (dataStore[id]
-        && dataStore[id].createdBy
-        && dataUser[dataStore[id].createdBy]
-        && dataUser[dataStore[id].createdBy].email) {
-        var storeData = dataStore[id]
-        var userInfo = dataUser[dataStore[id].createdBy]
-        sendFirstContentToStore(storeData, userInfo)
-
-        res.send('sent')
-    } else {
-        res.send('sent fail')
-    }
-})
-
 // noti match noti to employer
 function sendNotiSubcribleToEmployer(userData) {
     if (userData.avatar && userData.location && userData.job) {
@@ -2819,7 +2795,6 @@ function sendNotiSubcribleToProfile(storeData) {
     }
 }
 
-
 function sendMailNotiLikeToStore(card) {
 
     var mail = {
@@ -2863,7 +2838,6 @@ function sendMailNotiLikeToProfile(card) {
     sendNotification(dataUser[card.userId], mail, 'user', true, true)
 
 }
-
 
 function sendMailNotiMatchToStore(card) {
 
@@ -2939,9 +2913,11 @@ function sendNewletter(number, nameEmail, mail, arrayEmail) {
             if (sendData) {
                 if (!sendData[nameEmail]) {
                     mail.description1 = 'Dear ' + getLastName(sendData.name);
-                    mail.linktoaction = mail.linktoaction + '#s=nl&e=' + nameEmail + '&eid=' + sendData.id;
+                    mail.linktoaction = mail.linktoaction + '#ref=email-'+nameEmail;
                     sendEmailTemplate(mail, sendData.email)
-                    emailRef.child(sendData.id + '/' + nameEmail).update({sent: true});
+                    emailRef.child(sendData.id + '/' + nameEmail).update({sent: true},function (a) {
+                        console.log('save',a)
+                    });
                     k++;
                     if (k < number) {
                         myLoop();
@@ -2956,7 +2932,7 @@ function sendNewletter(number, nameEmail, mail, arrayEmail) {
                 console.log('out of email')
             }
 
-        }, 10)
+        }, 2)
     }
 
     myLoop();
@@ -2964,9 +2940,15 @@ function sendNewletter(number, nameEmail, mail, arrayEmail) {
 
 function sendEmailTemplate(mail, email) {
     var html;
+    if(!mail.subtitle){
+        mail.subtitle = ''
+    }
+    if(!mail.description4){
+        mail.description4 = ''
+    }
     var header = '<div style="width:100%!important;background-color:#fff;margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;font-family:' + font + ';font-weight:300"> <table border="0" cellpadding="0" cellspacing="0" id="m_-5282972956275044657background-table" style="background-color:#fff" width="100%"> <tbody> <tr style="border-collapse:collapse"> <td align="center" style="font-family:' + font + ';font-weight:300;border-collapse:collapse"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" style="margin-top:0;margin-bottom:0;margin-right:10px;margin-left:10px" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="20" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table bgcolor="#4E8EF7" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" id="m_-5282972956275044657top-bar" style="background-color:#ffffff;color:#ffffff" width="640"> <tbody> <tr style="border-collapse:collapse"> <td align="left" cellpadding="5" class="m_-5282972956275044657w580" colspan="3" height="8" style="padding-top:10px;padding-bottom:10px;padding-right:10px;padding-left:10px;font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="middle" width="580"> <div class="m_-5282972956275044657header-lead" style="color:#fff;padding-top:0px;padding-bottom:0px;padding-right:0px;padding-left:0px;font-size:0px"> ' + mail.body + ' </div> </td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td align="center" bgcolor="#fff" class="m_-5282972956275044657w640" id="m_-5282972956275044657header" style="font-family:' + font + ';font-weight:100;border-collapse:collapse" width="640"> <div align="center" style="text-align:center"> <h1 class="m_-5282972956275044657title" style="line-height:100%!important;font-size:40px;color: #1FBDF1;font-family:' + font + ';font-weight:100;margin-top:10px;margin-bottom:18px"> ' + mail.title + '</h1> <h5 class="m_-5282972956275044657sub-title" style="line-height:100%!important;font-size:18px;color:#757f90;font-family:' + font + ';font-weight:300;margin-top:0px;margin-bottom:48px"> ' + mail.subtitle + ' </h5> </div> </td> </tr> <tr id="m_-5282972956275044657simple-content-row" style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table align="left" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30"> <p>&nbsp;</p> </td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"> <p style="margin-bottom:15px">' + mail.description1 + '</p> <p style="margin-bottom:15px">' + mail.description2 + '</p> </div> </td> </tr> </tbody> </table> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr>'
     var image = '<tr style="border-collapse:collapse"> <td bgcolor="#ffffff" align="center" style="font-family:' + font + ';font-weight:300;border-collapse:collapse;width:100%"> <span><a href=""> <img src="' + mail.image + '" width="95%" class="CToWUd"></a></span></td> </tr>'
-    var footer = ' <tr id="m_-5282972956275044657simple-content-row" style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table align="left" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30"> <p>&nbsp;</p> </td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"> <p style="margin-bottom:15px">' + mail.description3 + '</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div style="text-align:center"><a href="' + mail.linktoaction + '" style="background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;font-weight:bold;line-height:60px;text-align:center;text-decoration:none;width:300px" target="_blank"> ' + mail.calltoaction + '</a></div> </td> </tr> </tbody> </table> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <p align="left" class="m_-5282972956275044657article-title" style="font-size:18px;line-height:24px;color:#2b3038;font-weight:bold;margin-top:0px;margin-bottom:18px;font-family:' + font + '"> &nbsp;</p> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"><p style="margin-bottom:15px">' + mail.description4 || '' + '</p> <p style="margin-bottom:15px">Rất vui được giúp bạn!</p> <p style="margin-bottom:15px">Khánh Thông, CEO & Founder - Jobo</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" height="10" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580">&nbsp;</td> </tr> </tbody> </table> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" id="m_-5282972956275044657footer" style="border-top-width:1px;border-top-style:solid;border-top-color:#f1f1f1;background-color:#ffffff;color:#d4d4d4" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="360"> <p align="left" class="m_-5282972956275044657footer-content-left" id="m_-5282972956275044657permission-reminder" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px;white-space:normal"> <span>Sent with ♥ from Jobo</span> </p> <p align="left" class="m_-5282972956275044657footer-content-left" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px"> <a href="https://joboapp.com/#ref=fm" style="color:#c4c4c4;text-decoration:none;font-weight:bold" target="_blank">Xem thêm</a></p> </td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="160"> <p align="right" class="m_-5282972956275044657footer-content-right" id="m_-5282972956275044657street-address" style="font-size:11px;line-height:16px;margin-top:0px;margin-bottom:15px;color:#d4d4d4;white-space:normal"> <span>Jobo</span><br style="line-height:100%"> <span>+84 968 269 860</span><br style="line-height:100%"> <span>25T2 Hoàng Đạo Thúy,HN<br>162 Pasteur,Q1,HCM</span></p> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table></div>'
+    var footer = ' <tr id="m_-5282972956275044657simple-content-row" style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table align="left" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30"> <p>&nbsp;</p> </td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"> <p style="margin-bottom:15px">' + mail.description3 + '</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div style="text-align:center"><a href="' + mail.linktoaction + '" style="background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;font-weight:bold;line-height:60px;text-align:center;text-decoration:none;width:300px" target="_blank"> ' + mail.calltoaction + '</a></div> </td> </tr> </tbody> </table> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <p align="left" class="m_-5282972956275044657article-title" style="font-size:18px;line-height:24px;color:#2b3038;font-weight:bold;margin-top:0px;margin-bottom:18px;font-family:' + font + '"> &nbsp;</p> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"><p style="margin-bottom:15px">' + mail.description4 + '</p> <p style="margin-bottom:15px">Rất vui được giúp bạn!</p> <p style="margin-bottom:15px">Khánh Thông, CEO & Founder - Jobo</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" height="10" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580">&nbsp;</td> </tr> </tbody> </table> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" id="m_-5282972956275044657footer" style="border-top-width:1px;border-top-style:solid;border-top-color:#f1f1f1;background-color:#ffffff;color:#d4d4d4" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="360"> <p align="left" class="m_-5282972956275044657footer-content-left" id="m_-5282972956275044657permission-reminder" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px;white-space:normal"> <span>Sent with ♥ from Jobo</span> </p> <p align="left" class="m_-5282972956275044657footer-content-left" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px"> <a href="https://joboapp.com/#ref=fm" style="color:#c4c4c4;text-decoration:none;font-weight:bold" target="_blank">We are hiring</a></p> </td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="160"> <p align="right" class="m_-5282972956275044657footer-content-right" id="m_-5282972956275044657street-address" style="font-size:11px;line-height:16px;margin-top:0px;margin-bottom:15px;color:#d4d4d4;white-space:normal"> <span>Jobo</span><br style="line-height:100%"> <span>+84 968 269 860</span><br style="line-height:100%"> <span>25T2 Hoàng Đạo Thúy,HN<br>162 Pasteur,Q1,HCM</span></p> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table></div>'
 
     if (mail.image) {
         html = header + image + footer
@@ -3080,7 +3062,6 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                             }
                         }
                     }
-
                 }
                 if (!userData.email) {
                     noEmail++
@@ -3184,43 +3165,6 @@ app.get('/admin/analytics', function (req, res) {
         })
     }
 );
-
-app.get('/admin/getEmailProfile', function (req, res) {
-        var n = ''
-        for (var i in dataUser) {
-            var userData = dataUser[i]
-            if (userData.type == 2 && userData.email) {
-                n = n + userData.email + '\n'
-            }
-        }
-        return new Promise(function (resolve, reject) {
-            resolve(n)
-        }).then(function (n) {
-            res.send(n)
-        })
-    }
-);
-
-
-function analyticsUserToday() {
-    var dateStart = new Date();
-    dateStart.setHours(0, 0, 0, 0);
-    dateStart = dateStart.getTime();
-
-    StaticCountingNewUser().then(function (data) {
-        db.ref('analytics/user/all').update(data).then(function () {
-            console.log(data)
-        })
-    });
-
-    StaticCountingNewUser(dateStart, dateStart + 86400 * 1000).then(function (data) {
-        db.ref('analytics/user/' + dateStart).update(data).then(function () {
-            console.log(data)
-        })
-    });
-
-
-}
 
 
 // Remind:
