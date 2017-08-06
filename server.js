@@ -11,6 +11,8 @@ var request = require('request');
 
 var S = require('string');
 var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
+var userD = JSON.parse(fs.readFileSync('user.json', 'utf8'));
+
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
 var schedule = require('node-schedule');
@@ -205,7 +207,7 @@ var logRef = db.ref('log')
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
 var buyRef = db.ref('activity/buy');
-var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, filterProfile, filterStore, dataLog, dataNoti,
+var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti,
     Lang
 
 function init() {
@@ -259,6 +261,8 @@ function init() {
     userRef.on('value', function (snap) {
         dataUser = snap.val()
         userRef.child('undefined').remove();
+        var a = 0
+
 
         // analyticsUserToday()
 
@@ -294,11 +298,8 @@ function init() {
 
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
-        filterProfile = _.filter(dataProfile, function (card) {
-            return card.location && card.avatar && !card.hide
-        });
-        profileRef.child('undefined').remove()
 
+        profileRef.child('undefined').remove()
         // var profileCollection = md.collection('profile')
         // for(var i in dataProfile){
         //     var profileData = dataProfile[i]
@@ -342,11 +343,7 @@ function init() {
     // })
     storeRef.on('value', function (snap) {
         dataStore = snap.val()
-        filterStore = _.filter(dataStore, function (card) {
-            return card.location && !card.hide
-        });
         storeRef.child('undefined').remove()
-        console.log('Store \n', createListPremiumJob())
         // var fields = ['name','address','location'];
         // var myUser = []
         // for (var i in dataStore) {
@@ -550,7 +547,7 @@ function createListPremiumJob() {
         }
 
     }
-    return jobHN + jobHCM
+    return   jobHCM + jobHN
 }
 
 function shortenURL(longURL, key) {
@@ -830,6 +827,39 @@ app.get('/api/dashboard', function (req, res) {
     //     })
     // })
 })
+function createdUserFromCC() {
+    for (var i in userD) {
+        var a = 0
+        var userDa = userD[i]
+        if (userDa.email) {
+            secondary.auth().createUser({
+                email: userDa.email,
+                password: 'tuyendungjobo'
+            }).then(function (userRecord) {
+                // See the UserRecord reference doc for the contents of userRecord.
+                console.log("Successfully created new user:", userRecord.uid);
+
+                var userData = {
+                    type: 2,
+                    phone: userDa.phone,
+                    userId: userRecord.uid,
+                    email: userDa.email,
+                    name: userDa.name,
+                    provider: 'normal',
+                    createdAt: new Date().getTime()
+                };
+                userRef.child(userRecord.uid).update(userData)
+                a++
+                console.log(a)
+            })
+                .catch(function (error) {
+                    console.log("Error creating new user:", error);
+                });
+        }
+
+
+    }
+}
 
 app.get('/createuser', function (req, res) {
     var userId = req.param('uid')
@@ -906,7 +936,6 @@ app.get('/api/places', function (req, res) {
     });
 });
 
-
 app.get('/getjob', function (req, res) {
     var ref = req.param('ref')
     getShortPremiumJob(ref)
@@ -914,7 +943,7 @@ app.get('/getjob', function (req, res) {
         var job = 'Tổng hợp 1 số việc làm lương cao đi làm ngay trên Jobo \n' + createListPremiumJob() + '\n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n ️🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1'
 
         for (var i in groupData) {
-            PublishPost(groupData[i].groupId, {text: job}, facebookAccount.thuythuy)
+            PublishPost(groupData[i].groupId, {text: job}, facebookAccount.thong)
         }
         res.send(job)
     }, 4000)
@@ -1090,36 +1119,41 @@ app.get('/api/employer', function (req, res) {
 
         var usercard = [];
 
-        for (var i in filterStore) {
-            var card = filterStore[i];
+        for (var i in dataStore) {
+            var card = dataStore[i];
             var keyAct = card.storeId + ":" + userId;
-            if (dataStatic[card.storeId]) {
-                card.viewed = dataStatic[card.storeId].viewed || 0
-                card.rate = (dataStatic[card.storeId].rated || 0) * (dataStatic[card.storeId].rateAverage || 0)
-            }
+            if(card.location
+                && !card.hide
+                && ((card.industry == industryfilter)|| !industryfilter)
+                && ((card.job && card.job[jobfilter]) || !jobfilter)
+            ){
+                var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
+                card.distance = distance;
+                if (dataStatic[card.storeId]) {
+                    card.viewed = dataStatic[card.storeId].viewed || 0
+                    card.rate = (dataStatic[card.storeId].rated || 0) * (dataStatic[card.storeId].rateAverage || 0)
+                }
+
+                card.match = 0;
 
 
-            card.match = 0;
 
-            var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
-            card.distance = distance;
+                card.match = card.match + 10 + (+userData.expect_distance || 20) - +distance
 
-            card.match = card.match + 10 + (+userData.expect_distance || 20) - +distance
+                if (card.industry == industryfilter) {
+                    card.match = card.match + 20
+                }
+                if (card.job && card.job[jobfilter]) {
+                    card.match = card.match + 30
+                }
 
-            if (card.industry == industryfilter) {
-                card.match = card.match + 20
-            }
-            if (card.job && card.job[jobfilter]) {
-                card.match = card.match + 30
-            }
+                if (likeActivity[keyAct]) {
+                    card.act = likeActivity[keyAct]
+                }
 
-            if (likeActivity[keyAct]) {
-                card.act = likeActivity[keyAct]
-            }
-
-            if (card.match >= 0) {
-                card.match = Math.round(card.match)
-
+                if (card.match >= 0) {
+                    card.match = Math.round(card.match)
+                }
                 usercard.push(card)
 
             }
@@ -1178,59 +1212,62 @@ app.get('/api/users', function (req, res) {
         var mylng = storeData.location.lng;
 
         var usercard = [];
-        for (var i in filterProfile) {
-            var card = filterProfile[i];
+        for (var i in dataProfile) {
+            var card = dataProfile[i];
             var keyAct = userId + ":" + card.userId;
-            var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
-            card.distance = distance;
+
             card.match = 0;
 
-            if (
-                ((card.job && card.job[jobfilter]) || !jobfilter)
-                && ((card.distance < distancefilter) || !distancefilter)
+            if (card.location
+                && card.avatar
+                && !card.hide
+                && ((card.job && card.job[jobfilter]) || !jobfilter)
                 && ((card.working_type == working_typefilter) || !working_typefilter)
                 && ((card.sex == sexfilter) || !sexfilter)
                 && ((card.urgent == urgentfilter) || !urgentfilter)
                 && (card.experience || !expfilter)
                 && (card.figure || !figurefilter)
-
             ) {
+                var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
+                if(distance < distancefilter){
 
-                card.match = card.match + 10 / (1 + Math.abs((+card.distance_expect || 20) - +distance) )
+                    card.distance = distance;
+                    card.match = card.match + 10 / (1 + Math.abs((+card.distance_expect || 20) - +distance) )
 
-                if (dataStatic[card.userId]) {
-                    card.viewed = dataStatic[card.userId].viewed || 0
-                    card.rate = (dataStatic[card.userId].rated || 0) * (dataStatic[card.userId].rateAverage || 0)
-                }
+                    if (dataStatic[card.userId]) {
+                        card.viewed = dataStatic[card.userId].viewed || 0
+                        card.rate = (dataStatic[card.userId].rated || 0) * (dataStatic[card.userId].rateAverage || 0)
+                    }
 
-                if (card.working_type == working_typefilter) {
-                    card.match = card.match + 15
-                }
+                    if (card.working_type == working_typefilter) {
+                        card.match = card.match + 15
+                    }
 
-                if (card.sex == sexfilter) {
-                    card.match = card.match + 5
-                }
+                    if (card.sex == sexfilter) {
+                        card.match = card.match + 5
+                    }
 
-                if (card.experience && expfilter) {
-                    card.match = card.match + 5
-                }
+                    if (card.experience && expfilter) {
+                        card.match = card.match + 5
+                    }
 
-                if (card.figure && figurefilter) {
-                    card.match = card.match + 5
-                }
+                    if (card.figure && figurefilter) {
+                        card.match = card.match + 5
+                    }
 
-                if (card.point) {
-                    card.match = card.match + card.point / 4
-                }
+                    if (card.point) {
+                        card.match = card.match + card.point / 4
+                    }
 
-                if (likeActivity[keyAct]) {
-                    card.act = likeActivity[keyAct]
-                }
+                    if (likeActivity[keyAct]) {
+                        card.act = likeActivity[keyAct]
+                    }
 
-                if (card.match > 0) {
                     card.match = Math.round(card.match)
                     usercard.push(card)
+
                 }
+
             }
         }
         return new Promise(function (resolve, reject) {
@@ -1868,7 +1905,7 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     var x = R * c; // Distance in km
     var n = parseFloat(x);
     x = Math.round(n * 10) / 10;
-    return x;
+    return Number(x);
 }
 
 function deg2rad(deg) {
@@ -2209,6 +2246,9 @@ function startList() {
                 if (!storeData.createdAt) {
                     storeRef.child(employerData.currentStore).update({createdAt: new Date().getTime()})
                 }
+                if (!storeData.createdBy) {
+                    storeRef.child(employerData.currentStore).update({createdBy: userId})
+                }
                 var name = employerData.name || 'bạn'
                 var email = dataUser[card.userId].email
                 var userId = card.userId
@@ -2225,10 +2265,11 @@ function startList() {
                     if (!jobData.deadline) {
                         console.log('checkInadequateStoreIdInJob_deadline', i)
                         jobRef.child(i).update({deadline: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
-                    } else {
-
                     }
+                    if (!jobData.createdBy) {
 
+                        jobRef.child(i).update({createdBy: userId})
+                    }
                     sendJobtoPage(storeData)
                 }
 
@@ -2306,10 +2347,15 @@ function startList() {
                 for (var i in storeData.job) {
                     addDateToJob('job/' + storeData.storeId + ':' + i)
                     var jobData = dataJob[storeData.storeId + ':' + i]
+                    if (!jobData.createdBy) {
+
+                        jobRef.child(i).update({createdBy: userId})
+                    }
                     if (jobData && storeData) {
                         jobData.storeId = storeData.storeId
                         jobData.storeName = storeData.storeName
                     }
+
                 }
 
                 if (storeData.avatar && storeData.storeName) {
@@ -2913,10 +2959,10 @@ function sendNewletter(number, nameEmail, mail, arrayEmail) {
             if (sendData) {
                 if (!sendData[nameEmail]) {
                     mail.description1 = 'Dear ' + getLastName(sendData.name);
-                    mail.linktoaction = mail.linktoaction + '#ref=email-'+nameEmail;
+                    mail.linktoaction = mail.linktoaction + '#ref=email-' + nameEmail;
                     sendEmailTemplate(mail, sendData.email)
-                    emailRef.child(sendData.id + '/' + nameEmail).update({sent: true},function (a) {
-                        console.log('save',a)
+                    emailRef.child(sendData.id + '/' + nameEmail).update({sent: true}, function (a) {
+                        console.log('save', a)
                     });
                     k++;
                     if (k < number) {
@@ -2940,10 +2986,10 @@ function sendNewletter(number, nameEmail, mail, arrayEmail) {
 
 function sendEmailTemplate(mail, email) {
     var html;
-    if(!mail.subtitle){
+    if (!mail.subtitle) {
         mail.subtitle = ''
     }
-    if(!mail.description4){
+    if (!mail.description4) {
         mail.description4 = ''
     }
     var header = '<div style="width:100%!important;background-color:#fff;margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;font-family:' + font + ';font-weight:300"> <table border="0" cellpadding="0" cellspacing="0" id="m_-5282972956275044657background-table" style="background-color:#fff" width="100%"> <tbody> <tr style="border-collapse:collapse"> <td align="center" style="font-family:' + font + ';font-weight:300;border-collapse:collapse"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" style="margin-top:0;margin-bottom:0;margin-right:10px;margin-left:10px" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="20" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table bgcolor="#4E8EF7" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" id="m_-5282972956275044657top-bar" style="background-color:#ffffff;color:#ffffff" width="640"> <tbody> <tr style="border-collapse:collapse"> <td align="left" cellpadding="5" class="m_-5282972956275044657w580" colspan="3" height="8" style="padding-top:10px;padding-bottom:10px;padding-right:10px;padding-left:10px;font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="middle" width="580"> <div class="m_-5282972956275044657header-lead" style="color:#fff;padding-top:0px;padding-bottom:0px;padding-right:0px;padding-left:0px;font-size:0px"> ' + mail.body + ' </div> </td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td align="center" bgcolor="#fff" class="m_-5282972956275044657w640" id="m_-5282972956275044657header" style="font-family:' + font + ';font-weight:100;border-collapse:collapse" width="640"> <div align="center" style="text-align:center"> <h1 class="m_-5282972956275044657title" style="line-height:100%!important;font-size:40px;color: #1FBDF1;font-family:' + font + ';font-weight:100;margin-top:10px;margin-bottom:18px"> ' + mail.title + '</h1> <h5 class="m_-5282972956275044657sub-title" style="line-height:100%!important;font-size:18px;color:#757f90;font-family:' + font + ';font-weight:300;margin-top:0px;margin-bottom:48px"> ' + mail.subtitle + ' </h5> </div> </td> </tr> <tr id="m_-5282972956275044657simple-content-row" style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table align="left" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30"> <p>&nbsp;</p> </td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"> <p style="margin-bottom:15px">' + mail.description1 + '</p> <p style="margin-bottom:15px">' + mail.description2 + '</p> </div> </td> </tr> </tbody> </table> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr>'
@@ -3344,6 +3390,69 @@ app.get('/admin/analytics', function (req, res) {
 // schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
 //     ReminderAvatarUpdate()
 // });
+
+function ReminderCreateProfile() {
+    for (var i in dataUser) {
+        console.log('start')
+        var userData = dataUser[i]
+        if (userData.userId && !dataProfile[i] && userData.type == 2) {
+            var how =''
+            if(userData.provider == 'facebook'){
+                how = 'bằng tài khoản facebook '+userData.name +' ('+userData.email +')'
+            } else {
+                how = 'bằng tài khoản với Email: '+userData.email +' / Password: tuyendungjobo'
+
+            }
+
+            var mail = {
+                title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
+                body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
+                subtitle: '',
+                description1: 'Chào ' + getLastName(userData.name),
+                description2: 'Có rất nhiều nhà tuyển dụng đang muốn tuyển bạn nhưng bạn chưa cập nhật hồ sơ nên họ không thể tuyển bạn được',
+                description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
+                calltoaction: 'Truy cập Jobo',
+                linktoaction: CONFIG.WEBURL,
+                image: ''
+            };
+            sendNotification(userData, mail, true, true, true)
+
+        }
+    }
+}
+schedule.scheduleJob({hour: 9, minute: 5, dayOfWeek: 6}, function () {
+    ReminderCreateProfile()
+});
+
+
+function Notification_FirstRoundInterview() {
+    var dataliked = _.where(likeActivity, {storeId: 's35071407305077', status: 0, type: 2});
+
+    for (var i in dataliked) {
+        var likeData = dataliked[i]
+        var userData = dataUser[likeData.userId]
+        var how = ''
+        if(userData.provider == 'facebook'){
+            how = 'bằng tài khoản facebook '+userData.name +' ('+userData.email +')'
+        } else {
+            how = 'bằng tài khoản với Email: '+userData.email +' / Password: tuyendungjobo'
+
+        }
+        var mail = {
+            title: likeData.storeName + ' | Chúc mừng bạn đã vượt qua vòng hồ sơ',
+            body: likeData.storeName + ' xin chúc mừng bạn đã vượt qua vòng hô sơ, đến với vòng 2 là vòng phỏng vấn online, Bạn hãy thực hiện vòng phỏng vấn này bằng cách trả lời 2 câu hỏi phỏng vấn dưới đây và ghi hình lại rồi gửi về cho chúng tôi \n Câu 1: Hãy giới thiệu bản thân trong vòng 30s \n Câu 2: Tại sao chúng tôi nên chọn bạn? ',
+            subtitle: '',
+            description1: 'Chào ' + getLastName(likeData.userName),
+            description2: likeData.storeName + ' xin chúc mừng bạn đã vượt qua vòng hô sơ, đến với vòng 2 là vòng phỏng vấn online, Bạn hãy thực hiện vòng phỏng vấn này bằng cách trả lời 2 câu hỏi phỏng vấn dưới đây và ghi hình lại rồi gửi về cho chúng tôi \n Câu 1: Hãy giới thiệu bản thân trong vòng 30s \n Câu 2: Tại sao chúng tôi nên chọn bạn? ',
+            description3: 'Lưu ý:\n  - Mỗi câu hỏi tối đa dài 30s \n - Ghi hình rõ mặt và đủ ánh sáng \n Cách thức thực hiện: \n 1. Sử dụng thiết bị ghi hình như điện thoại hoặc laptop, quay liên tục các câu hỏi. \n 2. Đăng nhập vào Joboapp bằng tài khoản của bạn, đi tới trang "chỉnh sửa hồ sơ", upload video vào phần "video giới thiệu" \n3. Sau khi thực hiện xong vui lòng thông báo cho chúng tôi bằng cách trả lời email hoặc gọi điện tới 0968269860' ,
+            calltoaction: 'Truy cập Jobo',
+            linktoaction: CONFIG.WEBURL,
+            description4: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
+            image: ''
+        };
+        sendNotification(userData, mail, true, true, true)
+    }
+}
 
 function Email_happyBirthDayProfile() {
     for (var i in dataProfile) {
