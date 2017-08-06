@@ -11,7 +11,7 @@ var request = require('request');
 
 var S = require('string');
 var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
-var userD = JSON.parse(fs.readFileSync('user.json', 'utf8'));
+// var userD = JSON.parse(fs.readFileSync('user.json', 'utf8'));
 
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
@@ -827,39 +827,39 @@ app.get('/api/dashboard', function (req, res) {
     //     })
     // })
 })
-function createdUserFromCC() {
-    for (var i in userD) {
-        var a = 0
-        var userDa = userD[i]
-        if (userDa.email) {
-            secondary.auth().createUser({
-                email: userDa.email,
-                password: 'tuyendungjobo'
-            }).then(function (userRecord) {
-                // See the UserRecord reference doc for the contents of userRecord.
-                console.log("Successfully created new user:", userRecord.uid);
-
-                var userData = {
-                    type: 2,
-                    phone: userDa.phone,
-                    userId: userRecord.uid,
-                    email: userDa.email,
-                    name: userDa.name,
-                    provider: 'normal',
-                    createdAt: new Date().getTime()
-                };
-                userRef.child(userRecord.uid).update(userData)
-                a++
-                console.log(a)
-            })
-                .catch(function (error) {
-                    console.log("Error creating new user:", error);
-                });
-        }
-
-
-    }
-}
+// function createdUserFromCC() {
+//     for (var i in userD) {
+//         var a = 0
+//         var userDa = userD[i]
+//         if (userDa.email) {
+//             secondary.auth().createUser({
+//                 email: userDa.email,
+//                 password: 'tuyendungjobo'
+//             }).then(function (userRecord) {
+//                 // See the UserRecord reference doc for the contents of userRecord.
+//                 console.log("Successfully created new user:", userRecord.uid);
+//
+//                 var userData = {
+//                     type: 2,
+//                     phone: userDa.phone,
+//                     userId: userRecord.uid,
+//                     email: userDa.email,
+//                     name: userDa.name,
+//                     provider: 'normal',
+//                     createdAt: new Date().getTime()
+//                 };
+//                 userRef.child(userRecord.uid).update(userData)
+//                 a++
+//                 console.log(a)
+//             })
+//                 .catch(function (error) {
+//                     console.log("Error creating new user:", error);
+//                 });
+//         }
+//
+//
+//     }
+// }
 
 app.get('/createuser', function (req, res) {
     var userId = req.param('uid')
