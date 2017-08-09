@@ -2629,7 +2629,7 @@ function startList() {
                     var jobData = dataJob[storeData.storeId + ':' + i]
                     if (!jobData.createdBy) {
 
-                        jobRef.child(i).update({createdBy: userId})
+                        jobRef.child(i).update({createdBy: card.userId})
                     }
                     if (jobData && storeData) {
                         jobData.storeId = storeData.storeId
