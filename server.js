@@ -2519,9 +2519,10 @@ function startList() {
                 var employerData = dataUser[card.userId]
                 var storeData = dataStore[employerData.currentStore]
 
-                staticRef.child(storeData.storeId).update(staticData);
                 if (!storeData.storeId) {
                     storeRef.child(employerData.currentStore).update({storeId: employerData.currentStore})
+                } else {
+                    staticRef.child(storeData.storeId).update(staticData);
                 }
                 if (!storeData.createdAt) {
                     storeRef.child(employerData.currentStore).update({createdAt: new Date().getTime()})
@@ -2550,13 +2551,13 @@ function startList() {
 
                         jobRef.child(i).update({createdBy: userId})
                     }
-                    sendJobtoPage(storeData)
                 }
 
                 setTimeout(function () {
+                    sendStoretoPage(storeData.storeId)
                     sendWelcomeEmailToStore(storeData, dataUser[card.userId])
                     if (storeData.job) {
-                        sendNotiSubcribleToProfile(storeData)
+                        sendNotiSubcribleToProfile(storeData.storeId)
                     }
                 }, 50000)
                 actRef.child(key).remove()
@@ -2651,7 +2652,7 @@ function startList() {
                 }
 
                 if (card.data && card.data.job) {
-                    sendNotiSubcribleToProfile(storeData)
+                    sendNotiSubcribleToProfile(storeData.storeId)
                     sendJobtoPage(storeData)
                 } else {
                     console.log('thiếu thông tin store,', card.id)
@@ -2913,17 +2914,17 @@ function sendStoretoPage(storeId) {
 function sendJobtoPage(store) {
     if (store) {
         if (store.avatar) {
-            PublishPhoto(publishChannel.viecLamNhaHang.pageId, createJDStore(store), publishChannel.viecLamNhaHang.token)
+            PublishPhoto(publishChannel.viecLamNhaHang.pageId, createJDStore(store.storeId), publishChannel.viecLamNhaHang.token)
 
         } else {
-            PublishPost(publishChannel.viecLamNhaHang.pageId, createJDStore(store), publishChannel.viecLamNhaHang.token)
+            PublishPost(publishChannel.viecLamNhaHang.pageId, createJDStore(store.storeId), publishChannel.viecLamNhaHang.token)
         }
 
         if (store.package == 'premium') {
             if (store.avatar) {
-                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(store), publishChannel.Jobo.token)
+                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(store.storeId), publishChannel.Jobo.token)
             } else {
-                PublishPost(publishChannel.Jobo.pageId, createJDStore(store), publishChannel.Jobo.token)
+                PublishPost(publishChannel.Jobo.pageId, createJDStore(store.storeId), publishChannel.Jobo.token)
             }
         }
     } else {
@@ -3279,7 +3280,6 @@ function sendNotiSubcribleToProfile(storeId) {
 
                 if (dis <= 20) {
 
-                    console.log('storeData.job', storeData.job)
 
                     var mail = {
                         title: 'Jobo | ' + storeData.storeName + ' tuyển dụng',
