@@ -2630,15 +2630,16 @@ function startList() {
                 for (var i in storeData.job) {
                     addDateToJob('job/' + storeData.storeId + ':' + i)
                     var jobData = dataJob[storeData.storeId + ':' + i]
-                    if (!jobData.createdBy) {
+                    if(jobData){
+                        if (!jobData.createdBy) {
 
-                        jobRef.child(i).update({createdBy: card.userId})
+                            jobRef.child(i).update({createdBy: card.userId})
+                        }
+                        if (storeData) {
+                            jobData.storeId = storeData.storeId
+                            jobData.storeName = storeData.storeName
+                        }
                     }
-                    if (jobData && storeData) {
-                        jobData.storeId = storeData.storeId
-                        jobData.storeName = storeData.storeName
-                    }
-
                 }
 
                 if (storeData.avatar && storeData.storeName) {
