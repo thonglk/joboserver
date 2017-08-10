@@ -2600,7 +2600,9 @@ function startList() {
                         profileRef.child(card.userId).update({expect_salary: x})
                     }
                 }
-
+                if (!userData.userId) {
+                    profileRef.child(card.userId).update({userId: card.userId})
+                }
                 if (dataProfile[card.userId].avatar && dataProfile[card.userId].name) {
                     for (var i in likeActivity) {
                         if (likeActivity[i].userId == card.userId) {
