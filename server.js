@@ -134,7 +134,8 @@ var facebookAccount = {
     dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',
     maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
     dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
-    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD'
+    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD'      ,
+    myhuyen2: 'EAAEMfZASjMhgBACxktXTyXi0HhdIQt55JyU06jY5zhwZCviiXHr1ifZB9OVRNfkbZAZAMz4QjJW8bA5ZBknKAc7SNcUlEwdoB3cKWOotnRZAd9GS2aZAR2ewzo5m9n8Q5LzveX2ZB2WlHSaraqZAgQgsoaocTIn3gY3qGi7MxhlpZAghgZDZD'
 
 }
 
@@ -216,16 +217,35 @@ var buyRef = db.ref('activity/buy');
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti,
     Lang
 var groupRef = firebase.database().ref('groupData')
-var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
+// var groupData = JSON.parse(fs.readFileSync('group.json', 'utf8'));
 // for( var i in groupData){
 //     if(groupData[i].groupId){
 //         groupRef.child(groupData[i].groupId).update(groupData[i])
 //     }
 // }
-// var groupData
-// groupRef.once('value', function (a) {
-//     groupData = a.val()
-// })
+var groupData
+groupRef.once('value', function (a) {
+    groupData = a.val()
+    // var fields = ['email', 'phone'];
+    // var myUser = []
+    // for (var i in dataUser) {
+    //     myUser.push({
+    //         email: dataUser[i].email || '',
+    //         phone: dataUser[i].phone
+    //     })
+    // }
+    // return new Promise(function (resolve, reject) {
+    //     resolve(myUser)
+    // }).then(function (myUser) {
+    //     var csv = json2csv({data: myUser, fields: fields});
+    //
+    //     fs.writeFile('file.csv', csv, function (err) {
+    //         if (err) throw err;
+    //         console.log('file saved');
+    //     });
+    //
+    // })
+})
 
 function init() {
     console.log('init')
@@ -544,10 +564,11 @@ function getShortPremiumJob(ref) {
     }
 }
 
-function createListPremiumJob() {
-    var jobHN = "HN \n"
-    var jobHCM = " \n SG \n"
+function createListPremiumJob(where) {
+    var jobHN = "";
+    var jobHCM = "";
     var today = new Date().getTime()
+
     for (var i in dataJob) {
         var job = dataJob[i]
         if (job.createdBy && job.storeId
@@ -571,11 +592,17 @@ function createListPremiumJob() {
         }
 
     }
-    return jobHCM + jobHN
+    if (where == 'hn') {
+        return jobHN
+    } else if (where == 'hcm') {
+        return jobHCM
+    } else {
+        return jobHN + jobHCM
+    }
 }
-
 function shortenURL(longURL, key) {
     var shorturl = '';
+
     var options = {
         url: 'https://api-ssl.bitly.com/v3/shorten?access_token=3324d23b69543241ca05d5bbd96da2b17bf523cb&longUrl=' + longURL + '&format=json',
         method: 'POST',
@@ -583,6 +610,7 @@ function shortenURL(longURL, key) {
             'Content-Type': 'application/json'
         }
     }
+
 
 // Start the request
     request(options, function (error, response, body) {
@@ -603,7 +631,7 @@ function createJDJob(jobId) {
     var text = '';
     if (Job) {
         if (Job.job) {
-            var jobname = Lang[Job.job] || Job.other
+            var jobname = Lang[Job.job] || Job.other;
             text = text + '☕ ' + jobname + '\n \n'
         }
         if (Job.working_type) {
@@ -639,7 +667,7 @@ function createJDStore(storeId) {
     var storeData = dataStore[storeId]
     storeData.jobData = _.where(dataJob, {storeId: storeId});
 
-    var text = ''
+    var text = '';
 
     if (storeData.jobData) {
         text = text + storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
@@ -654,9 +682,12 @@ function createJDStore(storeId) {
         text = text + '► Vị trí cần tuyển \n'
 
         for (var i in storeData.jobData) {
+
             var Job = storeData.jobData[i]
-            var jobId = Job.storeId + ':' + Job.job
-            text = text + createJDJob(jobId)
+            if (Job.deadline > today) {
+                var jobId = Job.storeId + ':' + Job.job
+                text = text + createJDJob(jobId)
+            }
         }
 
         var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId
@@ -980,42 +1011,65 @@ app.get('/api/places', function (req, res) {
 app.get('/getjob', function (req, res) {
     var ref = req.param('ref')
     // getShortPremiumJob(ref)
-    // setTimeout(function () {
-    //     var job2 = 'Vinpearl Golf Hải Phòng cần tuyển 50 nhân viên hướng dẫn khách chơi golf (caddy)\n' +
-    //         '\n' +
-    //         '◆ Lương + tiền thưởng hấp dẫn\n' +
-    //         '◆ Một số chế độ: Được đào tạo tiếng Anh, học lái xe, bao ăn theo ca làm việc.\n' +
-    //         '◆ Đối tượng: NỮ, tuổi từ 18-28, ưu tiên Ứng viên sống tại Hải Phòng\n' +
-    //         '◆ Địa điểm làm việc: Đảo Vũ Yên, đường Nguyễn Bỉnh Khiêm, Phường Đông Hải 2, Quận Hải An, Hải Phòng, Việt Nam.\n' +
-    //         '◆ Không cần CV, bằng cấp\n' +
-    //         '\n' +
-    //         'Xem mức lương và ứng tuyển tại: https://goo.gl/n5fmzd'
-    //     var job = 'TOP 20 VIỆC LÀM NHÀ HÀNG LƯƠNG CAO ' + createListPremiumJob() + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1'
-    //     // var job = 'Barista lương cao ở COFFEE IN TOWN nè mn ơi\nLương khởi điểm: 18k/h\nFull-time hoặc Part-time, 1 tháng đc off 2 ngày vẫn có lương nhak\nƯu tiên các bạn có kinh nghiệm về cafe máy và latte art.\nNgoài ra COFFEE IN TOWN cũng tuyển phục vụ nữa nhak, lương 15k/h\nĐịa chỉ: Nguyễn Đình Khơi, Phường 4, Tân Bình\nChi tiết công việc: https://goo.gl/PejceC\n hoặc cmt sđt mình sẽ alo bạn ngay nhak. \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1'
-    //     if (Object.keys(shortLinkData).length > 1) {
-    //
-    //     } else {
-    //         console.log('no')
-    //     }
-    //     for (var i in groupData) {
-    //         graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount.khanh,
-    //             {
-    //                 "message": job2
-    //             },
-    //             function (err, res) {
-    //                 // returns the post id
-    //                 if (res) {
-    //                     console.log(res);
-    //                     groupRef.child(i).update({data: {thong: res}})
-    //                 } else {
-    //                     console.log(err.message);
-    //                     groupRef.child(i).update({data: {thong: err.message}})
-    //                 }
-    //
-    //             });
-    //     }
-    //     res.send(job)
-    // }, 4000)
+    setTimeout(function () {
+        var job2 = 'Vinpearl Golf Hải Phòng cần tuyển 50 nhân viên hướng dẫn khách chơi golf (caddy)\n' +
+            '\n' +
+            '◆ Lương + tiền thưởng hấp dẫn\n' +
+            '◆ Một số chế độ: Được đào tạo tiếng Anh, học lái xe, bao ăn theo ca làm việc.\n' +
+            '◆ Đối tượng: NỮ, tuổi từ 18-28, ưu tiên Ứng viên sống tại Hải Phòng\n' +
+            '◆ Địa điểm làm việc: Đảo Vũ Yên, đường Nguyễn Bỉnh Khiêm, Phường Đông Hải 2, Quận Hải An, Hải Phòng, Việt Nam.\n' +
+            '◆ Không cần CV, bằng cấp\n' +
+            '\n' +
+            'Xem mức lương và ứng tuyển tại: https://goo.gl/n5fmzd'
+        var job = 'TOP 20 VIỆC LÀM NHÀ HÀNG LƯƠNG CAO ' + createListPremiumJob() + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1'
+        // var job = 'Barista lương cao ở COFFEE IN TOWN nè mn ơi\nLương khởi điểm: 18k/h\nFull-time hoặc Part-time, 1 tháng đc off 2 ngày vẫn có lương nhak\nƯu tiên các bạn có kinh nghiệm về cafe máy và latte art.\nNgoài ra COFFEE IN TOWN cũng tuyển phục vụ nữa nhak, lương 15k/h\nĐịa chỉ: Nguyễn Đình Khơi, Phường 4, Tân Bình\nChi tiết công việc: https://goo.gl/PejceC\n hoặc cmt sđt mình sẽ alo bạn ngay nhak. \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1'
+        if (Object.keys(shortLinkData).length > 1) {
+
+        } else {
+            console.log('no')
+        }
+        for (var i in groupData) {
+            if (groupData[i].area != 'hn') {
+                groupRef.child(groupData[i].groupId).update({thythy: 'tried'})
+
+                graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount.thythy,
+                    {
+                        "message": '#TOP 5 KHÁCH SẠN ĐANG TUYỂN DỤNG TẠI TP. HỒ CHÍ MINH:\n' +
+                        '\n' +
+                        '1.SILVERLAND HOTELS & SPAS GROUP| PHỤC VỤ | SALES\n' +
+                        ':fast_forward: Link ứng tuyển: https://goo.gl/o3wzm5\n' +
+                        '2. FLIPSIDE HOTEL | QUẢN LÝ | PHA CHẾ | LỄ TÂN\n' +
+                        ':fast_forward: Link ứng tuyển: https://goo.gl/w84wjh\n' +
+                        '3. EASTIN GRAND HOTEL | LÊ TÂN\n' +
+                        ':fast_forward: Link ứng tuyển: https://goo.gl/AS55VB\n' +
+                        '4. THE HIDEOUT HOTEL | LỄ TÂN\n' +
+                        ':fast_forward: Link ứng tuyển: https://goo.gl/Egpr14\n' +
+                        '5. CITITEL HOTEL | MARKETING | LỄ TÂN | KẾ TOÁN\n' +
+                        ':fast_forward: Link ứng tuyển: https://goo.gl/BydMTr\n' +
+                        '6. PARADISE SAIGON HOTEL | PHỤC VỤ | ĐẦU BẾP | LỄ TÂN\n' +
+                        ':fast_forward: Link ứng tuyển: https://goo.gl/ow7KE3\n' +
+                        '\n' +
+                        'CƠ HỘI TRỞ THÀNH NHÂN VIÊN KHÁCH SẠN TẠI HÈ NÀY VỚI #JOBO'
+                    },
+                    function (err, res) {
+                        // returns the post id
+                        if (err) {
+                            console.log(err.message);
+                        } else {
+                            console.log(res);
+                            var postId = res.id
+                            console.log(postId);
+                            var array = postId.split('_')
+                            var groupId = array[0]
+                            groupRef.child(groupId).update({thythy: true})
+                        }
+
+                    });
+            }
+
+        }
+        res.send(job)
+    }, 4000)
 
     // if (dataStore[ref]) {
     //     var storeData = dataStore[ref];
@@ -1101,9 +1155,9 @@ app.get('/getjob', function (req, res) {
             // sendNotiSubcribleToProfile(ref);
             // sendStoretoPage(ref);
             function a() {
-                if (groupData[i] && groupData[i].area != 'hcm') {
+                if (groupData[i] && groupData[i].area != 'hn') {
                     setTimeout(function () {
-                        graph.post(groupData[i].groupId + "/photos?access_token=" + facebookAccount.maitran,
+                        graph.post(groupData[i].groupId + "/photos?access_token=" + facebookAccount.thythy,
                             {
                                 "caption": send.text + '\n Các bạn ứng tuyển xong hãy comment link profile để mình gọi đi phỏng vấn nhé!',
                                 "url": send.image
@@ -1142,6 +1196,7 @@ app.get('/getjob', function (req, res) {
 
                 }
             }
+
             a();
 
             res.send(send.text)
@@ -1151,6 +1206,27 @@ app.get('/getjob', function (req, res) {
     }
 
 });
+
+// function scheduleJob(job,time,content) {
+//     firebase.database().ref('schedule').update({
+//         job: job,
+//         time:time,
+//         content: content
+//     })
+//
+//     graph.post(userId + "/feed?access_token=" + accessToken,
+//         {
+//             "message": text.text,
+//             "link": text.link
+//         },
+//         function (err, res) {
+//             // returns the post id
+//             console.log(res, err);
+//
+//
+//         });
+//
+// }
 
 
 app.get('/dash/job', function (req, res) {
@@ -2400,6 +2476,8 @@ function startList() {
             staticRef.child(card.userId).update(staticData)
         }
 
+        //save static for each store and profile
+
         if (card.data
             && card.data.storeId
             && !dataStatic[card.data.storeId]) {
@@ -2471,13 +2549,7 @@ function startList() {
                 if (!userData.userId) {
                     profileRef.child(card.userId).update({userId: card.userId})
                 }
-                if (userData.expect_salary) {
-                    if (userData.expect_salary > 10) {
-                        var res = userData.expect_salary.toString().charAt(0);
-                        var x = Number(res)
-                        profileRef.child(card.userId).update({expect_salary: x})
-                    }
-                }
+
                 if (dataUser[card.userId] && dataUser[card.userId].email) {
                     var email = dataUser[card.userId].email
 
@@ -2630,7 +2702,7 @@ function startList() {
                 for (var i in storeData.job) {
                     addDateToJob('job/' + storeData.storeId + ':' + i)
                     var jobData = dataJob[storeData.storeId + ':' + i]
-                    if(jobData){
+                    if (jobData) {
                         if (!jobData.createdBy) {
 
                             jobRef.child(i).update({createdBy: card.userId})
@@ -3853,7 +3925,6 @@ app.get('/admin/analytics', function (req, res) {
 //                 image: ''
 //             };
 //             sendNotification(userData, mail, true, true, true)
-//
 //         }
 //     }
 // }
@@ -3896,6 +3967,142 @@ schedule.scheduleJob({hour: 9, minute: 5, dayOfWeek: 6}, function () {
     ReminderCreateProfile()
 });
 
+function isWhere(storeId) {
+    var storeData = dataStore[storeId]
+    if(storeData){
+        var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+        var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+        if (disToHN < 100) {
+            return 'hn'
+        } else if (disToSG < 100) {
+            return 'hcm'
+        }
+    } else {
+        return null
+    }
+
+}
+
+function PostStore(storeId,poster) {
+    var send = createJDStore(storeId);
+    var where = isWhere(storeId)
+    // sendNotiSubcribleToProfile(ref);
+    // sendStoretoPage(ref);
+
+    setTimeout(function () {
+        var job =  send.text + ' \n------------------ \n Lưu ý: \n 🔹 Ứng tuyển không cần CV \n ️🔹 Thông báo đi phỏng vấn ngay trong vòng 24h \n ️🏆 Chỉ cần muốn tìm việc, sẽ tư vấn tìm được việc phù hợp mới thôi';
+
+            for (var i in groupData) {
+                if (groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
+                    var data = {};
+                    data[poster] = 'tried'
+                    groupRef.child(groupData[i].groupId).update(data)
+
+                    graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount[poster],
+                        {
+                            "message": job
+                        },
+                        function (err, res) {
+                            // returns the post id
+                            if (err) {
+                                console.log(err.message);
+                            } else {
+                                var postId = res.id
+                                console.log(postId);
+                                var array = postId.split('_')
+                                var groupId = array[0]
+                                data[poster] = true
+                                groupRef.child(groupId).update(data)
+                            }
+
+                        });
+                }
+
+            }
+
+
+    }, 5000)
+
+}
+
+app.get('/PostStore', function (req, res) {
+    var storeId = req.param('storeId');
+    var poster = req.param('poster');
+    PostStore(storeId,poster);
+});
+
+var rule3 = new schedule.RecurrenceRule();
+rule3.dayOfWeek = [0,1,2,3,4,5,6];
+rule3.hour = 15;
+rule3.minute = 00;
+
+schedule.scheduleJob(rule3, function () {
+    PostStore('-Ko888eO-cKhfXzJzSQh','myhuyen2');
+});
+
+
+
+function PostListJob(ref, where, poster) {
+    getShortPremiumJob(ref);
+    setTimeout(function () {
+        var job = 'TOP 20 VIỆC LÀM NHÀ HÀNG LƯƠNG CAO \n' + createListPremiumJob(where) + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1';
+
+        if (Object.keys(shortLinkData).length > 1) {
+
+            for (var i in groupData) {
+                if (groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
+                    var data = {};
+                    data[poster] = 'tried'
+                    groupRef.child(groupData[i].groupId).update(data)
+
+                    graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount[poster],
+                        {
+                            "message": job
+                        },
+                        function (err, res) {
+                            // returns the post id
+                            if (err) {
+                                console.log(err.message);
+                            } else {
+                                var postId = res.id
+                                console.log(postId);
+                                var array = postId.split('_')
+                                var groupId = array[0]
+                                data[poster] = true
+                                groupRef.child(groupId).update(data)
+                            }
+
+                        });
+                }
+
+            }
+
+        } else {
+            console.log('no')
+        }
+    }, 10000)
+}
+var rule = new schedule.RecurrenceRule();
+rule.dayOfWeek = [0,1,2,3,4,5,6];
+rule.hour = 19;
+rule.minute = 49;
+
+schedule.scheduleJob(rule, function () {
+    PostListJob('dailyhcm', 'hcm', 'thythy');
+});
+
+var rule2 = new schedule.RecurrenceRule();
+rule2.dayOfWeek = [0,1,2,3,4,5,6];
+rule2.hour = 18;
+rule2.minute = 55;
+
+schedule.scheduleJob(rule2, function () {
+    PostListJob('dailyhn', 'hn', 'dieulinh');
+});
+
+app.get('/PostListJob', function (req, res) {
+        PostListJob('dailyhn', 'hn', 'dong');
+    });
 
 function Notification_FirstRoundInterview() {
     var dataliked = _.where(likeActivity, {storeId: 's35071407305077', status: 0, type: 2});
@@ -4003,11 +4210,97 @@ function Email_sendListInterviewedToEmployer(storeId) {
 
 }
 
+function Email_sendListLikedToEmployer(storeId) {
+    var storeData = dataStore[storeId]
+    var userInfo = dataUser[storeData.createdBy];
+    var liked = _.where(likeActivity, {storeId: storeId, status: 0, type: 2});
+
+    var profileEmail = '';
+    for (var i in liked) {
+
+        if (liked[i].userId && dataProfile[liked[i].userId]) {
+            var likeData = liked[i]
+            var card = dataProfile[likeData.userId];
+            card.url = CONFIG.WEBURL + '/view/profile/' + card.userId;
+            profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" ></div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Xem hồ sơ</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
+
+            console.log(card.name)
+        }
+
+    }
+
+    return new Promise(function (resolve, reject) {
+        resolve(profileEmail)
+    }).then(function (profileEmail) {
+        console.log('sone')
+        var headerEmail = '<!doctype html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head> <title></title> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <style type="text/css"> #outlook a { padding: 0; } .ReadMsgBody { width: 100%; } .ExternalClass { width: 100%; } .ExternalClass * { line-height: 100%; } body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; } table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; } p { display: block; margin: 13px 0; } </style> <!--[if !mso]><!--> <style type="text/css"> @media only screen and (max-width:480px) { @-ms-viewport { width: 320px; } @viewport { width: 320px; } } </style> <!--<![endif]--> <!--[if mso]><xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings></xml><![endif]--> <!--[if lte mso 11]><style type="text/css"> .outlook-group-fix { width:100% !important; }</style><![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-33 { width: 33.333333333333336%!important; } } </style></head><body> <div> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" > <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Chào ' + storeData.storeName + '</p> <p>Jobo gửi danh sách ứng viên đã ứng tuyển vào vị trí ' + getStringJob(storeData.job) + ' của đối tác:</p> </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="500" align="center" style="width:500px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:500px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr>'
+
+        var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Đối tác lựa chọn những ứng viên phù hợp và tuyển nhé<br> <b>Cách thức liên hệ ứng viên:</b><br>\n' +
+            ' 1. Đối tác sẽ được xem thông tin hồ sơ của ứng viên Jobo hoàn toàn miễn phí, và chỉ mất phí khi muốn liên hệ với ứng viên.<br>2. Để liên hệ với 1 ứng viên, đối tác cần 1 điểm mở khoá thông tin liên hệ.<br>3. Đối tác có thể mua 10 điểm/ 300.000 vnd. <br> Để mua gói mở khoá, đối tác vui lòng chuyển khoản phí về tài khoản dưới đây của Jobo: <br>\n' +
+            'THÔNG TIN CHUYỂN KHOẢN<br>\n' +
+            '• Họ và tên: Lê Khánh Thông<br>\n' +
+            '• Số tài khoản: 109001400392<br>\n' +
+            '• Số tiền: 300.000VND<br>\n' +
+            '• Vietinbank Ngân hàng TMCP Công thương Việt Nam – Chi nhánh TP Vinh<br>\n' +
+            '• Nội dung chuyển khoản: ' + storeData.storeName + ' _basic<br>\n' +
+            '\n' +
+            'Sau đó đối tác hãy liên hệ vào số hotline 0968 269 860 để được kích hoạt tài khoản..</p>  <p>Jobo rất vinh dự được làm việc với đối tác!</p> <p>Khánh Thông - CEO & Founder, Jobo</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Sent with ♥ from Jobo</p> +84 968 269 860<br> joboapp.com </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>'
+
+        var email = userInfo.email;
+        console.log('send, ' + email);
+
+        var htmlEmail = headerEmail + profileEmail + footerEmail
+
+
+        if (profileEmail.length > 0 && email && userInfo.wrongEmail != true) {
+            var mailOptions = {
+                from: {
+                    name: 'Khánh Thông | Jobo - Tìm việc nhanh',
+                    address: 'hello@joboapp.com'
+                },
+                to: email,
+                cc: 'thonglk.mac@gmail.com',
+                subject: 'Jobo - ' + storeData.storeName + ' | Gửi danh sách ứng viên phỏng vấn',
+                html: htmlEmail,
+                attachments: [
+                    {   // filename and content type is derived from path
+                        path: 'https://joboapp.com/img/jobo-gioi-thieu.pdf'
+                    }
+                ]
+            };
+
+            return mailTransport.sendMail(mailOptions).then(function () {
+                console.log('New email sent to: ' + email);
+            }, function (error) {
+                console.log('Some thing wrong when sent email to ' + email + ':' + error);
+            });
+        }
+    })
+
+
+}
 
 app.get('/sendList', function (req, res) {
-    Email_sendListInterviewedToEmployer('s35071407305077')
+    var storeId = req.param('storeId')
+    if (storeId) {
+        Email_sendListLikedToEmployer(storeId)
+    } else {
+        var now = new Date().getTime()
+        var a = 0;
+        for (var i in dataStore) {
+            a++;
+            var time = now + 60000 * a;
+            schedule.scheduleJob(time, function () {
+                Email_sendListLikedToEmployer(i)
+            });
+        }
+    }
     res.send('done')
 })
+
+// automate Job post facebook
+
+
 // start the server
 http.createServer(app).listen(port);
 https.createServer(credentials, app).listen(8443);
