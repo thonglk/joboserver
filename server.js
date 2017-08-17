@@ -112,8 +112,6 @@ var secondary = firebase.initializeApp({
 }, "secondary");
 
 
-// firebase.database().ref('groupData').update(groupData)
-
 var publishChannel = {
     Jobo: {
         pageId: '385066561884380',
@@ -135,7 +133,7 @@ var facebookAccount = {
     dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',
     maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
     dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
-    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD'      ,
+    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
     myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD'
 
 }
@@ -367,7 +365,7 @@ function init() {
         //     });
         //
         // })
-        //
+
 
     });
 
@@ -601,6 +599,7 @@ function createListPremiumJob(where) {
         return jobHN + jobHCM
     }
 }
+
 function shortenURL(longURL, key) {
     var shorturl = '';
 
@@ -689,7 +688,7 @@ function createJDStore(storeId) {
         }
 
         var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId
-        text = text + 'Xem chi tiết: '+link
+        text = text + 'Xem chi tiết: ' + link
 
         return {
             text: text,
@@ -2073,6 +2072,35 @@ app.get('/query', function (req, res) {
 
 })
 
+app.get('/checkUser', function (req, res) {
+    var q = req.param('q');
+    if (q) {
+        var qr = S(q.toLowerCase()).latinise().s
+        var result = []
+
+        for (var i in dataUser) {
+            if ((dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr))
+                || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr))
+            ) {
+                result.push(dataUser[i])
+            }
+        }
+        return new Promise(function (resolve, reject) {
+            resolve(result)
+        }).then(function (result) {
+            res.send(result)
+        })
+    } else {
+        res.send({
+            code: -1,
+            msg: 'No query'
+        })
+    }
+
+
+})
+
+
 //admin API
 
 app.get('/admin/createuser', function (req, res) {
@@ -2189,13 +2217,6 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta) {
     secondary.messaging().sendToDevice(registrationToken, payload, options)
         .then(function (response) {
             console.log("secondary sent message:", JSON.stringify(response));
-        })
-        .catch(function (error) {
-            console.log("Error sending message:", error);
-        });
-    firebase.messaging().sendToDevice(registrationToken, payload, options)
-        .then(function (response) {
-            console.log("firebase sent message:", JSON.stringify(response));
         })
         .catch(function (error) {
             console.log("Error sending message:", error);
@@ -3967,7 +3988,7 @@ schedule.scheduleJob({hour: 9, minute: 5, dayOfWeek: 6}, function () {
 
 function isWhere(storeId) {
     var storeData = dataStore[storeId]
-    if(storeData){
+    if (storeData) {
         var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
         var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
         if (disToHN < 100) {
@@ -3981,42 +4002,42 @@ function isWhere(storeId) {
 
 }
 
-function PostStore(storeId,poster) {
+function PostStore(storeId, poster) {
     var send = createJDStore(storeId);
     var where = isWhere(storeId)
     // sendNotiSubcribleToProfile(ref);
     // sendStoretoPage(ref);
 
     setTimeout(function () {
-        var job =  send.text + ' \n------------------ \n Lưu ý: \n 🔹 Ứng tuyển không cần CV \n ️🔹 Thông báo đi phỏng vấn ngay trong vòng 24h \n ️🏆 Chỉ cần muốn tìm việc, sẽ tư vấn tìm được việc phù hợp mới thôi';
+        var job = send.text + ' \n------------------ \n Lưu ý: \n 🔹 Ứng tuyển không cần CV \n ️🔹 Thông báo đi phỏng vấn ngay trong vòng 24h \n ️🏆 Chỉ cần muốn tìm việc, sẽ tư vấn tìm được việc phù hợp mới thôi';
 
-            for (var i in groupData) {
-                if (groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
-                    var data = {};
-                    data[poster] = 'tried'
-                    groupRef.child(groupData[i].groupId).update(data)
+        for (var i in groupData) {
+            if (groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
+                var data = {};
+                data[poster] = 'tried'
+                groupRef.child(groupData[i].groupId).update(data)
 
-                    graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount[poster],
-                        {
-                            "message": job
-                        },
-                        function (err, res) {
-                            // returns the post id
-                            if (err) {
-                                console.log(err.message);
-                            } else {
-                                var postId = res.id
-                                console.log(postId);
-                                var array = postId.split('_')
-                                var groupId = array[0]
-                                data[poster] = true
-                                groupRef.child(groupId).update(data)
-                            }
+                graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount[poster],
+                    {
+                        "message": job
+                    },
+                    function (err, res) {
+                        // returns the post id
+                        if (err) {
+                            console.log(err.message);
+                        } else {
+                            var postId = res.id
+                            console.log(postId);
+                            var array = postId.split('_')
+                            var groupId = array[0]
+                            data[poster] = true
+                            groupRef.child(groupId).update(data)
+                        }
 
-                        });
-                }
-
+                    });
             }
+
+        }
 
 
     }, 5000)
@@ -4026,25 +4047,25 @@ function PostStore(storeId,poster) {
 app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
     var poster = req.param('poster');
-    PostStore(storeId,poster);
+    PostStore(storeId, poster);
 });
 
 var rule3 = new schedule.RecurrenceRule();
-rule3.dayOfWeek = [0,1,2,3,4,5,6];
+rule3.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule3.hour = 15;
 rule3.minute = 00;
 
 schedule.scheduleJob(rule3, function () {
-    PostStore('-Ko888eO-cKhfXzJzSQh','myhuyen2');
+    PostStore('-Ko888eO-cKhfXzJzSQh', 'myhuyen2');
 });
 
 var rule4 = new schedule.RecurrenceRule();
-rule4.dayOfWeek = [0,1,2,3,4,5,6];
+rule4.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule4.hour = 10;
 rule4.minute = 26;
 
 schedule.scheduleJob(rule4, function () {
-    PostStore('s28259779165860','dong');
+    PostStore('s28259779165860', 'dong');
 });
 
 
@@ -4088,8 +4109,9 @@ function PostListJob(ref, where, poster) {
         }
     }, 10000)
 }
+
 var rule = new schedule.RecurrenceRule();
-rule.dayOfWeek = [0,1,2,3,4,5,6];
+rule.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule.hour = 19;
 rule.minute = 49;
 
@@ -4098,7 +4120,7 @@ schedule.scheduleJob(rule, function () {
 });
 
 var rule2 = new schedule.RecurrenceRule();
-rule2.dayOfWeek = [0,1,2,3,4,5,6];
+rule2.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule2.hour = 18;
 rule2.minute = 55;
 
@@ -4107,8 +4129,8 @@ schedule.scheduleJob(rule2, function () {
 });
 
 app.get('/PostListJob', function (req, res) {
-        PostListJob('dailyhn', 'hn', 'dong');
-    });
+    PostListJob('dailyhn', 'hn', 'dong');
+});
 
 function Notification_FirstRoundInterview() {
     var dataliked = _.where(likeActivity, {storeId: 's35071407305077', status: 0, type: 2});
