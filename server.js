@@ -82,6 +82,13 @@ var mailTransport = nodemailer.createTransport(ses({
     region: 'us-west-2'
 }));
 
+var mailTransport2 = nodemailer.createTransport(ses({
+    accessKeyId: 'AKIAJHPP64MDOXMXAZRQ',
+    secretAccessKey: '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',
+    region: 'us-east-1'
+}));
+
+
 // var mailTransport = nodemailer.createTransport({
 //     host: 'smtp.gmail.com',
 //     port: 465,
@@ -126,7 +133,7 @@ var publishChannel = {
 var facebookAccount = {
     thuythuy: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
     thong: 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm',
-    thao: 'EAAEMfZASjMhgBAKZBYPtpKzBtdnmeGzDv3RR1VN0Hqa5BZAhRMpHLjcEfjSN0MA1m4aUVi3zkT68lX4gWdN7RHl6dMVWz3DVIx9xAFFzQjLy84eKmFkPRL1QyZA4WvXfCHNXDBCnnGb63FoPXtNGMbLv74XLktkZD',
+    thao2: 'EAAEMfZASjMhgBAKZBYPtpKzBtdnmeGzDv3RR1VN0Hqa5BZAhRMpHLjcEfjSN0MA1m4aUVi3zkT68lX4gWdN7RHl6dMVWz3DVIx9xAFFzQjLy84eKmFkPRL1QyZA4WvXfCHNXDBCnnGb63FoPXtNGMbLv74XLktkZD',
     toi: 'EAAEMfZASjMhgBAKbZBRnVyD2HBurOAlVCOTLWweBA5zLqa3fCexZCQFsIPZAZC9gZAZACWWR2Na8Oz4IGiXwycQ965e9QMFnbipFAlHSaGbZCXGVQmgZAlqFfVunfikRi8Yhx7eOyhHEoIZCqufqNJTr2q5RwrE9kZBb5MZD',
     thythy: 'EAAEMfZASjMhgBADcRIvfJo0Dd3CPpwpvQ6ZBJL23d0ZCoJ2VEvTgxLwId7OJs9ZA0FNkKlZAKfsU8AvDQTYntYAzZAFnamq8OuzVvSOvflRD8C0X11ZAmRsF0HKwiSSEnNxCWak5pPTghw0sDDO9pP438fhpe2ZCBrgZD',
     khanh: 'EAAEMfZASjMhgBADZA8LfYxe8NnnZCcrdwuaAaZBtZBu7yfEPZAMiGFl6QR9UXASc33kDm7BcFvPCbzvyQg4OoLe9fCZBW4uskKTNIToZC1BegoOuCrFS09dTmec2G9BrmZBl5tP2AfQKcRabs5dnpxSHHXxPSXfosa00oDjPtaETo7gZDZD',
@@ -134,7 +141,8 @@ var facebookAccount = {
     maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
     dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
     mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
-    myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD'
+    myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD',
+    thao:'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
 
 }
 
@@ -222,28 +230,55 @@ var groupRef = firebase.database().ref('groupData')
 //         groupRef.child(groupData[i].groupId).update(groupData[i])
 //     }
 // }
-var groupData
+var groupData,groupArray
 groupRef.once('value', function (a) {
     groupData = a.val()
-    // var fields = ['email', 'phone'];
-    // var myUser = []
-    // for (var i in dataUser) {
-    //     myUser.push({
-    //         email: dataUser[i].email || '',
-    //         phone: dataUser[i].phone
-    //     })
-    // }
-    // return new Promise(function (resolve, reject) {
-    //     resolve(myUser)
-    // }).then(function (myUser) {
-    //     var csv = json2csv({data: myUser, fields: fields});
+    groupArray =_.toArray(groupData)
+    // var a = 0
+    // var poster = 'thao'
+    // setInterval(function () {
+    //     if (groupArray[a].groupId) {
+    //         var groupId = groupArray[a].groupId
+    //         var data = {};
+    //         data[poster] = 'tried';
+    //         groupRef.child(groupId).update(data)
+    //         graph.post(groupId + "/feed?access_token=" + facebookAccount[poster],
+    //             {
+    //                 "link": 'https://www.facebook.com/jobovietnam/photos/a.406691943055175.1073741828.385066561884380/569390163452018/?type=3&theater',
+    //                 "message": '7 PHƯƠNG PHÁP MIỄN PHÍ GIÚP TĂNG DOANH THU CHO NHÀ HÀNG KHÁCH SẠN \n Ai quan tâm thì để lại #email và tên #công_ty để mình gửi tài liệu nhé!'
+    //             },
+    //             function (err, res) {
+    //                 // returns the post id
+    //                 a++
+    //                 console.log('a',a)
+    //                 if (err) {
+    //                     console.log(err.message);
+    //                 } else {
+    //                     var postId = res.id
+    //                     console.log(postId, a);
+    //                     var array = postId.split('_')
+    //                     var groupId = array[0]
+    //                     data[poster] = true
+    //                     groupRef.child(groupId).update(data)
+    //                 }
     //
-    //     fs.writeFile('file.csv', csv, function (err) {
-    //         if (err) throw err;
-    //         console.log('file saved');
-    //     });
-    //
-    // })
+    //             });
+    //     }
+    // },60000)
+
+
+
+    return new Promise(function (resolve, reject) {
+        resolve(myUser)
+    }).then(function (myUser) {
+        var csv = json2csv({data: myUser, fields: fields});
+
+        fs.writeFile('file.csv', csv, function (err) {
+            if (err) throw err;
+            console.log('file saved');
+        });
+
+    })
 })
 
 function init() {
@@ -297,30 +332,11 @@ function init() {
     userRef.on('value', function (snap) {
         dataUser = snap.val()
         userRef.child('undefined').remove();
-        var a = 0
 
 
         // analyticsUserToday()
 
-        // var fields = ['email', 'phone'];
-        // var myUser = []
-        // for (var i in dataUser) {
-        //     myUser.push({
-        //         email: dataUser[i].email || '',
-        //         phone: dataUser[i].phone
-        //     })
-        // }
-        // return new Promise(function (resolve, reject) {
-        //     resolve(myUser)
-        // }).then(function (myUser) {
-        //     var csv = json2csv({data: myUser, fields: fields});
-        //
-        //     fs.writeFile('file.csv', csv, function (err) {
-        //         if (err) throw err;
-        //         console.log('file saved');
-        //     });
-        //
-        // })
+
     });
     // profileCol.find({}).toArray(function (err, suc) {
     //     dataProfile = {}
@@ -381,6 +397,35 @@ function init() {
         dataStore = snap.val()
         storeRef.child('undefined').remove()
 
+        //
+        // var fields = ['email', 'phone','storeName'];
+        // var myUser = []
+        // for (var i in dataUser) {
+        //     var user = dataUser[i];
+        //     if(user.type == 1){
+        //         var storeName = '';
+        //         if(user.currentStore && dataStore[user.currentStore] && dataStore[user.currentStore].storeName){
+        //             storeName = dataStore[user.currentStore].storeName
+        //         }
+        //         myUser.push({
+        //             email: dataUser[i].email || '',
+        //             phone: dataUser[i].phone,
+        //             storeName: storeName
+        //         })
+        //     }
+        //
+        // }
+        // return new Promise(function (resolve, reject) {
+        //     resolve(myUser)
+        // }).then(function (myUser) {
+        //     var csv = json2csv({data: myUser, fields: fields});
+        //
+        //     fs.writeFile('file.csv', csv, function (err) {
+        //         if (err) throw err;
+        //         console.log('file saved');
+        //     });
+        //
+        // })
         // for(var i in dataUser){
         //     if(dataUser[i].type == 1 && dataUser[i].package == 'premium'){
         //
@@ -879,6 +924,9 @@ app.get('/check', function (req, res) {
 
 app.get('/', function (req, res) {
     res.send('Jobo Homepage');
+});
+app.get('/group', function (req, res) {
+    res.send(groupData);
 });
 
 
@@ -2603,7 +2651,6 @@ function startList() {
 
         if (card.action == 'createStore') {
             if (dataUser[card.userId]
-                && dataUser[card.userId].email
                 && dataUser[card.userId].currentStore
                 && dataStore[dataUser[card.userId].currentStore]
             ) {
@@ -3776,43 +3823,37 @@ app.get('/admin/analytics', function (req, res) {
 
 
 // Remind:
-// Cài app //chưa hoàn thiện
-
 function ReminderInstallApp() {
-
     for (var i in dataUser) {
         var userData = dataUser[i]
         if (!userData.mobileToken) {
             if (userData.type == 1) {
                 var mail = {
-                    title: "Không bỏ lỡ ứng viên ứng tuyển vào thương hiệu của bạn",
-                    preview: "Hãy cài app jobo để nhận thông báo ngay từ ứng viên",
+                    title: "Jobo sẽ giúp bạn không bỏ lỡ những tài năng",
+                    preview: "Cài đặt ngay Jobo để tương tác với ứng viên tiềm năng",
                     subtitle: '',
-                    description1: 'Chào ' + getLastName(userData.name),
-                    description2: "Cài app jobo để nhận thông báo ngay, hãy nhớ bật cho phép gửi thông báo để Jobo có thể gửi những thông tin công việc quan trọng nhé",
+                    description1: 'Xin chào ' + getLastName(userData.name),
+                    description2: "Bạn đã cài đặt Jobo chưa? Nếu chưa thì hãy nhanh tay lên nhé và nhớ bật thông báo để Jobo đưa tin nhé",
                     description3: 'Tài khoản để anh/chị sử dụng là: Email:' + userData.email,
-                    calltoaction: 'Cài đặt App',
+                    calltoaction: 'Bắt đầu cài đặt app và tìm kiếm ứng viên tiềm năng',
                     linktoaction: CONFIG.WEBURL + '/go',
                     image: ''
                 }
                 sendNotification(userData, mail, true, true, true)
-
             } else if (userData.type == 2) {
                 var mail = {
-                    title: "Tìm việc nhanh hơn trên ứng dụng mobile",
-                    preview: "Hãy cài app jobo để nhận thông báo việc làm phù hợp ngay",
+                    title: "Hãy để Jobo giúp bạn tìm kiếm việc làm nhanh hơn nhé",
+                    preview: "Nhanh tay cài đặt Jobo để tìm việc nhanh nào",
                     subtitle: '',
-                    description1: 'Chào ' + getLastName(userData.name),
-                    description2: "Như bạn đã biết, mỗi khi nhà tuyển dụng có nhu cầu tuyển bạn, chúng tôi sẽ thông báo tới bạn ngay bằng email hoặc gọi điện, tuy nhiên tốt hơn bạn hãy cài app và mở thông báo, để chúng tôi gửi thông báo trực tiếp trong app nhanh hơn",
+                    description1: 'Xin chào ' + getLastName(userData.name),
+                    description2: "Nếu bạn lọt vào mắt xanh của nhà tuyển dụng, chúng tôi sẽ thông báo cho bạn qua email hoặc thông báo điện thoại, nhưng để nhanh hơn thì hãy bật thông báo nhé, có việc ngay lập tức đấy",
                     description3: 'Tài khoản để bạn sử dụng là: Email: ' + userData.email,
-                    calltoaction: 'Cài đặt App',
+                    calltoaction: 'Bắt đầu tìm việc',
                     linktoaction: CONFIG.WEBURL + '/go',
                     image: ''
                 }
                 sendNotification(userData, mail, true, true, true)
             }
-
-
         }
     }
 }
@@ -3826,13 +3867,13 @@ function ReminderJobseekerUpdateAvatar() {
         var profile = dataProfile[i]
         if (!profile.avatar) {
             var mail = {
-                title: "Bạn không thể nhận được việc làm vì không có ảnh đại diện!",
-                body: "Dear " + getLastName(profile.name) + " bạn còn chần chừ gì nữa mà không nhanh tay hoàn thiện hồ sơ (ảnh, SĐT, …) để có được cơ hội các nhà tuyển dụng lựa chọn cao hơn!",
+                title: "Bạn quên cập nhật ảnh đại diện rồi này!",
+                body: "Dear " + getLastName(profile.name) + " nhanh tay hoàn thành hồ sơ đi nào, có rất nhiều nhà tuyển dụng đang chờ đợi tài năng như bạn đấy!",
                 subtitle: '',
-                description1: 'Dear ' + getLastName(profile.name),
-                description2: 'Hiện tại hồ sơ của bạn đang thiếu ảnh đại diện, để giúp bạn ứng tuyển và được nhà tuyển dụng lựa chọn, chúng tôi sẽ gửi bộ hồ sơ của bạn sang nhà tuyển dụng để xét duyệt, trong đó yêu cầu có ảnh đại diện, và một đoạn video phỏng vấn ngắn giới thiệu bản thân',
-                description3: 'Do đó, bạn hãy hoàn thiện hồ sơ nhé, nếu không tự cập nhật được, bạn hãy gọi tới Jobo (0968269860) để được trợ giúp nhé',
-                calltoaction: 'Cật nhật ngay!',
+                description1: 'Jobo xin chào ' + getLastName(profile.name),
+                description2: 'Hiện tại hồ sơ của bạn đang thiếu ảnh đại diện đấy, hãy để nhà tuyển dụng thấy được gương mặt đầy tìm năng của bạn nào',
+                description3: 'Nào, nhấc điện thoại lên và cập nhật anh đại diện của bạn đi nào, có khó khăn gì hãy gọi cho Jobo nhé (0968269860), khó khăn gì cứ hỏi, ngại ngùng chi nữa ',
+                calltoaction: 'Cập nhật và gặp nhà tuyển dụng nào!',
                 linktoaction: CONFIG.WEBURL,
                 description4: ''
             }
@@ -3854,22 +3895,20 @@ function ReminderUpdateDeadline() {
             var userData = dataUser[storeData.createdBy]
             var mail = {
                 title: "Bạn đã tuyển đủ nhân viên chưa?",
-                body: "Hãy cập nhật lại thông tin các vị trí bạn cần tuyển!",
+                body: "Cập nhật lại vị trí nhân viên giúp Jobo nhé!",
                 subtitle: '',
-                description1: 'Chào ' + storeData.storeName,
-                description2: 'Hãy cập nhật lại các thông tin và hạn chót để chúng tôi tuyển nhân viên kịp thời cho bạn!',
-                description3: 'Sau đó lướt hơn +4000 hồ sơ phù hợp để tuyển nhé!',
-                calltoaction: 'Cật nhật ngay!',
+                description1: 'Jobo xin chào ' + storeData.storeName,
+                description2: 'Cập nhật lại thông tin và ngày hết hạn để hỗ trợ Jobo giúp bạn tuyển dụng nhé, nhanh lắm!',
+                description3: 'Sao bạn không làm một vòng +4000 hồ sơ để tìm cho mình một nhân viên nhỉ?!',
+                calltoaction: 'Cập nhật để tìm ứng viên!',
                 linktoaction: CONFIG.WEBURL,
                 description4: '',
-                image: storeData.avatar || ''
             };
             sendNotification(userData, mail, true, true, true)
         } else {
             console.log('ReminderUpdateDeadline error', storeId)
         }
     }
-
 }
 
 schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 2}, function () {
@@ -3882,12 +3921,12 @@ function ReminderUpdateExpect_Job() {
         if (!profile.job) {
             var userData = dataUser[i]
             var mail = {
-                title: "Bạn đang cần tìm việc gì?",
-                body: "Hãy cập nhật vị trí mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!",
+                title: "Hãy cho Jobo biết bạn đang cần tìm việc gì nào?",
+                body: "Vị trí mong muốn của bạn như thế nào,  bật mí cho Jobo biết để Jobo tìm giúp bạn nhé !",
                 subtitle: '',
-                description1: 'Chào ' + getLastName(userData.name),
-                description2: 'Hãy cập nhật vị trí mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!',
-                description3: 'Sau đó lướt hơn 300 công việc đang tuyển xung quanh bạn',
+                description1: 'Xin chào ' + getLastName(userData.name),
+                description2: 'Hãy cho Jobo biết vị trí mong muốn của bạn đi nào!',
+                description3: 'Chúng ta cùng lướt hơn 300 công việc xung quanh bạn nhé',
                 calltoaction: 'Xem profile của bạn',
                 linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
                 image: ''
@@ -3907,18 +3946,17 @@ function ReminderUpdateSalary() {
         var userData = dataUser[i]
         if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].expect_salary) {
             var mail = {
-                title: "Nhận việc mà mức lương không như ý?",
-                body: "Hãy cập nhật mức lương mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!",
+                title: "Bạn không vừa ý với mức lương này ư?",
+                body: "Cho Jobo biết bạn mong muốn về mức lương như thế nào đi nào!",
                 subtitle: '',
-                description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
-                description2: 'Hãy cập nhật mức lương mong muốn để chúng tôi giới thiệu chính xác việc phù hợo cho bạn!',
-                description3: 'Sau đó lướt hơn 300 công việc đang tuyển xung quanh bạn',
+                description1: 'Jobo xin chào ' + getLastName(dataProfile[userData.userId].name),
+                description2: 'Cho Jobo biết bạn mong muốn lương của mình như thế nào để Jobo tìm giúp bạn!',
+                description3: 'Cùng tìm thử 300 công việc xung quanh bạn nhé',
                 calltoaction: 'Xem profile của bạn',
                 linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
                 image: ''
             };
             sendNotification(userData, mail, true, true, true)
-
         }
     }
 }
@@ -3933,13 +3971,13 @@ function ReminderAvatarUpdate() {
         var userData = dataUser[i]
         if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].avatar) {
             var mail = {
-                title: "Để nhận được việc làm, bạn bắt buộc phải có ảnh đại diện",
-                body: "Hãy cập nhật ảnh đại diện ngay!",
+                title: "Cập nhật ảnh đại diện của bạn đi nào, nhà tuyển dụng đang chờ kìa",
+                body: "Cùng Jobo cập nhật ảnh đại diện nhé!",
                 subtitle: '',
-                description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
-                description2: 'Có rất nhiều nhà tuyển dụng đang muốn tuyển bạn nhưng bạn chưa cập nhật ảnh đại diện nên họ không thể tuyển bạn được',
-                description3: 'Hãy cập nhật ảnh đại diện ngay và lướt hơn 300 công việc đang tuyển xung quanh bạn',
-                calltoaction: 'Xem chi tiết',
+                description1: 'Jobo xin chào ' + getLastName(dataProfile[userData.userId].name),
+                description2: 'Có rất nhiều nhà tuyển dụng đã xem hồ sơ của bạn nhưng vì bạn quên cập nhật ảnh đại diện nên họ đã lỡ mất một nhân viên tìm năng, xinh đẹp như bạn rồi ',
+                description3: 'Cùng cập nhật ảnh đại diện để tìm việc nhé',
+                calltoaction: 'Bắt đầu nào',
                 linktoaction: CONFIG.WEBURL,
                 image: ''
             };
@@ -3964,20 +4002,18 @@ function ReminderCreateProfile() {
                 how = 'bằng tài khoản với Email: ' + userData.email + ' / Password: tuyendungjobo'
 
             }
-
             var mail = {
-                title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
-                body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
-                subtitle: '',
-                description1: 'Chào ' + getLastName(userData.name),
-                description2: 'Có rất nhiều nhà tuyển dụng đang muốn tuyển bạn nhưng bạn chưa cập nhật hồ sơ nên họ không thể tuyển bạn được',
-                description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
-                calltoaction: 'Truy cập Jobo',
-                linktoaction: CONFIG.WEBURL,
-                image: ''
-            };
+                    title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
+                    body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
+                    subtitle: '',
+                    description1: 'Jobo xin chào ' + getLastName(userData.name),
+                    description2: 'Hồ sơ của bạn đang thiếu thông tin đó, cùng Jobo cập nhật và tìm nhà tuyển dụng nào',
+                    description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
+                    calltoaction: 'Truy cập Jobo',
+                    linktoaction: CONFIG.WEBURL,
+                    image: ''
+                };
             sendNotification(userData, mail, true, true, true)
-
         }
     }
 }
@@ -4043,6 +4079,8 @@ function PostStore(storeId, poster) {
     }, 5000)
 
 }
+
+
 
 app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
@@ -4131,6 +4169,8 @@ schedule.scheduleJob(rule2, function () {
 app.get('/PostListJob', function (req, res) {
     PostListJob('dailyhn', 'hn', 'dong');
 });
+
+
 
 function Notification_FirstRoundInterview() {
     var dataliked = _.where(likeActivity, {storeId: 's35071407305077', status: 0, type: 2});
