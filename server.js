@@ -76,13 +76,13 @@ var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
 // For other types of transports (Amazon SES, Sendgrid...) see https://nodemailer.com/2-0-0-beta/setup-transporter/
 // var mailTransport = nodemailer.createTransport('smtps://<user>%40gmail.com:<password>@smtp.gmail.com');
 //
-var mailTransport = nodemailer.createTransport(ses({
-    accessKeyId: 'AKIAJB7IJS2GP6NGLFSQ',
-    secretAccessKey: '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',
-    region: 'us-west-2'
-}));
+// var mailTransport = nodemailer.createTransport(ses({
+//     accessKeyId: 'AKIAJB7IJS2GP6NGLFSQ',
+//     secretAccessKey: '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',
+//     region: 'us-west-2'
+// }));
 
-var mailTransport2 = nodemailer.createTransport(ses({
+var mailTransport = nodemailer.createTransport(ses({
     accessKeyId: 'AKIAJHPP64MDOXMXAZRQ',
     secretAccessKey: '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',
     region: 'us-east-1'
@@ -2242,6 +2242,7 @@ app.get('/admin/storeEmail', function (req, res) {
 /**
  * Send the new star notification email to the given email.
  */
+
 function sendNotificationToGivenUser(registrationToken, body, title, cta) {
 
     var payload = {
@@ -2272,13 +2273,12 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta) {
 
 
 }
-
 function sendEmail(email, subject, bodyHtml) {
     if (email) {
         var mailOptions = {
             from: {
                 name: 'Khánh Thông | Jobo - Tìm việc nhanh',
-                address: 'hello@joboapp.com'
+                address: 'thonglk.mac@gmail.com'
             },
             to: email,
             subject: subject,
@@ -4159,7 +4159,7 @@ schedule.scheduleJob(rule, function () {
 
 var rule2 = new schedule.RecurrenceRule();
 rule2.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
-rule2.hour = 18;
+rule2.hour = 12;
 rule2.minute = 55;
 
 schedule.scheduleJob(rule2, function () {
