@@ -142,7 +142,7 @@ var facebookAccount = {
     dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
     mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
     myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD',
-    thao:'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
+    thao: 'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
 
 }
 
@@ -230,10 +230,10 @@ var groupRef = firebase.database().ref('groupData')
 //         groupRef.child(groupData[i].groupId).update(groupData[i])
 //     }
 // }
-var groupData,groupArray
+var groupData, groupArray
 groupRef.once('value', function (a) {
     groupData = a.val()
-    groupArray =_.toArray(groupData)
+    groupArray = _.toArray(groupData)
     // var a = 0
     // var poster = 'thao'
     // setInterval(function () {
@@ -265,7 +265,6 @@ groupRef.once('value', function (a) {
     //             });
     //     }
     // },60000)
-
 
 
     return new Promise(function (resolve, reject) {
@@ -710,37 +709,43 @@ function createJDStore(storeId) {
     storeData.jobData = _.where(dataJob, {storeId: storeId});
 
     var text = '';
-    var today = new Date().getTime()
-    if (storeData.jobData) {
-        text = text + storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
-        if (storeData.address) {
-            text = text + '🛣 ' + storeData.address + '\n \n '
-        }
+    var a = Math.round(Math.random() * 2)
 
-        if (storeData.description) {
-            text = text + storeData.description + '\n \n'
-        }
+    if (a == 0) {
+        var today = new Date().getTime()
+        if (storeData.jobData) {
+            text = text + storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
+            if (storeData.address) {
+                text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
+            }
 
-        text = text + '► Vị trí cần tuyển \n'
+            if (storeData.description) {
+                text = text + storeData.description + '\n \n'
+            }
 
-        for (var i in storeData.jobData) {
+            text = text + '► Vị trí cần tuyển \n'
 
-            var Job = storeData.jobData[i]
-            if (Job.deadline > today) {
-                var jobId = Job.storeId + ':' + Job.job
-                text = text + createJDJob(jobId)
+            for (var i in storeData.jobData) {
+
+                var Job = storeData.jobData[i]
+                if (Job.deadline > today) {
+                    var jobId = Job.storeId + ':' + Job.job
+                    text = text + createJDJob(jobId)
+                }
+            }
+
+            var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId
+            text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 01662002900 (My)`
+
+            return {
+                text: text,
+                link: link,
+                image: storeData.avatar
             }
         }
-
-        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId
-        text = text + 'Xem chi tiết: ' + link
-
-        return {
-            text: text,
-            link: link,
-            image: storeData.avatar
-        }
     }
+
+
 }
 
 
@@ -780,10 +785,10 @@ function checkInadequate() {
 function shortAddress(fullAddress) {
     if (fullAddress) {
         var mixAddress = fullAddress.split(",")
-        if (mixAddress.length == 1) {
+        if (mixAddress.length < 3) {
             return fullAddress
         } else {
-            var address = mixAddress[0] + ', ' + mixAddress[1]
+            var address = mixAddress[0] + ', ' + mixAddress[1] + ', ' + mixAddress[2]
             return address
         }
 
@@ -1780,6 +1785,7 @@ app.get('/update/user', function (req, res) {
     var storeDataStr = req.param('store')
     if (storeDataStr) {
         var storeData = JSON.parse(storeDataStr)
+        console.log(storeData)
     }
 
     if (userId) {
@@ -2273,6 +2279,7 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta) {
 
 
 }
+
 function sendEmail(email, subject, bodyHtml) {
     if (email) {
         var mailOptions = {
@@ -2284,7 +2291,6 @@ function sendEmail(email, subject, bodyHtml) {
             subject: subject,
             html: bodyHtml
         };
-
         return mailTransport.sendMail(mailOptions).then(function () {
             console.log('New email sent to: ' + email);
         }, function (error) {
@@ -2515,6 +2521,26 @@ function addDateToJob(ref) {
 
 }
 
+app.get('/initStore', function (req, res) {
+    var storeId = req.param('storeId');
+    var storeData = dataStore[storeId]
+
+
+    sendWelcomeEmailToStore(storeId)
+    if (storeData.job) {
+        setTimeout(function () {
+            sendStoretoPage(storeId)
+        }, 5000)
+        setTimeout(function () {
+            PostStore(storeId, 'thuythuy')
+        }, 10000)
+        setTimeout(function () {
+            sendNotiSubcribleToProfile(storeId)
+        }, 20000)
+    }
+    res.send('done')
+})
+
 function startList() {
 
     actRef.on('child_added', function (snap) {
@@ -2656,7 +2682,7 @@ function startList() {
             ) {
                 var employerData = dataUser[card.userId]
                 var storeData = dataStore[employerData.currentStore]
-
+                var storeId = storeData.storeId
                 if (!storeData.storeId) {
                     storeRef.child(employerData.currentStore).update({storeId: employerData.currentStore})
                 } else {
@@ -2690,14 +2716,20 @@ function startList() {
                         jobRef.child(i).update({createdBy: userId})
                     }
                 }
-
                 setTimeout(function () {
-                    sendStoretoPage(storeData.storeId)
-                    sendWelcomeEmailToStore(storeData, dataUser[card.userId])
-                    if (storeData.job) {
-                        sendNotiSubcribleToProfile(storeData.storeId)
-                    }
-                }, 50000)
+                    sendWelcomeEmailToStore(storeId)
+                }, 15000)
+                if (storeData.job) {
+                    setTimeout(function () {
+                        sendStoretoPage(storeId)
+                    }, 5000)
+                    setTimeout(function () {
+                        PostStore(storeId, 'thuythuy')
+                    }, 10000)
+                    setTimeout(function () {
+                        sendNotiSubcribleToProfile(storeId)
+                    }, 20000)
+                }
                 actRef.child(key).remove()
             } else {
                 console.log('thiếu thông tin store,', card.userId)
@@ -3028,12 +3060,6 @@ function sendStoretoPage(storeId) {
     var storeData = dataStore[storeId];
     storeData.jobData = _.where(dataJob, {storeId: storeId});
     if (storeData.jobData) {
-        if (storeData.avatar) {
-            PublishPhoto(publishChannel.viecLamNhaHang.pageId, createJDStore(storeId), publishChannel.viecLamNhaHang.token)
-
-        } else {
-            PublishPost(publishChannel.viecLamNhaHang.pageId, createJDStore(storeId), publishChannel.viecLamNhaHang.token)
-        }
         if (storeData.createdBy
             && dataUser[storeData.createdBy]) {
 
@@ -3113,9 +3139,9 @@ function sendWelcomeEmailToProfile(userData, profileData) {
     sendNotification(userData, mail, true, true, true)
 }
 
-function sendWelcomeEmailToStore(userInfo) {
-    var storeId = userInfo.currentStore;
+function sendWelcomeEmailToStore(storeId) {
     var storeData = dataStore[storeId];
+    var userInfo = dataUser[storeData.createdBy]
     if (storeData && storeId && storeData.storeName && storeData.job && storeData.location) {
         var mail = {
             email: userInfo.email,
@@ -3185,14 +3211,15 @@ function sendWelcomeEmailToStore(userInfo) {
                 var mailOptions = {
                     from: {
                         name: 'Khánh Thông | Jobo - Tìm việc nhanh',
-                        address: 'hello@joboapp.com'
+                        address: 'thonglk.mac@gmail.com'
                     },
+                    cc: 'thonglk.mac@gmail.com',
                     to: mail.email,
                     subject: 'Chào mừng ' + mail.storeName + ' tuyển gấp nhân viên trên Jobo',
                     html: htmlEmail,
                     attachments: [
                         {   // filename and content type is derived from path
-                            path: 'https://joboapp.com/img/jobo-gioi-thieu.pdf'
+                            path: 'https://joboapp.com/img/proposal_pricing_included.pdf'
                         }
                     ]
                 };
@@ -3438,7 +3465,7 @@ function sendNotiSubcribleToProfile(storeId) {
                         image: '',
                         description3: 'Nếu bạn không thích công việc này, hãy cho chúng tôi biết để chúng tôi giới thiệu những công việc phù hợp hơn.'
                     };
-                    // sendNotification(dataUser[card.userId], mail, 'user', true, true)
+                    sendNotification(dataUser[card.userId], mail, 'user', true, true)
 
                 }
 
@@ -4003,16 +4030,16 @@ function ReminderCreateProfile() {
 
             }
             var mail = {
-                    title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
-                    body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
-                    subtitle: '',
-                    description1: 'Jobo xin chào ' + getLastName(userData.name),
-                    description2: 'Hồ sơ của bạn đang thiếu thông tin đó, cùng Jobo cập nhật và tìm nhà tuyển dụng nào',
-                    description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
-                    calltoaction: 'Truy cập Jobo',
-                    linktoaction: CONFIG.WEBURL,
-                    image: ''
-                };
+                title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
+                body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
+                subtitle: '',
+                description1: 'Jobo xin chào ' + getLastName(userData.name),
+                description2: 'Hồ sơ của bạn đang thiếu thông tin đó, cùng Jobo cập nhật và tìm nhà tuyển dụng nào',
+                description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
+                calltoaction: 'Truy cập Jobo',
+                linktoaction: CONFIG.WEBURL,
+                image: ''
+            };
             sendNotification(userData, mail, true, true, true)
         }
     }
@@ -4041,8 +4068,6 @@ function isWhere(storeId) {
 function PostStore(storeId, poster) {
     var send = createJDStore(storeId);
     var where = isWhere(storeId)
-    // sendNotiSubcribleToProfile(ref);
-    // sendStoretoPage(ref);
 
     setTimeout(function () {
         var job = send.text + ' \n------------------ \n Lưu ý: \n 🔹 Ứng tuyển không cần CV \n ️🔹 Thông báo đi phỏng vấn ngay trong vòng 24h \n ️🏆 Chỉ cần muốn tìm việc, sẽ tư vấn tìm được việc phù hợp mới thôi';
@@ -4081,7 +4106,6 @@ function PostStore(storeId, poster) {
 }
 
 
-
 app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
     var poster = req.param('poster');
@@ -4091,7 +4115,7 @@ app.get('/PostStore', function (req, res) {
 var rule3 = new schedule.RecurrenceRule();
 rule3.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule3.hour = 15;
-rule3.minute = 00;
+rule3.minute = 0;
 
 schedule.scheduleJob(rule3, function () {
     PostStore('-Ko888eO-cKhfXzJzSQh', 'myhuyen2');
@@ -4169,7 +4193,6 @@ schedule.scheduleJob(rule2, function () {
 app.get('/PostListJob', function (req, res) {
     PostListJob('dailyhn', 'hn', 'dong');
 });
-
 
 
 function Notification_FirstRoundInterview() {
@@ -4324,15 +4347,15 @@ function Email_sendListLikedToEmployer(storeId) {
             var mailOptions = {
                 from: {
                     name: 'Khánh Thông | Jobo - Tìm việc nhanh',
-                    address: 'hello@joboapp.com'
+                    address: 'thonglk.mac@gmail.com'
                 },
                 to: email,
-                cc: 'thonglk.mac@gmail.com',
+                cc: 'thonglk@joboapp.com',
                 subject: 'Jobo - ' + storeData.storeName + ' | Gửi danh sách ứng viên phỏng vấn',
                 html: htmlEmail,
                 attachments: [
-                    {   // filename and content type is derived from path
-                        path: 'https://joboapp.com/img/jobo-gioi-thieu.pdf'
+                    {
+                        path: 'https://joboapp.com/img/proposal_pricing_included.pdf'
                     }
                 ]
             };
