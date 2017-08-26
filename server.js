@@ -259,12 +259,7 @@ groupRef.once('value', function (snap) {
 function init() {
     console.log('init')
     configRef.on('value', function (snap) {
-        CONFIG = Object.assign(snap.val(), {
-            'APIURL': 'https://jobohihi.herokuapp.com',
-            'WEBURL': 'https://joboapp.com',
-            'FCM_KEY': "AAAArk3qIB4:APA91bEWFyuKiFqLt4UIrjUxLbduQCWJB4ACptTtgAovz4CKrMdonsS3jt06cfD9gGOQr3qtymBmKrsHSzGhqyJ_UWrrEbA4YheznlqYjsCBp_12bNPFSBepqg_qrxwdYxX_IcT9ne5z6s02I2mu2boy3VTN3lGPYg",
-            "APIKey": 'AIzaSyBaP_B8NOr9rf2Mnymw3WysEv9Lofqj11ogulp'
-        })
+        CONFIG = snap.val()
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
@@ -516,20 +511,7 @@ function init() {
     //     }
     //
     // });
-    // notificationRef.once('value', function (snap) {
-    //     dataNoti = snap.val()
-    //     for(var i in dataNoti){
-    //         var notiData = dataNoti[i]
-    //
-    //         for(var k in notiData){
-    //             var noti = notiData[k]
-    //             noti.to = i
-    //             notiCollection.insert(noti,function (err,suc) {
-    //                 console.log(err)
-    //             })
-    //         }
-    //     }
-    // })
+
     return new Promise(function (resolve, reject) {
         resolve(dataProfile)
     }).then(function () {
@@ -2071,7 +2053,7 @@ app.get('/admin/storeEmail', function (req, res) {
  * Send the new star notification email to the given email.
  */
 
-function sendNotificationToGivenUser(registrationToken, body, title, cta) {
+function sendNotificationToGivenUser(registrationToken, body, title, cta, type, key) {
 
     var payload = {
         notification: {
@@ -2093,7 +2075,10 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta) {
 // registration token with the provided options.
     secondary.messaging().sendToDevice(registrationToken, payload, options)
         .then(function (response) {
-            console.log("secondary sent message:", JSON.stringify(response));
+            console.log("secondary sent message:", JSON.stringify(response.results));
+            if (response.successCount == 1 && type && key) {
+                notificationRef.child(key + '/' + type).update({sent: true})
+            }
         })
         .catch(function (error) {
             console.log("Error sending message:", error);
@@ -2102,7 +2087,8 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta) {
 
 }
 
-function sendEmail(email, subject, bodyHtml) {
+
+function sendEmail(email, subject, bodyHtml, key) {
     if (email) {
         var mailOptions = {
             from: {
@@ -2115,6 +2101,7 @@ function sendEmail(email, subject, bodyHtml) {
         };
         return mailTransport.sendMail(mailOptions).then(function () {
             console.log('New email sent to: ' + email);
+            notificationRef.child(key + '/email').update({sent: true})
         }, function (error) {
             console.log('Some thing wrong when sent email to ' + email + ':' + error);
         });
@@ -3440,7 +3427,7 @@ function sendEmailTemplate(mail, email) {
     var footer = ' <tr id="m_-5282972956275044657simple-content-row" style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table align="left" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30"> <p>&nbsp;</p> </td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"> <p style="margin-bottom:15px">' + mail.description3 + '</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div style="text-align:center"><a href="' + mail.linktoaction + '" style="background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;font-weight:bold;line-height:60px;text-align:center;text-decoration:none;width:300px" target="_blank"> ' + mail.calltoaction + '</a></div> </td> </tr> </tbody> </table> <table border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w580" width="580"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <p align="left" class="m_-5282972956275044657article-title" style="font-size:18px;line-height:24px;color:#2b3038;font-weight:bold;margin-top:0px;margin-bottom:18px;font-family:' + font + '"> &nbsp;</p> <div align="left" class="m_-5282972956275044657article-content" style="font-size:16px;line-height:30px;color:#5f6a7d;margin-top:0px;margin-bottom:18px;font-family:' + font + ';font-weight:300"><p style="margin-bottom:15px">' + mail.description4 + '</p> <p style="margin-bottom:15px">Rất vui được giúp bạn!</p> <p style="margin-bottom:15px">Khánh Thông, CEO & Founder - Jobo</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" height="10" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580">&nbsp;</td> </tr> </tbody> </table> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" id="m_-5282972956275044657footer" style="border-top-width:1px;border-top-style:solid;border-top-color:#f1f1f1;background-color:#ffffff;color:#d4d4d4" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="360"> <p align="left" class="m_-5282972956275044657footer-content-left" id="m_-5282972956275044657permission-reminder" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px;white-space:normal"> <span>Sent with ♥ from Jobo</span> </p> <p align="left" class="m_-5282972956275044657footer-content-left" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px"> <a href="https://joboapp.com/#ref=fm" style="color:#c4c4c4;text-decoration:none;font-weight:bold" target="_blank">We are hiring</a></p> </td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="160"> <p align="right" class="m_-5282972956275044657footer-content-right" id="m_-5282972956275044657street-address" style="font-size:11px;line-height:16px;margin-top:0px;margin-bottom:15px;color:#d4d4d4;white-space:normal"> <span>Jobo</span><br style="line-height:100%"> <span>+84 968 269 860</span><br style="line-height:100%"> <span>25T2 Hoàng Đạo Thúy,HN<br>162 Pasteur,Q1,HCM</span></p> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table></div>'
 
     if (mail.image) {
-        html = header +content + image + footer
+        html = header + content + image + footer
     } else {
         html = header + content + footer
     }
@@ -3450,32 +3437,13 @@ function sendEmailTemplate(mail, email) {
 function sendEmailTemplate_User(mail, email) {
     var html = '<!doctype html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head><title></title> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <style type="text/css"> #outlook a { padding: 0; } .ReadMsgBody { width: 100%; } .ExternalClass { width: 100%; } .ExternalClass * { line-height: 100%; } body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; } table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; } p { display: block; margin: 13px 0; } </style> <!--[if !mso]><!--> <style type="text/css"> @media only screen and (max-width: 480px) { @-ms-viewport { width: 320px; } @viewport { width: 320px; } } </style> <!--<![endif]--> <!--[if mso]> <xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings> </xml> <![endif]--> <!--[if lte mso 11]> <style type="text/css"> .outlook-group-fix { width: 100% !important; } </style> <![endif]--> <style type="text/css"> @media only screen and (min-width: 480px) { .mj-column-per-100 { width: 100% !important; } .mj-column-per-50 { width: 50% !important; } .mj-column-per-80 { width: 80% !important; } .mj-column-per-20 { width: 20% !important; } } </style></head><body><div> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description1 + '</p> <p>' + mail.description2 + '</p> </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-50 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:400px;"><img alt="" title="" height="auto" src="' + mail.data.avatar + '" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="400"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:28px;font-weight:bold;line-height:22px;text-align:justify;"> ' + mail.data.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:15px;line-height:22px;text-align:justify;"> ' + mail.data.job + ' </div> </td> </tr> <tr style="border-collapse:collapse;"> <td class="m_-5282972956275044657w580" style="padding:10px 25px;font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div><a href="' + CONFIG.WEBURL + mail.linktoaction + '" style="padding:5px; background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;text-align:center;line-height:40px;text-decoration:none;width:120px; border-radius: 60px;" target="_blank"> ' + mail.calltoaction + '</a></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description3 + '</p><p>Rất vui được giúp bạn!</p> <p style="margin-bottom:15px">Khánh Thông, CEO & Founder - Jobo</p> </div> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" height="10" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580">&nbsp;</td> </tr> </tbody> </table> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td bgcolor="#ffffff" class="m_-5282972956275044657w640" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640"> <table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" class="m_-5282972956275044657w640" id="m_-5282972956275044657footer" style="border-top-width:1px;border-top-style:solid;border-top-color:#f1f1f1;background-color:#ffffff;color:#d4d4d4" width="640"> <tbody> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="360"> <p align="left" class="m_-5282972956275044657footer-content-left" id="m_-5282972956275044657permission-reminder" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px;white-space:normal"> <span>Sent with ♥ from Jobo</span> </p> <p align="left" class="m_-5282972956275044657footer-content-left" style="font-size:12px;line-height:15px;color:#d4d4d4;margin-top:0px;margin-bottom:15px"> <a href="https://joboapp.com/#ref=fm" style="color:#c4c4c4;text-decoration:none;font-weight:bold" target="_blank">Xem thêm</a></p> </td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657hide m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" valign="top" width="160"> <p align="right" class="m_-5282972956275044657footer-content-right" id="m_-5282972956275044657street-address" style="font-size:11px;line-height:16px;margin-top:0px;margin-bottom:15px;color:#d4d4d4;white-space:normal"> <span>Jobo</span><br style="line-height:100%"> <span>+84 968 269 860</span><br style="line-height:100%"> <span>25T2 Hoàng Đạo Thúy,HN - 162 Pasteur,Q1</span></p> </td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> <td class="m_-5282972956275044657w580 m_-5282972956275044657h0" height="15" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="360">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="60">&nbsp;</td> <td class="m_-5282972956275044657w0" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="160">&nbsp;</td> <td class="m_-5282972956275044657w30" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="30">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table> </td> </tr> <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w640" height="60" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="640">&nbsp;</td> </tr> </tbody> </table></div>'
 
-    sendEmail(email, mail.title, html)
+    sendEmail(email, mail.title, html, mail.key)
 }
 
-function sendNotification(userData, mail, letter, web, mobile) {
+function sendNotification(userData, mail, letter, web, mobile, messenger, time) {
     if (userData) {
-
-        if (userData.email && userData.wrongEmail != true && letter != null) {
-            if (letter == 'user') {
-                sendEmailTemplate_User(mail, userData.email)
-            } else {
-                sendEmailTemplate(mail, userData.email)
-            }
-        } else {
-            console.log('sendNotification error', userData.userId)
-        }
-
-        if (userData.webToken && web) {
-            sendNotificationToGivenUser(userData.webToken, mail.body, mail.title, mail.linktoaction)
-        } else {
-            console.log('This profile donnt have webToken', userData.userId)
-        }
-
-        if (userData.mobileToken && mobile) {
-            sendNotificationToGivenUser(userData.mobileToken, mail.body, mail.title, mail.linktoaction)
-        } else {
-            console.log('This profile donnt have mobileToken', userData.userId)
+        if (!time) {
+            time = new Date().getTime() + 5 * 1000
         }
 
         if (mail.data && mail.data.avatar) {
@@ -3483,9 +3451,38 @@ function sendNotification(userData, mail, letter, web, mobile) {
         }
         mail.createdAt = new Date().getTime()
         mail.to = userData.userId
+        mail.time = time
+        mail.key = notificationRef.push().key;
+        notificationRef.child(mail.key).update(mail)
 
-        var key = notificationRef.push().key;
-        notificationRef.child(key).update(mail)
+
+        if (userData.email && userData.wrongEmail != true && letter != null) {
+            if (letter == 'user') {
+                schedule.scheduleJob(time, function () {
+                    sendEmailTemplate_User(mail, userData.email)
+                });
+
+            } else {
+                schedule.scheduleJob(time, function () {
+                    sendEmailTemplate(mail, userData.email)
+                });
+            }
+        }
+
+        if (userData.webToken && web) {
+            schedule.scheduleJob(time, function () {
+                sendNotificationToGivenUser(userData.webToken, mail.body, mail.title, mail.linktoaction, 'web', mail.key)
+            });
+        }
+
+        if (userData.mobileToken && mobile) {
+            schedule.scheduleJob(time, function () {
+                sendNotificationToGivenUser(userData.mobileToken, mail.body, mail.title, mail.linktoaction, 'app', mail.key)
+
+            });
+        }
+
+
     }
 }
 
@@ -4084,7 +4081,6 @@ app.get('/PostStore', function (req, res) {
 });
 
 var rule3 = new schedule.RecurrenceRule();
-rule3.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule3.hour = 15;
 rule3.minute = 0;
 
@@ -4093,7 +4089,6 @@ schedule.scheduleJob(rule3, function () {
 });
 
 var rule4 = new schedule.RecurrenceRule();
-rule4.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule4.hour = 10;
 rule4.minute = 26;
 
@@ -4144,7 +4139,6 @@ function PostListJob(ref, where, poster) {
 }
 
 var rule = new schedule.RecurrenceRule();
-rule.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule.hour = 19;
 rule.minute = 49;
 
@@ -4153,7 +4147,6 @@ schedule.scheduleJob(rule, function () {
 });
 
 var rule2 = new schedule.RecurrenceRule();
-rule2.dayOfWeek = [0, 1, 2, 3, 4, 5, 6];
 rule2.hour = 12;
 rule2.minute = 55;
 
