@@ -634,11 +634,13 @@ function shortenURL(longURL, key) {
 
 // Start the request
     request(options, function (error, response, body) {
-        var res = JSON.parse(body)
-        if (res.data && res.data.url) {
-            shorturl = res.data.url
-            shortLinkData[key] = shorturl
+        if (body) {
+            var res = JSON.parse(body)
+            if (res.data && res.data.url) {
+                shorturl = res.data.url
+                shortLinkData[key] = shorturl
 
+            }
         }
     })
     return new Promise(function (resolve, reject) {
@@ -1460,6 +1462,8 @@ app.get('/api/users', function (req, res) {
     var expfilter = req.param('experience');
     var figurefilter = req.param('figure');
     var urgentfilter = req.param('urgent');
+    var mylng = req.param('lng');
+    var mylat = req.param('lat');
 
     var sort = req.param('sort');
     var page = req.param('p');
@@ -1467,97 +1471,63 @@ app.get('/api/users', function (req, res) {
         jobfilter = ''
     }
 
-    if (dataStore[userId] && dataStore[userId].location) {
+    var usercard = [];
+    for (var i in dataProfile) {
+        var card = dataProfile[i];
+        card.match = 0;
+        if (card.location
+            && card.avatar
+            && !card.hide
+            && ((card.job && card.job[jobfilter]) || !jobfilter)
+            && ((card.working_type == working_typefilter) || !working_typefilter)
+            && ((card.sex == sexfilter) || !sexfilter)
+            && ((card.urgent == urgentfilter) || !urgentfilter)
+            && (card.experience || !expfilter)
+            && (card.figure || !figurefilter)
+        ) {
+            if (mylat && mylng) {
 
-        var storeData = dataStore[userId];
-        var mylat = storeData.location.lat;
-        var mylng = storeData.location.lng;
-
-        var usercard = [];
-        for (var i in dataProfile) {
-            var card = dataProfile[i];
-            var keyAct = userId + ":" + card.userId;
-
-            card.match = 0;
-
-            if (card.location
-                && card.avatar
-                && !card.hide
-                && ((card.job && card.job[jobfilter]) || !jobfilter)
-                && ((card.working_type == working_typefilter) || !working_typefilter)
-                && ((card.sex == sexfilter) || !sexfilter)
-                && ((card.urgent == urgentfilter) || !urgentfilter)
-                && (card.experience || !expfilter)
-                && (card.figure || !figurefilter)
-            ) {
+                if (card.expect_distance) {
+                    distancefilter = card.expect_distance
+                }
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 if (distance < distancefilter) {
-
                     card.distance = distance;
-                    card.match = card.match + 10 / (1 + Math.abs((+card.distance_expect || 20) - +distance) )
-
-                    if (dataStatic[card.userId]) {
-                        card.viewed = dataStatic[card.userId].viewed || 0
-                        card.rate = (dataStatic[card.userId].rated || 0) * (dataStatic[card.userId].rateAverage || 0)
-                    }
-
-                    if (card.working_type == working_typefilter) {
-                        card.match = card.match + 15
-                    }
-
-                    if (card.sex == sexfilter) {
-                        card.match = card.match + 5
-                    }
-
-                    if (card.experience && expfilter) {
-                        card.match = card.match + 5
-                    }
-
-                    if (card.figure && figurefilter) {
-                        card.match = card.match + 5
-                    }
-
-                    if (card.point) {
-                        card.match = card.match + card.point / 4
-                    }
-
-                    if (likeActivity[keyAct]) {
-                        card.act = likeActivity[keyAct]
-                    }
-
-                    card.match = Math.round(card.match)
                     usercard.push(card)
-
                 }
+            } else {
+
+                usercard.push(card)
 
             }
+
+
         }
-        return new Promise(function (resolve, reject) {
-            resolve(usercard)
-        }).then(function (usercard) {
-                var sorded
-                if (sort == 'match' || sort == 'rate') {
-                    sorded = _.sortBy(usercard, function (card) {
-                        return -card[sort]
-                    })
-                    console.log('sort', sort)
-                } else if (sort == 'distance') {
-                    sorded = _.sortBy(usercard, function (card) {
-                        return card[sort]
-                    })
-                } else {
-                    sorded = _.sortBy(usercard, function (card) {
-                        return -card.createdAt
-                    })
-                }
-                var sendData = getPaginatedItems(sorded, page)
-
-                res.send(sendData)
-            }
-        )
-    } else {
-        res.send('update location' + userId)
     }
+    return new Promise(function (resolve, reject) {
+        resolve(usercard)
+    }).then(function (usercard) {
+            var sorded
+            if (sort == 'match' || sort == 'rate') {
+                sorded = _.sortBy(usercard, function (card) {
+                    return -card[sort]
+                })
+                console.log('sort', sort)
+            } else if (sort == 'distance') {
+                sorded = _.sortBy(usercard, function (card) {
+                    return card[sort]
+                })
+            } else {
+                sorded = _.sortBy(usercard, function (card) {
+                    return -card.createdAt
+                })
+            }
+            var sendData = getPaginatedItems(sorded, page)
+
+            res.send(sendData)
+        }
+    )
+
 });
 
 app.get('/on/user', function (req, res) {
@@ -2177,8 +2147,8 @@ function getPaginatedItems(items, page) {
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     var R = 6371; // Radius of the earth in km
-    var dLat = deg2rad(lat2 - lat1);  // deg2rad below
-    var dLon = deg2rad(lon2 - lon1);
+    var dLat = deg2rad(Number(lat2) - Number(lat1));  // deg2rad below
+    var dLon = deg2rad(Number(lon2) - Number(lon1));
     var a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
@@ -2385,7 +2355,7 @@ app.get('/initStore', function (req, res) {
             sendStoretoPage(storeId)
         }, 5000)
         setTimeout(function () {
-            PostStore(storeId)
+            PostStore(storeId, 'thao')
         }, 10000)
         setTimeout(function () {
             sendNotiSubcribleToProfile(storeId)
@@ -2568,21 +2538,25 @@ function startList() {
 
                         jobRef.child(i).update({createdBy: userId})
                     }
+                    if (!jobData.jobName) {
+
+                        jobRef.child(i).update({jobName: CONFIG.data.job[jobData.job]})
+                    }
                 }
-                setTimeout(function () {
-                    sendWelcomeEmailToStore(storeId)
-                }, 15000)
+
+                sendWelcomeEmailToStore(storeId)
                 if (storeData.job) {
                     setTimeout(function () {
                         sendStoretoPage(storeId)
                     }, 5000)
                     setTimeout(function () {
-                        PostStore(storeId, 'thuythuy')
+                        PostStore(storeId, 'thao')
                     }, 10000)
                     setTimeout(function () {
                         sendNotiSubcribleToProfile(storeId)
                     }, 20000)
                 }
+
                 actRef.child(key).remove()
             } else {
                 console.log('thiếu thông tin store,', card.userId)
@@ -2658,6 +2632,11 @@ function startList() {
 
                             jobRef.child(i).update({createdBy: card.userId})
                         }
+                        if (!jobData.jobName) {
+
+                            jobRef.child(i).update({jobName: CONFIG.data.job[jobData.job]})
+                        }
+
                         if (storeData) {
                             jobData.storeId = storeData.storeId
                             jobData.storeName = storeData.storeName
@@ -3263,7 +3242,6 @@ function sendNotiSubcribleToEmployer(userData) {
 }
 
 
-
 function sendNotiSubcribleToProfile(storeId) {
     var storeData = dataStore[storeId]
     console.log(storeData.job)
@@ -3632,8 +3610,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             likeData.likeAt &&
             (likeData.likeAt > dateStart || dateStart == 0) &&
             (likeData.likeAt < dateEnd || dateEnd == 0)
-        )
-        {
+        ) {
             if (likeData.type == 2) {
                 act.userLikeStore++
             }
@@ -3702,7 +3679,7 @@ function analyticsRemind() {
     })
 }
 
-app.get('/sendRemind', function (req,res) {
+app.get('/sendRemind', function (req, res) {
     analyticsRemind()
     res.send('sendRemind done')
 })
@@ -3734,6 +3711,7 @@ app.get('/admin/analyticsUser', function (req, res) {
                 res.send(ObjectData)
             }
         }
+
         myloop()
     }
 );
