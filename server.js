@@ -1245,7 +1245,11 @@ app.get('/api/job', function (req, res) {
             ) {
                 card.match = 0
                 if(card.package == 'premium'){
-                    card.match = 100
+                    card.match =  card.match + 100
+                }
+
+                if(card.createdAt){
+                    card.match = card.match + 100/(new Date().getTime() - card.createdAt)
                 }
                 joblist.push(card)
 
