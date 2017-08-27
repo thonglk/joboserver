@@ -3558,6 +3558,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
     var act = {
         userLikeStore: 0,
         storeLikeUser: 0,
+        match:0,
         success: 0,
         meet: 0,
     }
@@ -3660,6 +3661,9 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             if (likeData.type == 1) {
                 act.storeLikeUser++
             }
+            if (likeData.status == 1) {
+                act.match++
+            }
         }
 
         if (likeData.success &&
@@ -3700,13 +3704,14 @@ function analyticsRemind() {
     var dateStart = new Date()
     dateStart.setHours(0, 0, 0, 0)
     var datenow = dateStart.getTime()
+    var dayy = dateStart.getDate() +'/'+ dateStart.getMonth()
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
         var mail = {
-            title: dateStart + '| Jobo KPI Result ',
-            preview: `Từ ${new Date(data.dateStart).get} đến ${new Date(data.dateEnd)}: Total User: ${data.total}`,
+            title: dayy + '| Jobo KPI Result ',
+            preview: `Từ ${dayy} đến ${new Date(data.dateEnd)}: Total User: ${data.total}`,
             subtitle: '',
             description1: 'Dear friend,',
-            description2: `Từ ${new Date(data.dateStart)} đến ${new Date(data.dateEnd)}:<br> Total User: ${data.total} <br> <b>Employer:</b><br> - New account: ${data.employer.employer} <br> - New store: ${data.employer.store} <br> - New premium: ${data.employer.premium}<br> <b>Jobseeker:</b> - HN: ${data.jobseeker.hn} <br> -SG: ${data.jobseeker.sg} <br> <b>Operation/Sale:</b> <br>- Ứng viên thành công: ${data.act.success} <br> - Ứng viên đi phỏng vấn:${data.act.meet} <br> - Lượt ứng tuyển: ${data.act.userLikeStore}`,
+            description2: `Từ ${dayy} đến ${new Date(data.dateEnd)}:<br> Total User: ${data.total} <br> <b>Employer:</b><br> - New account: ${data.employer.employer} <br> - New store: ${data.employer.store} <br> - New premium: ${data.employer.premium}<br> <b>Jobseeker:</b><br> - HN: ${data.jobseeker.hn} <br> -SG: ${data.jobseeker.sg} <br> <b>Operation/Sale:</b> <br>- Ứng viên thành công: ${data.act.success} <br> - Ứng viên đi phỏng vấn:${data.act.meet} <br> - Lượt ứng tuyển: ${data.act.userLikeStore} <br> - Lượt tuyển: ${data.act.storeLikeUser} <br> - Lượt tương hợp: ${data.act.match}`,
             description3: 'Keep up guys! We can do it <3',
             calltoaction: 'Hello the world',
             linktoaction: 'https://www.messenger.com/t/979190235520989',
