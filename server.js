@@ -3665,6 +3665,13 @@ function StaticCountingNewUser(dateStart, dateEnd) {
                 act.match++
             }
         }
+        if (
+            likeData.matchedAt &&
+            (likeData.matchedAt > dateStart || dateStart == 0) &&
+            (likeData.matchedAt < dateEnd || dateEnd == 0)
+        ) {
+            act.match++
+        }
 
         if (likeData.success &&
             (likeData.success > dateStart || dateStart == 0) &&
