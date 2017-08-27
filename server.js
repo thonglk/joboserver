@@ -3041,7 +3041,7 @@ function sendWelcomeEmailToStore(storeId) {
                         name: 'Khánh Thông | Jobo - Tìm việc nhanh',
                         address: 'thonglk.mac@gmail.com'
                     },
-                    cc: 'thonglk.mac@gmail.com',
+                    cc: ['thonglk@joboapp.com','myhuyen@joboapp.com','linhcm@joboapp.com'],
                     to: mail.email,
                     subject: 'Chào mừng ' + mail.storeName + ' tuyển gấp nhân viên trên Jobo',
                     html: htmlEmail,
