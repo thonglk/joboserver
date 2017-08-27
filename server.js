@@ -1242,9 +1242,13 @@ app.get('/api/job', function (req, res) {
                 && (card.working_type == working_typefilter || !working_typefilter )
                 && (card.industry == industryfilter || !industryfilter)
                 && (card.salary > salaryfilter || !salaryfilter)
-                && card.package == 'premium'
             ) {
+                card.match = 0
+                if(card.package == 'premium'){
+                    card.match = 100
+                }
                 joblist.push(card)
+
             }
 
 
@@ -1264,7 +1268,7 @@ app.get('/api/job', function (req, res) {
                 })
             } else {
                 sorded = _.sortBy(joblist, function (card) {
-                    return -card.createdAt
+                    return -card.match
                 })
             }
             var sendData = getPaginatedItems(sorded, page)
