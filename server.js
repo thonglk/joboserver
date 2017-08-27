@@ -511,6 +511,18 @@ function init() {
     //     }
     //
     // });
+    var now = new Date().getTime()
+    notificationRef.startAt(now).once('value',function (snap) {
+        var data = snap.val()
+        var i =0
+        for(var i in data){
+            i++
+            console.log(i)
+            var mail = data[i]
+            sendNotification(dataUser[i], mail, true, true, true, true, mail.time)
+        }
+
+    })
 
     return new Promise(function (resolve, reject) {
         resolve(dataProfile)
@@ -2315,9 +2327,7 @@ function gct(userId) {
     return dataUser[userId].currentStore
 }
 
-/**
- * Start Listener
- */
+
 function addDateToJob(ref) {
     if (ref) {
         db.ref(ref).once('value', function (snap) {
@@ -2341,7 +2351,7 @@ app.get('/initStore', function (req, res) {
             sendStoretoPage(storeId)
         }, 5000)
         setTimeout(function () {
-            PostStore(storeId, 'thao')
+            PostStore(storeId)
         }, 10000)
         setTimeout(function () {
             sendNotiSubcribleToProfile(storeId)
@@ -3131,7 +3141,7 @@ function sendWelcomeEmailToStore(storeId) {
                 html: htmlEmail,
                 attachments: [
                     {   // filename and content type is derived from path
-                        path: 'https://joboapp.com/img/jobo-gioi-thieu.pdf'
+                        path: 'https://joboapp.com/img/proposal_pricing_included.pdf'
                     }
                 ]
             };
@@ -3217,7 +3227,7 @@ function sendNotiSubcribleToEmployer(userData) {
                         description3: 'Nếu bạn không thích ứng viên này, bạn có thể chọn các ứng viên khác, chúng tôi có hơn 1000 ứng viên được cập nhật mới mỗi ngày.',
                         storeId: card.storeId
                     };
-                    sendNotification(dataUser[card.createdBy], mail, 'user', true, true)
+                    sendNotification(dataUser[card.createdBy], mail, true, true, true)
                 }
             }
         }
@@ -3256,7 +3266,7 @@ function sendNotiSubcribleToProfile(storeId) {
                         image: '',
                         description3: 'Nếu bạn không thích công việc này, hãy cho chúng tôi biết để chúng tôi giới thiệu những công việc phù hợp hơn.'
                     };
-                    sendNotification(dataUser[card.userId], mail, 'user', true, true)
+                    sendNotification(dataUser[card.userId], mail, true, true, true)
 
                 }
 
@@ -3287,7 +3297,7 @@ function sendMailNotiLikeToStore(card) {
         linktoaction: '/view/profile/' + card.userId,
         storeId: card.storeId
     };
-    sendNotification(dataUser[dataStore[card.storeId].createdBy], mail, 'user', true, true)
+    sendNotification(dataUser[dataStore[card.storeId].createdBy], mail, true, true, true)
 
 }
 
@@ -3308,7 +3318,7 @@ function sendMailNotiLikeToProfile(card) {
         calltoaction: 'Xem chi tiết',
         linktoaction: '/view/store/' + card.storeId
     };
-    sendNotification(dataUser[card.userId], mail, 'user', true, true)
+    sendNotification(dataUser[card.userId], mail, true, true, true)
 
 }
 
@@ -3456,12 +3466,11 @@ function sendNotification(userData, mail, letter, web, mobile, messenger, time) 
         notificationRef.child(mail.key).update(mail)
 
 
-        if (userData.email && userData.wrongEmail != true && letter != null) {
-            if (letter == 'user') {
+        if (userData.email && userData.wrongEmail != true && letter) {
+            if (mail.data) {
                 schedule.scheduleJob(time, function () {
                     sendEmailTemplate_User(mail, userData.email)
                 });
-
             } else {
                 schedule.scheduleJob(time, function () {
                     sendEmailTemplate(mail, userData.email)
@@ -3879,7 +3888,6 @@ function ReminderCreateProfile() {
                 how = 'bằng tài khoản facebook ' + userData.name + ' (' + userData.email + ')'
             } else {
                 how = 'bằng tài khoản với Email: ' + userData.email + ' / Password: tuyendungjobo'
-
             }
             var mail = {
                 title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
