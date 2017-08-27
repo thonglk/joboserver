@@ -1199,7 +1199,7 @@ app.get('/api/job', function (req, res) {
         var mylat = userData.location.lat;
         var mylng = userData.location.lng;
     }
-
+    var today = new Date().getTime()
     var joblist = []
     for (var i in dataJob) {
 
@@ -1242,15 +1242,18 @@ app.get('/api/job', function (req, res) {
                 && (card.working_type == working_typefilter || !working_typefilter )
                 && (card.industry == industryfilter || !industryfilter)
                 && (card.salary > salaryfilter || !salaryfilter)
+                && (today < card.deadline || !card.deadline)
             ) {
                 card.match = 0
                 if(card.package == 'premium'){
-                    card.match =  card.match + 100
+                    card.match = card.match + 100
                 }
 
                 if(card.createdAt){
-                    card.match = card.match + 100/(new Date().getTime() - card.createdAt)
+                    var p = 100/(today - card.createdAt)
+                    card.match = card.match + p
                 }
+
                 joblist.push(card)
 
             }
