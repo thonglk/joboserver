@@ -1720,7 +1720,11 @@ app.get('/update/job', function (req, res) {
         for (var i in jobData) {
             var job = jobData[i]
             if (job.job) {
-                jobRef.child(job.storeId + ':' + job.job).update(job)
+                if(!job.jobId){
+                    job.jobId = 'j' + Math.round(100000000000000 * Math.random());
+
+                }
+                jobRef.child(job.jobId).update(job)
             } else {
                 console.log('/update/job', job.storeId)
             }
@@ -3947,8 +3951,6 @@ function ReminderUpdateDeadline() {
                 description4: '',
             };
             sendNotification(userData, mail, true, true, true)
-        } else {
-            console.log('ReminderUpdateDeadline error', storeId)
         }
     }
 }
