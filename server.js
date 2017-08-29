@@ -1184,7 +1184,7 @@ app.get('/dash/job', function (req, res) {
     var mylng = req.param('lng')
 
     var joblist = [];
-
+var today = new Date().getTime()
     for (var i in dataJob) {
         var obj = dataJob[i];
         if (dataStore[obj.storeId]) {
@@ -1209,7 +1209,7 @@ app.get('/dash/job', function (req, res) {
                 var yourlng = card.location.lng;
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng);
 
-                if (distance < 100 && card.package == 'premium') {
+                if (distance < 100 && card.package == 'premium' && card.deadline > today) {
 
                     card.distance = distance
                     joblist.push(card)
@@ -1714,15 +1714,15 @@ app.get('/update/review', function (req, res) {
 app.get('/update/job', function (req, res) {
     var userId = req.param('userId')
     var jobDataStr = req.param('job')
-
     if (userId) {
         var jobData = JSON.parse(jobDataStr)
+        console.log(jobDataStr)
+
         for (var i in jobData) {
             var job = jobData[i]
             if (job.job) {
                 if(!job.jobId){
                     job.jobId = 'j' + Math.round(100000000000000 * Math.random());
-
                 }
                 jobRef.child(job.jobId).update(job)
             } else {
