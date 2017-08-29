@@ -118,22 +118,6 @@ var publishChannel = {
     }
 };
 
-var facebookAccount = {
-    thuythuy: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
-    thong: 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm',
-    thao2: 'EAAEMfZASjMhgBAKZBYPtpKzBtdnmeGzDv3RR1VN0Hqa5BZAhRMpHLjcEfjSN0MA1m4aUVi3zkT68lX4gWdN7RHl6dMVWz3DVIx9xAFFzQjLy84eKmFkPRL1QyZA4WvXfCHNXDBCnnGb63FoPXtNGMbLv74XLktkZD',
-    toi: 'EAAEMfZASjMhgBAKbZBRnVyD2HBurOAlVCOTLWweBA5zLqa3fCexZCQFsIPZAZC9gZAZACWWR2Na8Oz4IGiXwycQ965e9QMFnbipFAlHSaGbZCXGVQmgZAlqFfVunfikRi8Yhx7eOyhHEoIZCqufqNJTr2q5RwrE9kZBb5MZD',
-    thythy: 'EAAEMfZASjMhgBADcRIvfJo0Dd3CPpwpvQ6ZBJL23d0ZCoJ2VEvTgxLwId7OJs9ZA0FNkKlZAKfsU8AvDQTYntYAzZAFnamq8OuzVvSOvflRD8C0X11ZAmRsF0HKwiSSEnNxCWak5pPTghw0sDDO9pP438fhpe2ZCBrgZD',
-    khanh: 'EAAEMfZASjMhgBADZA8LfYxe8NnnZCcrdwuaAaZBtZBu7yfEPZAMiGFl6QR9UXASc33kDm7BcFvPCbzvyQg4OoLe9fCZBW4uskKTNIToZC1BegoOuCrFS09dTmec2G9BrmZBl5tP2AfQKcRabs5dnpxSHHXxPSXfosa00oDjPtaETo7gZDZD',
-    dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',
-    maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
-    dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
-    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
-    myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD',
-    thao: 'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
-
-}
-
 
 function PublishPost(userId, text, accessToken) {
     if (userId && text && accessToken) {
@@ -187,7 +171,21 @@ function PublishComment(postId, text, accessToken) {
         console.log('PublishComment error')
     }
 }
+var facebookAccount = {
+    thuythuy: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
+    thong: 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm',
+    thao2: 'EAAEMfZASjMhgBAKZBYPtpKzBtdnmeGzDv3RR1VN0Hqa5BZAhRMpHLjcEfjSN0MA1m4aUVi3zkT68lX4gWdN7RHl6dMVWz3DVIx9xAFFzQjLy84eKmFkPRL1QyZA4WvXfCHNXDBCnnGb63FoPXtNGMbLv74XLktkZD',
+    toi: 'EAAEMfZASjMhgBAKbZBRnVyD2HBurOAlVCOTLWweBA5zLqa3fCexZCQFsIPZAZC9gZAZACWWR2Na8Oz4IGiXwycQ965e9QMFnbipFAlHSaGbZCXGVQmgZAlqFfVunfikRi8Yhx7eOyhHEoIZCqufqNJTr2q5RwrE9kZBb5MZD',
+    thythy: 'EAAEMfZASjMhgBADcRIvfJo0Dd3CPpwpvQ6ZBJL23d0ZCoJ2VEvTgxLwId7OJs9ZA0FNkKlZAKfsU8AvDQTYntYAzZAFnamq8OuzVvSOvflRD8C0X11ZAmRsF0HKwiSSEnNxCWak5pPTghw0sDDO9pP438fhpe2ZCBrgZD',
+    khanh: 'EAAEMfZASjMhgBADZA8LfYxe8NnnZCcrdwuaAaZBtZBu7yfEPZAMiGFl6QR9UXASc33kDm7BcFvPCbzvyQg4OoLe9fCZBW4uskKTNIToZC1BegoOuCrFS09dTmec2G9BrmZBl5tP2AfQKcRabs5dnpxSHHXxPSXfosa00oDjPtaETo7gZDZD',
+    dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',
+    maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
+    dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
+    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
+    myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD',
+    thao: 'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
 
+}
 
 var db = firebase.database();
 var firsttime;
@@ -220,7 +218,6 @@ groupRef.once('value', function (snap) {
     groupArray = _.toArray(groupData)
 
     var a = 0
-
     function loop() {
         var groupDataObj = groupArray[a]
         var poster = []
@@ -240,20 +237,29 @@ groupRef.once('value', function (snap) {
         }
 
     }
-
     loop()
 
-    // return new Promise(function (resolve, reject) {
-    //     resolve(myUser)
-    // }).then(function (myUser) {
-    //     var csv = json2csv({data: myUser, fields: fields});
-    //
-    //     fs.writeFile('file.csv', csv, function (err) {
-    //         if (err) throw err;
-    //         console.log('file saved');
-    //     });
-    //
-    // })
+
+
+    var fields = ['name','groupId', 'link', 'finder', 'job','area','poster','thuythuy','thong','thao2','toi','thythy','khanh','dieulinh','maitran','dong','mailinh','myhuyen2','thao'];
+    var myUser = []
+    for (var i in groupData) {
+        var group = groupData[i]
+        myUser.push(group)
+    }
+    return new Promise(function (resolve, reject) {
+        resolve(myUser)
+    }).then(function (myUser) {
+        var csv = json2csv({data: myUser, fields: fields});
+
+        fs.writeFile('groupActive.csv', csv, function (err) {
+            if (err) throw err;
+            console.log('file saved');
+        });
+
+    })
+
+
 })
 
 function init() {
@@ -302,18 +308,18 @@ function init() {
     userRef.on('value', function (snap) {
         dataUser = snap.val();
 
-        var fields = ['name','phone','email','type'];
+        var fields = ['name', 'phone', 'email', 'type'];
         var myUser = []
         for (var i in dataUser) {
             var user = dataUser[i]
-            if(user.phone){
+            if (user.phone) {
                 var phoneStr = user.phone.toString()
                 if (!phoneStr.match(/^0/g)) phoneStr = "0" + phoneStr;
             } else {
                 var phoneStr = ''
             }
 
-            if(user.type == 2){
+            if (user.type == 2) {
                 myUser.push({
                     name: user.name || '',
                     phone: phoneStr,
@@ -1500,6 +1506,7 @@ app.get('/api/users', function (req, res) {
     var expfilter = req.param('experience');
     var figurefilter = req.param('figure');
     var urgentfilter = req.param('urgent');
+    var adminNotefilter = req.param('note')
     var mylng = req.param('lng');
     var mylat = req.param('lat');
 
@@ -1522,6 +1529,8 @@ app.get('/api/users', function (req, res) {
             && ((card.urgent == urgentfilter) || !urgentfilter)
             && (card.experience || !expfilter)
             && (card.figure || !figurefilter)
+            && (card.figure || !figurefilter)
+            && (card.adminNote || !adminNotefilter)
         ) {
             if (mylat && mylng) {
 
@@ -1981,28 +1990,34 @@ app.get('/query', function (req, res) {
         store: []
     }
     var a = 0, b = 0;
-    for (var i in dataStore) {
-        if (dataStore[i].storeName && S(dataStore[i].storeName.toLowerCase()).latinise().s.match(qr) && a < 6) {
-            a++
-            result.store.push(dataStore[i])
+    if (q) {
+        for (var i in dataStore) {
+            if (dataStore[i].storeName && S(dataStore[i].storeName.toLowerCase()).latinise().s.match(qr) && a < 6) {
+                a++
+                result.store.push(dataStore[i])
+            }
         }
-    }
 
-    for (var i in dataProfile) {
-        if ((dataProfile[i].name && S(dataProfile[i].name.toLowerCase()).latinise().s.match(qr) && b < 6)
-            || (dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr))
-            || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr))
+        for (var i in dataProfile) {
+            if ((dataProfile[i].name && S(dataProfile[i].name.toLowerCase()).latinise().s.match(qr) && b < 6)
+                || (dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr))
+                || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr))
 
-        ) {
-            b++
-            result.profile.push(dataProfile[i])
+            ) {
+                b++
+                result.profile.push(dataProfile[i])
+            }
         }
-    }
-    return new Promise(function (resolve, reject) {
-        resolve(result)
-    }).then(function (result) {
+        return new Promise(function (resolve, reject) {
+            resolve(result)
+        }).then(function (result) {
+            res.send(result)
+        })
+    } else {
         res.send(result)
-    })
+
+    }
+
 
 })
 
@@ -2415,7 +2430,8 @@ function sendFirstEmailToTotalStore() {
     var listEmployer = _.where(dataUser, {type: 1})
     var a = 0
     var send = 0
-var s = 0
+    var s = 0
+
     function loop() {
         var userId = listEmployer[a].userId;
         var storeId = listEmployer[a].currentStore;
@@ -2424,7 +2440,7 @@ var s = 0
         }
 
         if (send == 1) {
-            sendWelcomeEmailToStore(storeId,userId)
+            sendWelcomeEmailToStore(storeId, userId)
             s++
             console.log(s)
         }
@@ -2438,6 +2454,7 @@ var s = 0
             }, 1000)
         }
     }
+
     loop()
 
 }
@@ -4144,15 +4161,19 @@ app.get('/PostToGroup', function (req, res) {
     var text = req.param('text');
     var where = req.param('where');
     var poster = req.param('poster');
-    PostToGroup(text, poster, where);
+    var job = req.param('job');
+
+    PostToGroup(text, poster, where, job);
     res.send(text)
 });
 
-function PostToGroup(text, poster, where) {
+function PostToGroup(text, poster, where, job) {
     for (var i in groupData) {
 
-
-        if (groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
+        if (groupData[i].groupId
+            && (groupData[i].area == where || groupData[i].area == 'vn')
+            && ((groupData[i].job && groupData[i].job.match(job)) || !job )
+        ) {
             var data = {};
             if (!poster) {
                 if (groupData[i].poster) {
