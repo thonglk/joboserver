@@ -171,6 +171,7 @@ function PublishComment(postId, text, accessToken) {
         console.log('PublishComment error')
     }
 }
+
 var facebookAccount = {
     thuythuy: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
     thong: 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm',
@@ -218,6 +219,7 @@ groupRef.once('value', function (snap) {
     groupArray = _.toArray(groupData)
 
     var a = 0
+
     function loop() {
         var groupDataObj = groupArray[a]
         var poster = []
@@ -237,11 +239,11 @@ groupRef.once('value', function (snap) {
         }
 
     }
+
     loop()
 
 
-
-    var fields = ['name','groupId', 'link', 'finder', 'job','area','poster','thuythuy','thong','thao2','toi','thythy','khanh','dieulinh','maitran','dong','mailinh','myhuyen2','thao'];
+    var fields = ['name', 'groupId', 'link', 'finder', 'job', 'area', 'poster', 'thuythuy', 'thong', 'thao2', 'toi', 'thythy', 'khanh', 'dieulinh', 'maitran', 'dong', 'mailinh', 'myhuyen2', 'thao'];
     var myUser = []
     for (var i in groupData) {
         var group = groupData[i]
@@ -356,7 +358,15 @@ function init() {
 
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
-
+        // var a = 0
+        // for (var i in dataProfile) {
+        //     var profileData = dataProfile[i]
+        //     if (profileData.actData) {
+        //         a++
+        //         console.log(a)
+        //         db.ref('profile/'+i).child('actData').remove()
+        //     }
+        // }
         profileRef.child('undefined').remove()
         // var profileCollection = md.collection('profile')
         // for(var i in dataProfile){
@@ -2682,7 +2692,6 @@ function startList() {
 
                 actRef.child(key).remove()
             } else {
-                console.log('thiếu thông tin store,', card.userId)
                 if (!dataUser[card.userId]) {
 
                     console.log('no user', card.userId)
@@ -2690,7 +2699,6 @@ function startList() {
                 } else if (!dataUser[card.userId].currentStore) {
 
                     console.log('no currentStore', card.userId)
-                    actRef.child(key).remove()
 
                 } else if (!dataStore[dataUser[card.userId].currentStore]) {
 
@@ -2698,8 +2706,6 @@ function startList() {
 
                 } else {
                     console.log('has all', card.userId)
-                    actRef.child(key).remove()
-
 
                 }
             }
@@ -3105,7 +3111,7 @@ function sendWelcomeEmailToStore(storeId, userId) {
     } else {
         userInfo = dataUser[userId]
     }
-    if (storeData && storeId && storeData.storeName && storeData.job && storeData.location) {
+    if (userInfo && storeData && storeId && storeData.storeName && storeData.job && storeData.location) {
         var mail = {
             email: userInfo.email,
             password: 'tuyendungjobo',
