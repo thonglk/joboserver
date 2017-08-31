@@ -4279,13 +4279,32 @@ schedule.scheduleJob(rule4, function () {
 function PostListJob(ref, where, poster) {
     getShortPremiumJob(ref);
     setTimeout(function () {
-        var job = 'Xi \n' + createListPremiumJob(where) + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1';
+            var job = 'VIỆC LÀM LƯƠNG TỐT VÀ THEO CA \n JOBO mang đến rất rất nhiều cơ hội việc làm tại HN, SG nè!  🔥\n' +
+            '🎖️ LƯƠNG CAO TỪ 5 TRIỆU TRỞ LÊN.\n' +
+            '🎖️ Không cần kinh nghiệm\n' +
+            '🎖️ Được hướng dẫn tận tình\n' +
+            '🎖️ Không cần CV\n' +
+            '🎖️ Lương thưởng x1.2 x1.3 nếu gắn bó lâu dài \n' + createListPremiumJob(where) + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1';
 
         if (Object.keys(shortLinkData).length > 1) {
+
+
 
             for (var i in groupData) {
                 if (groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
                     var data = {};
+
+                    if (!poster) {
+                        if (groupData[i].poster) {
+                            var random = Math.round(Math.random() * groupData[i].poster.length)
+                            poster = groupData[i].poster[random]
+                        } else {
+                            poster = 'thuythuy'
+                        }
+
+                    }
+                    console.log(poster)
+
                     data[poster] = 'tried'
                     groupRef.child(groupData[i].groupId).update(data)
 
@@ -4308,7 +4327,6 @@ function PostListJob(ref, where, poster) {
 
                         });
                 }
-
             }
 
         } else {
@@ -4322,7 +4340,7 @@ rule.hour = 19;
 rule.minute = 49;
 
 schedule.scheduleJob(rule, function () {
-    PostListJob('dailyhcm', 'hcm', 'thythy');
+    PostListJob('dailyhcm', 'hcm');
 });
 
 var rule2 = new schedule.RecurrenceRule();
@@ -4330,11 +4348,11 @@ rule2.hour = 12;
 rule2.minute = 55;
 
 schedule.scheduleJob(rule2, function () {
-    PostListJob('dailyhn', 'hn', 'dieulinh');
+    PostListJob('dailyhn', 'hn');
 });
 
 app.get('/PostListJob', function (req, res) {
-    PostListJob('dailyhn', 'hn', 'dong');
+    PostListJob('dailyhn', 'hn');
 });
 
 
