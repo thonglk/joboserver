@@ -2790,23 +2790,24 @@ function startList() {
 
         if (card.action == 'createStore') {
             console.log('createStore', card.userId)
-            if (dataUser[card.userId]
-                && dataUser[card.userId].currentStore
-                && dataStore[dataUser[card.userId].currentStore]
+            if (dataUser[card.userId] && card.data &&
+                card.data.storeId
             ) {
                 var employerData = dataUser[card.userId]
-                var storeData = dataStore[employerData.currentStore]
-                var storeId = storeData.storeId
-                if (!storeData.storeId) {
-                    storeRef.child(employerData.currentStore).update({storeId: employerData.currentStore})
-                } else {
-                    staticRef.child(storeData.storeId).update(staticData);
+                var storeData = dataStore[card.data.storeId]
+                var storeId = card.data.storeId
+                if (!employerData.currentStore) {
+                    userRef.child(card.userId).update({currentStore: storeId})
                 }
+                if (!storeData.storeId) {
+                    storeRef.child(employerData.currentStore).update({storeId: card.data.storeId})
+                }
+                staticRef.child(storeId).update(staticData);
                 if (!storeData.createdAt) {
-                    storeRef.child(employerData.currentStore).update({createdAt: new Date().getTime()})
+                    storeRef.child(storeId).update({createdAt: new Date().getTime()})
                 }
                 if (!storeData.createdBy) {
-                    storeRef.child(employerData.currentStore).update({createdBy: userId})
+                    storeRef.child(storeId).update({createdBy: userId})
                 }
                 var name = employerData.name || 'bạn'
                 var email = dataUser[card.userId].email
@@ -2851,17 +2852,51 @@ function startList() {
 
                     console.log('no user', card.userId)
 
-                } else if (!dataUser[card.userId].currentStore) {
+                } else if (!card.data || !card.data.storeId) {
+                    var storeDataList = _.where(dataStore, {createdBy: card.userId})
+                    if (storeDataList.length > 0) {
+                        var storeData = storeDataList[0]
+                        var storeId = storeData.storeId
+                        if(storeId){
+                            var userData = dataUser[card.userId]
+                            var userId = card.userId
+                            sendVerifyEmail(userData.email, userId,userData.name)
+                            for (var i in dataJob) {
+                                var jobData = dataJob[i]
+                                if (jobData.storeId == storeId) {
+                                    addDateToJob('job/' + i)
 
-                    console.log('no currentStore', card.userId)
+                                    if (!jobData.deadline) {
+                                        console.log('checkInadequateStoreIdInJob_deadline', i)
+                                        jobRef.child(i).update({deadline: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
+                                    }
+                                    if (!jobData.createdBy) {
+                                        jobRef.child(i).update({createdBy: userId})
+                                    }
+                                    if (!jobData.jobName) {
 
-                } else if (!dataStore[dataUser[card.userId].currentStore]) {
+                                        jobRef.child(i).update({jobName: CONFIG.data.job[jobData.job]})
+                                    }
+                                }
 
-                    console.log('no dataStore', card.userId)
+                            }
 
-                } else {
-                    console.log('has all', card.userId)
+                            sendWelcomeEmailToStore(storeId)
+                            if (storeData.job) {
+                                setTimeout(function () {
+                                    sendStoretoPage(storeId)
+                                }, 5000)
+                                setTimeout(function () {
+                                    PostStore(storeId)
+                                }, 10000)
+                                setTimeout(function () {
+                                    sendNotiSubcribleToProfile(storeId)
+                                }, 20000)
+                            }
 
+                            actRef.child(key).remove()
+                        }
+                    }
                 }
             }
 
