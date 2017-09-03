@@ -2349,7 +2349,6 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta, type, 
 
 }
 
-
 function sendEmail(email, subject, bodyHtml, key) {
     if (email) {
         var mailOptions = {
@@ -2425,14 +2424,12 @@ function getLastName(fullname) {
     } else {
         return 'bạn'
     }
-
-
 }
 
 function getStringJob(listJob) {
     var stringJob = '';
     for (var i in listJob) {
-        if(Lang[i]){
+        if (Lang[i]) {
             stringJob += Lang[i]
         }
     }
@@ -2442,9 +2439,7 @@ function getStringJob(listJob) {
         return resJob
     } else {
         return ' '
-
     }
-
 }
 
 function addCountJob(storeId, userId, job) {
@@ -2859,10 +2854,10 @@ function startList() {
                     if (storeDataList.length > 0) {
                         var storeData = storeDataList[0]
                         var storeId = storeData.storeId
-                        if(storeId){
+                        if (storeId) {
                             var userData = dataUser[card.userId]
                             var userId = card.userId
-                            sendVerifyEmail(userData.email, userId,userData.name)
+                            sendVerifyEmail(userData.email, userId, userData.name)
                             for (var i in dataJob) {
                                 var jobData = dataJob[i]
                                 if (jobData.storeId == storeId) {
@@ -3762,6 +3757,495 @@ function sendEmailTemplate_User(mail, email) {
     sendEmail(email, mail.title, html, mail.key)
 }
 
+function sendemailMarketing(mail, email) {
+    var card = {}
+
+    var header = '<!doctype html>\n' +
+        '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">\n' +
+        '\n' +
+        '<head>\n' +
+        '    <title></title>\n' +
+        '    <!--[if !mso]><!-- -->\n' +
+        '    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n' +
+        '    <!--<![endif]-->\n' +
+        '    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n' +
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+        '    <style type="text/css">\n' +
+        '        #outlook a {\n' +
+        '            padding: 0;\n' +
+        '        }\n' +
+        '\n' +
+        '        .ReadMsgBody {\n' +
+        '            width: 100%;\n' +
+        '        }\n' +
+        '\n' +
+        '        .ExternalClass {\n' +
+        '            width: 100%;\n' +
+        '        }\n' +
+        '\n' +
+        '        .ExternalClass * {\n' +
+        '            line-height: 100%;\n' +
+        '        }\n' +
+        '\n' +
+        '        body {\n' +
+        '            margin: 0;\n' +
+        '            padding: 0;\n' +
+        '            -webkit-text-size-adjust: 100%;\n' +
+        '            -ms-text-size-adjust: 100%;\n' +
+        '        }\n' +
+        '\n' +
+        '        table,\n' +
+        '        td {\n' +
+        '            border-collapse: collapse;\n' +
+        '            mso-table-lspace: 0pt;\n' +
+        '            mso-table-rspace: 0pt;\n' +
+        '        }\n' +
+        '\n' +
+        '        img {\n' +
+        '            border: 0;\n' +
+        '            height: auto;\n' +
+        '            line-height: 100%;\n' +
+        '            outline: none;\n' +
+        '            text-decoration: none;\n' +
+        '            -ms-interpolation-mode: bicubic;\n' +
+        '        }\n' +
+        '\n' +
+        '        p {\n' +
+        '            display: block;\n' +
+        '            margin: 13px 0;\n' +
+        '        }\n' +
+        '    </style>\n' +
+        '    <!--[if !mso]><!-->\n' +
+        '    <style type="text/css">\n' +
+        '        @media only screen and (max-width:480px) {\n' +
+        '            @-ms-viewport {\n' +
+        '                width: 320px;\n' +
+        '            }\n' +
+        '            @viewport {\n' +
+        '                width: 320px;\n' +
+        '            }\n' +
+        '        }\n' +
+        '    </style>\n' +
+        '    <!--<![endif]-->\n' +
+        '    <!--[if mso]>\n' +
+        '    <xml>\n' +
+        '        <o:OfficeDocumentSettings>\n' +
+        '            <o:AllowPNG/>\n' +
+        '            <o:PixelsPerInch>96</o:PixelsPerInch>\n' +
+        '        </o:OfficeDocumentSettings>\n' +
+        '    </xml>\n' +
+        '    <![endif]-->\n' +
+        '    <!--[if lte mso 11]>\n' +
+        '    <style type="text/css">\n' +
+        '        .outlook-group-fix {\n' +
+        '            width:100% !important;\n' +
+        '        }\n' +
+        '    </style>\n' +
+        '    <![endif]-->\n' +
+        '\n' +
+        '    <!--[if !mso]><!-->\n' +
+        '    <link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700" rel="stylesheet" type="text/css">\n' +
+        '    <style type="text/css">\n' +
+        '        @import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700);\n' +
+        '    </style>\n' +
+        '    <!--<![endif]-->\n' +
+        '    <style type="text/css">\n' +
+        '        @media only screen and (min-width:480px) {\n' +
+        '            .mj-column-per-50 {\n' +
+        '                width: 50%!important;\n' +
+        '            }\n' +
+        '        }\n' +
+        '    </style>\n' +
+        '</head>\n' +
+        '\n' +
+        '<body>\n' +
+        '\n' +
+        '<div class="mj-container">';
+    var footer = '</div>\n' +
+        '</body>\n' +
+        '\n' +
+        '</html>';
+
+    var image = ' <!--[if mso | IE]>\n' +
+        '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+        '        <tr>\n' +
+        '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+        '    <![endif]-->\n' +
+        '    <div style="margin:0px auto;max-width:600px;">\n' +
+        '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
+        '            <tbody>\n' +
+        '            <tr>\n' +
+        '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
+        '                        <tr>\n' +
+        '                            <td style="vertical-align:undefined;width:600px;">\n' +
+        '                    <![endif]-->\n' +
+        '                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0">\n' +
+        '                        <tbody>\n' +
+        '                        <tr>\n' +
+        '                            <td style="width:550px;"><img alt="" title="" height="auto" src="' + mail.image + '" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="550"></td>\n' +
+        '                        </tr>\n' +
+        '                        </tbody>\n' +
+        '                    </table>\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    </td></tr></table>\n' +
+        '                    <![endif]-->\n' +
+        '                </td>\n' +
+        '            </tr>\n' +
+        '            </tbody>\n' +
+        '        </table>\n' +
+        '    </div>\n' +
+        '    <!--[if mso | IE]>\n' +
+        '    </td></tr></table>\n' +
+        '    <![endif]-->';
+
+    var text = '\n' +
+        '    <!--[if mso | IE]>\n' +
+        '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+        '        <tr>\n' +
+        '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+        '    <![endif]-->\n' +
+        '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
+        '    <!--[if mso | IE]>\n' +
+        '    </td></tr></table>\n' +
+        '    <![endif]-->';
+
+    var button = '  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+        '        <tr>\n' +
+        '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+        '    <![endif]-->\n' +
+        '    <div style="margin:0px auto;max-width:600px;">\n' +
+        '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
+        '            <tbody>\n' +
+        '            <tr>\n' +
+        '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
+        '                        <tr>\n' +
+        '                            <td style="vertical-align:undefined;width:600px;">\n' +
+        '                    <![endif]-->\n' +
+        '                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="justify" border="0">\n' +
+        '                        <tbody>\n' +
+        '                        <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div style="text-align:center"><a href="' + mail.linktoaction + '" style="background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;font-weight:bold;line-height:60px;text-align:center;text-decoration:none;width:300px" target="_blank"> ' + mail.calltoaction + '</a></div> </td> </tr>\n' +
+        '                        </tbody>\n' +
+        '                    </table>\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    </td></tr></table>\n' +
+        '                    <![endif]-->\n' +
+        '                </td>\n' +
+        '            </tr>\n' +
+        '            </tbody>\n' +
+        '        </table>\n' +
+        '    </div>\n' +
+        '    <!--[if mso | IE]>\n' +
+        '    </td></tr></table>\n' +
+        '    <![endif]-->';
+
+    var card_header = '  <!--[if mso | IE]>\n' +
+        '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+        '        <tr>\n' +
+        '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+        '    <![endif]-->\n' +
+        '    <div style="margin:0px auto;max-width:600px;">\n' +
+        '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
+        '            <tbody>\n' +
+        '            <tr>\n' +
+        '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
+        '                        <tr>';
+
+    var card_footer = '  </tr>\n' +
+        '\n' +
+        '                    </table>\n' +
+        '                    <![endif]-->\n' +
+        '                </td>\n' +
+        '            </tr>\n' +
+        '            </tbody>\n' +
+        '        </table>\n' +
+        '    </div>\n' +
+        '    <!--[if mso | IE]>\n' +
+        '    </td></tr></table>\n' +
+        '    <![endif]-->'
+
+    var card_body = '<td style="vertical-align:top;width:300px;">\n' +
+        '                    <![endif]-->\n' +
+        '                    <div class="mj-column-per-50 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;">\n' +
+        '                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">\n' +
+        '                            <tbody>\n' +
+        '                            <tr>\n' +
+        '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+        '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0">\n' +
+        '                                        <tbody>\n' +
+        '                                        <tr>\n' +
+        '                                            <td style="width:165px;"><img alt="" title="" height="auto" src="' + card.image + '" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="165"></td>\n' +
+        '                                        </tr>\n' +
+        '                                        </tbody>\n' +
+        '                                    </table>\n' +
+        '                                </td>\n' +
+        '                            </tr>\n' +
+        '                            <tr>\n' +
+        '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+        '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;">' + card.title + '</div>\n' +
+        '                                </td>\n' +
+        '                            </tr>\n' +
+        '                            <tr>\n' +
+        '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+        '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;">' + card.body + '</div>\n' +
+        '                                </td>\n' +
+        '                            </tr>\n' +
+        '                            <tr>\n' +
+        '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+        '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0">\n' +
+        '                                        <tbody>\n' +
+        '                                        <tr>\n' +
+        '                                            <td style="border:none;border-radius:40px;color:#ffffff;cursor:auto;padding:10px 25px;" align="center" valign="middle" bgcolor="#1FBDF1">\n' +
+        '<a href="' + card.linktoaction + '"><p style="text-decoration:none;background:#1FBDF1;color:#ffffff;font-family:' + font + ';font-size:12px;font-weight:normal;line-height:120%;text-transform:none;margin:0px;">' + card.calltoaction + '</p> </a>\n' +
+        '                                            </td>\n' +
+        '                                        </tr>\n' +
+        '                                        </tbody>\n' +
+        '                                    </table>\n' +
+        '                                </td>\n' +
+        '                            </tr>\n' +
+        '                            </tbody>\n' +
+        '                        </table>\n' +
+        '                    </div>\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    </td>';
+    var outtro = '<!--[if mso | IE]>\n' +
+        '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+        '        <tr>\n' +
+        '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+        '    <![endif]-->\n' +
+        '    <div style="margin:0px auto;max-width:600px;">\n' +
+        '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
+        '            <tbody>\n' +
+        '            <tr>\n' +
+        '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
+        '                        <tr>\n' +
+        '                            <td style="vertical-align:undefined;width:600px;">\n' +
+        '                    <![endif]-->\n' +
+        '                    <p style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;"></p>\n' +
+        '                    <!--[if mso | IE]><table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;" width="600"><tr><td style="height:0;line-height:0;"> </td></tr></table><![endif]-->\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    </td><td style="vertical-align:undefined;width:50px;">\n' +
+        '                    <![endif]-->\n' +
+        '                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0">\n' +
+        '                        <tbody>\n' +
+        '                        <tr>\n' +
+        '                            <td style="width:50px;"><img alt="" title="" height="auto" src="https://jobo.asia/img/logo.png" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="50"></td>\n' +
+        '                        </tr>\n' +
+        '                        </tbody>\n' +
+        '                    </table>\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    </td><td style="vertical-align:undefined;width:200px;">\n' +
+        '                    <![endif]-->\n' +
+        '                    <div style="cursor:auto;color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:22px;text-align:right;"><a href="https://goo.gl/awK5qg" style="color: #000000; text-decoration: none;">We are hiring</a></div>\n' +
+        '                    <!--[if mso | IE]>\n' +
+        '                    </td></tr></table>\n' +
+        '                    <![endif]-->\n' +
+        '                </td>\n' +
+        '            </tr>\n' +
+        '            </tbody>\n' +
+        '        </table>\n' +
+        '    </div>\n' +
+        '    <!--[if mso | IE]>\n' +
+        '    </td></tr></table>\n' +
+        '    <![endif]-->'
+
+
+
+
+
+
+    var htmlMail = ''
+
+    if (mail.description1) {
+        mail.description = mail.description1
+        htmlMail = htmlMail + header + '\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+            '        <tr>\n' +
+            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+            '    <![endif]-->\n' +
+            '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    </td></tr></table>\n' +
+            '    <![endif]-->';
+    }
+    if (mail.image) {
+        htmlMail = htmlMail + image
+    }
+    if (mail.description2) {
+        mail.description = mail.description2
+        htmlMail = htmlMail + '\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+            '        <tr>\n' +
+            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+            '    <![endif]-->\n' +
+            '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    </td></tr></table>\n' +
+            '    <![endif]-->';
+    }
+    if(mail.linktoaction){
+        htmlMail = htmlMail + button
+
+    }
+    if(mail.description3){
+        mail.description = mail.description3
+        htmlMail = htmlMail + '\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+            '        <tr>\n' +
+            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+            '    <![endif]-->\n' +
+            '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    </td></tr></table>\n' +
+            '    <![endif]-->';
+    }
+    if(mail.data){
+        htmlMail = htmlMail + card_header
+        for(var i in mail.data){
+
+            var card = mail.data[i]
+            console.log(card)
+            htmlMail = htmlMail + '<td style="vertical-align:top;width:300px;">\n' +
+                '                    <![endif]-->\n' +
+                '                    <div class="mj-column-per-50 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;">\n' +
+                '                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">\n' +
+                '                            <tbody>\n' +
+                '                            <tr>\n' +
+                '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+                '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0">\n' +
+                '                                        <tbody>\n' +
+                '                                        <tr>\n' +
+                '                                            <td style="width:165px;"><img alt="" title="" height="auto" src="' + card.image + '" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="165"></td>\n' +
+                '                                        </tr>\n' +
+                '                                        </tbody>\n' +
+                '                                    </table>\n' +
+                '                                </td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+                '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;">' + card.title + '</div>\n' +
+                '                                </td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+                '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;">' + card.body + '</div>\n' +
+                '                                </td>\n' +
+                '                            </tr>\n' +
+                '                            <tr>\n' +
+                '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
+                '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0">\n' +
+                '                                        <tbody>\n' +
+                '                                        <tr>\n' +
+                '                                            <td style="border:none;border-radius:40px;color:#ffffff;cursor:auto;padding:10px 25px;" align="center" valign="middle" bgcolor="#1FBDF1">\n' +
+                '<a href="' + card.linktoaction + '"><p style="text-decoration:none;background:#1FBDF1;color:#ffffff;font-family:' + font + ';font-size:12px;font-weight:normal;line-height:120%;text-transform:none;margin:0px;">' + card.calltoaction + '</p> </a>\n' +
+                '                                            </td>\n' +
+                '                                        </tr>\n' +
+                '                                        </tbody>\n' +
+                '                                    </table>\n' +
+                '                                </td>\n' +
+                '                            </tr>\n' +
+                '                            </tbody>\n' +
+                '                        </table>\n' +
+                '                    </div>\n' +
+                '                    <!--[if mso | IE]>\n' +
+                '                    </td>';
+        }
+        htmlMail = htmlMail + card_footer
+    }
+
+    if(mail.description4){
+        mail.description = mail.description4
+        htmlMail = htmlMail + '\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
+            '        <tr>\n' +
+            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
+            '    <![endif]-->\n' +
+            '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
+            '    <!--[if mso | IE]>\n' +
+            '    </td></tr></table>\n' +
+            '    <![endif]-->';
+    }
+    if(mail.outtro){
+        htmlMail = htmlMail + outtro
+    }
+
+    htmlMail = htmlMail + footer
+
+
+
+    if(mail.from && dataUser[mail.from] && dataUser[mail.from].email){
+        var mailAddress = {
+            email : dataUser[mail.from].email,
+            name: dataUser[mail.from].name+ '| Jobo'
+        }
+    } else {
+        var mailAddress = {
+            email : 'contact@jobo.asia',
+            name: 'Jobo - Việc làm lương tốt'
+        }
+    }
+
+    var bodyHtml = htmlMail
+    var subject = mail.title
+    var mailOptions = {
+        from: {
+            name:  mailAddress.name,
+            address: mailAddress.email
+        },
+        to: email,
+        subject: subject,
+        html: bodyHtml
+    };
+    return mailTransport.sendMail(mailOptions).then(function () {
+        console.log('New email sent to: ' + email);
+    }, function (error) {
+        console.log('Some thing wrong when sent email to ' + email + ':' + error);
+    });
+}
+
+
+var mail = {
+    title:'New Email',
+    data: [{
+        image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/images%2Fmyhuyen0.35821898669061825?alt=media&token=8efd2ab3-1b05-4d70-85da-61f265794ff5',
+        title: 'Lê Khánh Thông',
+        body: 'Marketer',
+        linktoaction: 'https://jobo.asia',
+        calltoaction: ' Tuyển! '
+    },{
+        image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/images%2Fmyhuyen0.35821898669061825?alt=media&token=8efd2ab3-1b05-4d70-85da-61f265794ff5',
+        title: 'Lê Khánh Thông',
+        body: 'Marketer',
+        linktoaction: 'https://jobo.asia',
+        calltoaction: ' Tuyển! '
+    }],
+    image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/images%2Fmyhuyen0.35821898669061825?alt=media&token=8efd2ab3-1b05-4d70-85da-61f265794ff5',
+    description1: 'Chào Chuỗi Nhà hàng Kombo',
+    description2: 'Jobo.asia là dự án cung cấp nhân viên gấp cho ngành dịch vụ trong vòng 24h, với mong muốn giúp nhà tuyển dụng tiết kiệm thời gian để tìm được ứng viên phù hợp.',
+    linktoaction: 'https://jobo.asia',
+    calltoaction: ' Xem ngay! '
+}
+app.get('/sendemailMarketing', function (req,res) {
+    var mailStr = req.param('mail')
+    var mail = JSON.parse(mailStr)
+    if(mail.to == 'all'){
+
+    } else {
+        sendemailMarketing(mail, mail.to)
+    }
+})
+
 function sendNotification(userData, mail, letter, web, mobile, messenger, time) {
     if (userData) {
         if (!time) {
@@ -4060,179 +4544,179 @@ app.get('/admin/analytics', function (req, res) {
     }
 );
 
-
-// Remind:
-function ReminderInstallApp() {
-    for (var i in dataUser) {
-        var userData = dataUser[i]
-        if (!userData.mobileToken) {
-            if (userData.type == 1) {
-                var mail = {
-                    title: "Jobo sẽ giúp bạn không bỏ lỡ những tài năng",
-                    preview: "Cài đặt ngay Jobo để tương tác với ứng viên tiềm năng",
-                    subtitle: '',
-                    description1: 'Xin chào ' + getLastName(userData.name),
-                    description2: "Bạn đã cài đặt Jobo chưa? Nếu chưa thì hãy nhanh tay lên nhé và nhớ bật thông báo để Jobo đưa tin nhé",
-                    description3: 'Tài khoản để anh/chị sử dụng là: Email:' + userData.email,
-                    calltoaction: 'Bắt đầu cài đặt app và tìm kiếm ứng viên tiềm năng',
-                    linktoaction: CONFIG.WEBURL + '/go',
-                    image: ''
-                }
-                sendNotification(userData, mail, true, true, true)
-            } else if (userData.type == 2) {
-                var mail = {
-                    title: "Hãy để Jobo giúp bạn tìm kiếm việc làm nhanh hơn nhé",
-                    preview: "Nhanh tay cài đặt Jobo để tìm việc nhanh nào",
-                    subtitle: '',
-                    description1: 'Xin chào ' + getLastName(userData.name),
-                    description2: "Nếu bạn lọt vào mắt xanh của nhà tuyển dụng, chúng tôi sẽ thông báo cho bạn qua email hoặc thông báo điện thoại, nhưng để nhanh hơn thì hãy bật thông báo nhé, có việc ngay lập tức đấy",
-                    description3: 'Tài khoản để bạn sử dụng là: Email: ' + userData.email,
-                    calltoaction: 'Bắt đầu tìm việc',
-                    linktoaction: CONFIG.WEBURL + '/go',
-                    image: ''
-                }
-                sendNotification(userData, mail, true, true, true)
-            }
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 0}, function () {
-    ReminderInstallApp()
-});
-
-function ReminderJobseekerUpdateAvatar() {
-    for (var i in dataProfile) {
-        var profile = dataProfile[i]
-        if (!profile.avatar) {
-            var mail = {
-                title: "Bạn quên cập nhật ảnh đại diện rồi này!",
-                body: "Dear " + getLastName(profile.name) + " nhanh tay hoàn thành hồ sơ đi nào, có rất nhiều nhà tuyển dụng đang chờ đợi tài năng như bạn đấy!",
-                subtitle: '',
-                description1: 'Jobo xin chào ' + getLastName(profile.name),
-                description2: 'Hiện tại hồ sơ của bạn đang thiếu ảnh đại diện đấy, hãy để nhà tuyển dụng thấy được gương mặt đầy tìm năng của bạn nào',
-                description3: 'Nào, nhấc điện thoại lên và cập nhật anh đại diện của bạn đi nào, có khó khăn gì hãy gọi cho Jobo nhé (0968269860), khó khăn gì cứ hỏi, ngại ngùng chi nữa ',
-                calltoaction: 'Cập nhật và gặp nhà tuyển dụng nào!',
-                linktoaction: CONFIG.WEBURL,
-                description4: ''
-            }
-            var userData = dataUser[i]
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 30, dayOfWeek: 1}, function () {
-    ReminderJobseekerUpdateAvatar()
-})
-
-function ReminderUpdateDeadline() {
-    for (var i in dataJob) {
-        var job = dataJob[i]
-        if (!job.deadline) {
-            var storeData = dataStore[job.storeId]
-            var userData = dataUser[storeData.createdBy]
-            var mail = {
-                title: "Bạn đã tuyển đủ nhân viên chưa?",
-                body: "Cập nhật lại vị trí nhân viên giúp Jobo nhé!",
-                subtitle: '',
-                description1: 'Jobo xin chào ' + storeData.storeName,
-                description2: 'Cập nhật lại thông tin và ngày hết hạn để hỗ trợ Jobo giúp bạn tuyển dụng nhé, nhanh lắm!',
-                description3: 'Sao bạn không làm một vòng +4000 hồ sơ để tìm cho mình một nhân viên nhỉ?!',
-                calltoaction: 'Cập nhật để tìm ứng viên!',
-                linktoaction: CONFIG.WEBURL,
-                description4: '',
-            };
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 2}, function () {
-    ReminderUpdateDeadline()
-});
-
-function ReminderUpdateExpect_Job() {
-    for (var i in dataProfile) {
-        var profile = dataProfile[i]
-        if (!profile.job) {
-            var userData = dataUser[i]
-            var mail = {
-                title: "Hãy cho Jobo biết bạn đang cần tìm việc gì nào?",
-                body: "Vị trí mong muốn của bạn như thế nào,  bật mí cho Jobo biết để Jobo tìm giúp bạn nhé !",
-                subtitle: '',
-                description1: 'Xin chào ' + getLastName(userData.name),
-                description2: 'Hãy cho Jobo biết vị trí mong muốn của bạn đi nào!',
-                description3: 'Chúng ta cùng lướt hơn 300 công việc xung quanh bạn nhé',
-                calltoaction: 'Xem profile của bạn',
-                linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
-                image: ''
-            };
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 4}, function () {
-    ReminderUpdateExpect_Job()
-});
-
-
-function ReminderAvatarUpdate() {
-    for (var i in dataUser) {
-        console.log('start')
-        var userData = dataUser[i]
-        if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].avatar) {
-            var mail = {
-                title: "Cập nhật ảnh đại diện của bạn đi nào, nhà tuyển dụng đang chờ kìa",
-                body: "Cùng Jobo cập nhật ảnh đại diện nhé!",
-                subtitle: '',
-                description1: 'Jobo xin chào ' + getLastName(dataProfile[userData.userId].name),
-                description2: 'Có rất nhiều nhà tuyển dụng đã xem hồ sơ của bạn nhưng vì bạn quên cập nhật ảnh đại diện nên họ đã lỡ mất một nhân viên tìm năng, xinh đẹp như bạn rồi ',
-                description3: 'Cùng cập nhật ảnh đại diện để tìm việc nhé',
-                calltoaction: 'Bắt đầu nào',
-                linktoaction: CONFIG.WEBURL,
-                image: ''
-            };
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
-    ReminderAvatarUpdate()
-});
-
-function ReminderCreateProfile() {
-    for (var i in dataUser) {
-        console.log('start')
-        var userData = dataUser[i]
-        if (userData.userId && !dataProfile[i] && userData.type == 2) {
-            var how = ''
-            if (userData.provider == 'facebook') {
-                how = 'bằng tài khoản facebook ' + userData.name + ' (' + userData.email + ')'
-            } else {
-                how = 'bằng tài khoản với Email: ' + userData.email + ' / Password: tuyendungjobo'
-            }
-            var mail = {
-                title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
-                body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
-                subtitle: '',
-                description1: 'Jobo xin chào ' + getLastName(userData.name),
-                description2: 'Hồ sơ của bạn đang thiếu thông tin đó, cùng Jobo cập nhật và tìm nhà tuyển dụng nào',
-                description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
-                calltoaction: 'Truy cập Jobo',
-                linktoaction: CONFIG.WEBURL,
-                image: ''
-            };
-            sendNotification(userData, mail, true, true, true)
-        }
-    }
-}
-
-schedule.scheduleJob({hour: 9, minute: 5, dayOfWeek: 6}, function () {
-    ReminderCreateProfile()
-});
+//
+// // Remind:
+// function ReminderInstallApp() {
+//     for (var i in dataUser) {
+//         var userData = dataUser[i]
+//         if (!userData.mobileToken) {
+//             if (userData.type == 1) {
+//                 var mail = {
+//                     title: "Jobo sẽ giúp bạn không bỏ lỡ những tài năng",
+//                     preview: "Cài đặt ngay Jobo để tương tác với ứng viên tiềm năng",
+//                     subtitle: '',
+//                     description1: 'Xin chào ' + getLastName(userData.name),
+//                     description2: "Bạn đã cài đặt Jobo chưa? Nếu chưa thì hãy nhanh tay lên nhé và nhớ bật thông báo để Jobo đưa tin nhé",
+//                     description3: 'Tài khoản để anh/chị sử dụng là: Email:' + userData.email,
+//                     calltoaction: 'Bắt đầu cài đặt app và tìm kiếm ứng viên tiềm năng',
+//                     linktoaction: CONFIG.WEBURL + '/go',
+//                     image: ''
+//                 }
+//                 sendNotification(userData, mail, true, true, true)
+//             } else if (userData.type == 2) {
+//                 var mail = {
+//                     title: "Hãy để Jobo giúp bạn tìm kiếm việc làm nhanh hơn nhé",
+//                     preview: "Nhanh tay cài đặt Jobo để tìm việc nhanh nào",
+//                     subtitle: '',
+//                     description1: 'Xin chào ' + getLastName(userData.name),
+//                     description2: "Nếu bạn lọt vào mắt xanh của nhà tuyển dụng, chúng tôi sẽ thông báo cho bạn qua email hoặc thông báo điện thoại, nhưng để nhanh hơn thì hãy bật thông báo nhé, có việc ngay lập tức đấy",
+//                     description3: 'Tài khoản để bạn sử dụng là: Email: ' + userData.email,
+//                     calltoaction: 'Bắt đầu tìm việc',
+//                     linktoaction: CONFIG.WEBURL + '/go',
+//                     image: ''
+//                 }
+//                 sendNotification(userData, mail, true, true, true)
+//             }
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 0}, function () {
+//     ReminderInstallApp()
+// });
+//
+// function ReminderJobseekerUpdateAvatar() {
+//     for (var i in dataProfile) {
+//         var profile = dataProfile[i]
+//         if (!profile.avatar) {
+//             var mail = {
+//                 title: "Bạn quên cập nhật ảnh đại diện rồi này!",
+//                 body: "Dear " + getLastName(profile.name) + " nhanh tay hoàn thành hồ sơ đi nào, có rất nhiều nhà tuyển dụng đang chờ đợi tài năng như bạn đấy!",
+//                 subtitle: '',
+//                 description1: 'Jobo xin chào ' + getLastName(profile.name),
+//                 description2: 'Hiện tại hồ sơ của bạn đang thiếu ảnh đại diện đấy, hãy để nhà tuyển dụng thấy được gương mặt đầy tìm năng của bạn nào',
+//                 description3: 'Nào, nhấc điện thoại lên và cập nhật anh đại diện của bạn đi nào, có khó khăn gì hãy gọi cho Jobo nhé (0968269860), khó khăn gì cứ hỏi, ngại ngùng chi nữa ',
+//                 calltoaction: 'Cập nhật và gặp nhà tuyển dụng nào!',
+//                 linktoaction: CONFIG.WEBURL,
+//                 description4: ''
+//             }
+//             var userData = dataUser[i]
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 30, dayOfWeek: 1}, function () {
+//     ReminderJobseekerUpdateAvatar()
+// })
+//
+// function ReminderUpdateDeadline() {
+//     for (var i in dataJob) {
+//         var job = dataJob[i]
+//         if (!job.deadline) {
+//             var storeData = dataStore[job.storeId]
+//             var userData = dataUser[storeData.createdBy]
+//             var mail = {
+//                 title: "Bạn đã tuyển đủ nhân viên chưa?",
+//                 body: "Cập nhật lại vị trí nhân viên giúp Jobo nhé!",
+//                 subtitle: '',
+//                 description1: 'Jobo xin chào ' + storeData.storeName,
+//                 description2: 'Cập nhật lại thông tin và ngày hết hạn để hỗ trợ Jobo giúp bạn tuyển dụng nhé, nhanh lắm!',
+//                 description3: 'Sao bạn không làm một vòng +4000 hồ sơ để tìm cho mình một nhân viên nhỉ?!',
+//                 calltoaction: 'Cập nhật để tìm ứng viên!',
+//                 linktoaction: CONFIG.WEBURL,
+//                 description4: '',
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 2}, function () {
+//     ReminderUpdateDeadline()
+// });
+//
+// function ReminderUpdateExpect_Job() {
+//     for (var i in dataProfile) {
+//         var profile = dataProfile[i]
+//         if (!profile.job) {
+//             var userData = dataUser[i]
+//             var mail = {
+//                 title: "Hãy cho Jobo biết bạn đang cần tìm việc gì nào?",
+//                 body: "Vị trí mong muốn của bạn như thế nào,  bật mí cho Jobo biết để Jobo tìm giúp bạn nhé !",
+//                 subtitle: '',
+//                 description1: 'Xin chào ' + getLastName(userData.name),
+//                 description2: 'Hãy cho Jobo biết vị trí mong muốn của bạn đi nào!',
+//                 description3: 'Chúng ta cùng lướt hơn 300 công việc xung quanh bạn nhé',
+//                 calltoaction: 'Xem profile của bạn',
+//                 linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
+//                 image: ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 4}, function () {
+//     ReminderUpdateExpect_Job()
+// });
+//
+//
+// function ReminderAvatarUpdate() {
+//     for (var i in dataUser) {
+//         console.log('start')
+//         var userData = dataUser[i]
+//         if (userData.userId && dataProfile && dataProfile[userData.userId] && !dataProfile[userData.userId].avatar) {
+//             var mail = {
+//                 title: "Cập nhật ảnh đại diện của bạn đi nào, nhà tuyển dụng đang chờ kìa",
+//                 body: "Cùng Jobo cập nhật ảnh đại diện nhé!",
+//                 subtitle: '',
+//                 description1: 'Jobo xin chào ' + getLastName(dataProfile[userData.userId].name),
+//                 description2: 'Có rất nhiều nhà tuyển dụng đã xem hồ sơ của bạn nhưng vì bạn quên cập nhật ảnh đại diện nên họ đã lỡ mất một nhân viên tìm năng, xinh đẹp như bạn rồi ',
+//                 description3: 'Cùng cập nhật ảnh đại diện để tìm việc nhé',
+//                 calltoaction: 'Bắt đầu nào',
+//                 linktoaction: CONFIG.WEBURL,
+//                 image: ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 12, minute: 14, dayOfWeek: 6}, function () {
+//     ReminderAvatarUpdate()
+// });
+//
+// function ReminderCreateProfile() {
+//     for (var i in dataUser) {
+//         console.log('start')
+//         var userData = dataUser[i]
+//         if (userData.userId && !dataProfile[i] && userData.type == 2) {
+//             var how = ''
+//             if (userData.provider == 'facebook') {
+//                 how = 'bằng tài khoản facebook ' + userData.name + ' (' + userData.email + ')'
+//             } else {
+//                 how = 'bằng tài khoản với Email: ' + userData.email + ' / Password: tuyendungjobo'
+//             }
+//             var mail = {
+//                 title: "Bạn muốn tìm được việc làm? Chỉ cần tạo hồ sơ trên Jobo",
+//                 body: "Bạn chỉ cần tạo hồ sơ, còn lại cứ để Jobo lo!",
+//                 subtitle: '',
+//                 description1: 'Jobo xin chào ' + getLastName(userData.name),
+//                 description2: 'Hồ sơ của bạn đang thiếu thông tin đó, cùng Jobo cập nhật và tìm nhà tuyển dụng nào',
+//                 description3: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
+//                 calltoaction: 'Truy cập Jobo',
+//                 linktoaction: CONFIG.WEBURL,
+//                 image: ''
+//             };
+//             sendNotification(userData, mail, true, true, true)
+//         }
+//     }
+// }
+//
+// schedule.scheduleJob({hour: 9, minute: 5, dayOfWeek: 6}, function () {
+//     ReminderCreateProfile()
+// });
 
 function isWhere(storeId) {
     var storeData = dataStore[storeId]
