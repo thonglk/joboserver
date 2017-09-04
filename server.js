@@ -409,9 +409,8 @@ function init() {
     //     console.log('dataStore', suc.length)
     //
     // })
-    storeRef.on('value', function (snap) {
-        dataStore = snap.val()
-        storeRef.child('undefined').remove()
+    jobRef.on('value', function (snap) {
+        dataJob = snap.val()
 
         //
         // var fields = ['email', 'phone','storeName'];
@@ -491,53 +490,80 @@ function init() {
     //     console.log('dataJob', suc.length)
     //
     // })
-    jobRef.on('value', function (snap) {
-        dataJob = snap.val()
+    storeRef.on('value', function (snap) {
+        dataStore = snap.val()
+        storeRef.child('undefined').remove()
 
-        // for (var i in dataJob) {
-        //     var job = dataJob[i]
-        //     if (!job.createdBy) {
-        //         if (job.storeId) {
-        //             if (dataStore[job.storeId]) {
-        //                 if (dataStore[job.storeId].createdBy) {
-        //                     if (dataUser[dataStore[job.storeId].createdBy]) {
-        //                         jobRef.child(i).update({createdBy: dataStore[job.storeId].createdBy}, function (a) {
-        //                             console.log('done', i, a)
-        //                         })
-        //                     } else {
-        //                         console.log('!dataUser[dataStore[job.storeId].createdBy', i)
         //
-        //                     }
-        //                 } else {
-        //                     console.log('!dataStore[job.storeId].createdBy', i)
-        //
-        //                 }
-        //
-        //             } else {
-        //                 console.log('!dataStore[job.storeId]', i)
-        //                 jobRef.child(i).remove(function (a) {
-        //                     console.log('xoa', i, a)
-        //                 })
-        //             }
-        //
-        //
-        //         } else {
-        //             console.log('!job.storeId ', i)
+        // var fields = ['email', 'phone','storeName'];
+        // var myUser = []
+        // for (var i in dataUser) {
+        //     var user = dataUser[i];
+        //     if(user.type == 1){
+        //         var storeName = '';
+        //         if(user.currentStore && dataStore[user.currentStore] && dataStore[user.currentStore].storeName){
+        //             storeName = dataStore[user.currentStore].storeName
         //         }
+        //         myUser.push({
+        //             email: dataUser[i].email || '',
+        //             phone: dataUser[i].phone,
+        //             storeName: storeName
+        //         })
         //     }
         //
-        //
         // }
-        // var jobCollection = md.collection('job')
-        // for(var i in dataJob){
-        //     var jobData = dataJob[i]
-        //     jobCollection.insert(jobData,function (err,suc) {
+        // return new Promise(function (resolve, reject) {
+        //     resolve(myUser)
+        // }).then(function (myUser) {
+        //     var csv = json2csv({data: myUser, fields: fields});
+        //
+        //     fs.writeFile('file.csv', csv, function (err) {
+        //         if (err) throw err;
+        //         console.log('file saved');
+        //     });
+        //
+        // })
+        // for(var i in dataUser){
+        //     if(dataUser[i].type == 1 && dataUser[i].package == 'premium'){
+        //
+        //         sendWelcomeEmailToStore(dataUser[i])
+        //     }
+        // }
+
+        // var fields = ['name','address','location'];
+        // var myUser = []
+        // for (var i in dataStore) {
+        //     var storeData = dataStore[i]
+        //     if(storeData.location && storeData.createdBy && dataUser[storeData.createdBy] && dataUser[storeData.createdBy].package == 'premium')
+        //     myUser.push({
+        //         name: dataStore[i].storeName || '',
+        //         address: dataStore[i].address,
+        //         location: dataStore[i].location
+        //
+        //     })
+        // }
+        // return new Promise(function (resolve, reject) {
+        //     resolve(myUser)
+        // }).then(function (myUser) {
+        //     var csv = json2csv({data: myUser, fields: fields});
+        //
+        //     fs.writeFile('storelocation.csv', csv, function (err) {
+        //         if (err) throw err;
+        //         console.log('file saved');
+        //     });
+        //
+        // })
+
+        // var storeCollection = md.collection('store')
+        // for(var i in dataStore){
+        //     var storeData = dataStore[i]
+        //     storeCollection.insert(storeData,function (err,suc) {
         //         console.log(err)
         //     })
         // }
 
-
     });
+
 
     likeActivityRef.on('value', function (snap) {
         likeActivity = snap.val()
@@ -557,7 +583,7 @@ function init() {
     //     }
     //
     // });
-    var now = new Date().getTime()
+    var now = new Date().getTime();
     notificationRef.startAt(now).once('value', function (snap) {
         var data = snap.val()
         var i = 0
@@ -583,6 +609,57 @@ function init() {
     })
 }
 
+
+app.get('/lookalike', function (req, res) {
+    var job = req.param('job')
+
+    var fields = ['name', 'phone', 'email', 'type'];
+    var myUser = []
+    var a = 0
+
+    for (var i in dataProfile) {
+        var profile = dataProfile[i]
+        if (profile.job && profile.job[job] && dataUser[i]) {
+            var user = dataUser[i]
+            a++
+            if (user.phone) {
+                var phoneStr = user.phone.toString()
+                if (phoneStr.charAt(0) == '0') {
+                    phoneStr = phoneStr.replace("0", "84");
+                } else {
+                    phoneStr = "84" + phoneStr
+                }
+            } else {
+                var phoneStr = ''
+            }
+
+            if (user.type == 2) {
+                myUser.push({
+                    name: user.name || '',
+                    phone: phoneStr,
+                    email: user.email || '',
+                    type: user.type || ''
+                })
+            }
+
+
+        }
+    }
+    return new Promise(function (resolve, reject) {
+        resolve(myUser)
+    }).then(function (myUser) {
+        var csv = json2csv({data: myUser, fields: fields});
+
+        fs.writeFile('jobseeker_' + job + '.csv', csv, function (err) {
+            if (err) throw err;
+            console.log('file saved');
+            res.send('file saved ' + a)
+
+        });
+
+    })
+
+})
 
 function createListPremiumStore() {
     var jobHN = "HN \n"
@@ -2668,12 +2745,6 @@ function startList() {
 
     function run(card, key) {
 
-        if (dataUser[card.userId] && dataUser[card.userId].currentStore) {
-            var storeId = dataUser[card.userId].currentStore
-            storeRef.child(storeId).update({point: countAllPoint(dataStatic[storeId])})
-        } else if (dataUser[card.userId] && dataUser[card.userId].type == 2) {
-            profileRef.child(card.userId).update({point: countAllPoint(dataStatic[card.userId])})
-        }
 
         if (!dataStatic[card.userId]) {
             staticRef.child(card.userId).update(staticData)
@@ -3667,66 +3738,6 @@ function sendMailNotiMatchToProfile(card) {
     sendNotification(dataUser[card.userId], notification, true, true, true)
 }
 
-app.get('/admin/sendEmail', function (req, res) {
-    var number = req.param('number')
-    var nameEmail = req.param('name')
-    var mailString = req.param('mail')
-    var mail = JSON.parse(mailString)
-
-
-    emailRef.once('value', function (snap) {
-        var dataEmail = snap.val()
-        var arrayEmail = []
-        for (var i in dataEmail) {
-            arrayEmail.push(dataEmail[i])
-        }
-        return new Promise(function (resolve, reject) {
-            resolve(arrayEmail)
-        }).then(function (arrayEmail) {
-            if (number == '999') {
-                number = arrayEmail.length
-            }
-            sendNewletter(number, nameEmail, mail, arrayEmail)
-            res.send('sent')
-        })
-    })
-
-
-})
-
-function sendNewletter(number, nameEmail, mail, arrayEmail) {
-    console.log(number)
-    var k = 0;                     //  set your counter to 1
-    function myLoop() {           //  create a loop function
-        setTimeout(function () {    //  call a 3s setTimeout when the loop is called
-            var sendData = arrayEmail[k]
-            if (sendData) {
-                if (!sendData[nameEmail]) {
-                    mail.description1 = 'Dear ' + getLastName(sendData.name);
-                    mail.linktoaction = mail.linktoaction + '#ref=email-' + nameEmail;
-                    sendEmailTemplate(mail, sendData.email)
-                    emailRef.child(sendData.id + '/' + nameEmail).update({sent: true}, function (a) {
-                        console.log('save', a)
-                    });
-                    k++;
-                    if (k < number) {
-                        myLoop();
-                    }
-                } else {
-                    k++;
-                    number++;
-                    myLoop();
-
-                }
-            } else {
-                console.log('out of email')
-            }
-
-        }, 2)
-    }
-
-    myLoop();
-}
 
 function sendEmailTemplate(mail, email) {
     var html;
@@ -3757,7 +3768,7 @@ function sendEmailTemplate_User(mail, email) {
     sendEmail(email, mail.title, html, mail.key)
 }
 
-function sendemailMarketing(mail, email) {
+function sendemailMarketing(mail, email, userId) {
     var card = {}
 
     var header = '<!doctype html>\n' +
@@ -4057,10 +4068,6 @@ function sendemailMarketing(mail, email) {
         '    <![endif]-->'
 
 
-
-
-
-
     var htmlMail = ''
 
     if (mail.description1) {
@@ -4092,11 +4099,11 @@ function sendemailMarketing(mail, email) {
             '    </td></tr></table>\n' +
             '    <![endif]-->';
     }
-    if(mail.linktoaction){
+    if (mail.linktoaction) {
         htmlMail = htmlMail + button
 
     }
-    if(mail.description3){
+    if (mail.description3) {
         mail.description = mail.description3
         htmlMail = htmlMail + '\n' +
             '    <!--[if mso | IE]>\n' +
@@ -4109,9 +4116,9 @@ function sendemailMarketing(mail, email) {
             '    </td></tr></table>\n' +
             '    <![endif]-->';
     }
-    if(mail.data){
+    if (mail.data) {
         htmlMail = htmlMail + card_header
-        for(var i in mail.data){
+        for (var i in mail.data) {
 
             var card = mail.data[i]
             console.log(card)
@@ -4163,7 +4170,7 @@ function sendemailMarketing(mail, email) {
         htmlMail = htmlMail + card_footer
     }
 
-    if(mail.description4){
+    if (mail.description4) {
         mail.description = mail.description4
         htmlMail = htmlMail + '\n' +
             '    <!--[if mso | IE]>\n' +
@@ -4176,22 +4183,21 @@ function sendemailMarketing(mail, email) {
             '    </td></tr></table>\n' +
             '    <![endif]-->';
     }
-    if(mail.outtro){
+    if (mail.outtro) {
         htmlMail = htmlMail + outtro
     }
 
     htmlMail = htmlMail + footer
 
 
-
-    if(mail.from && dataUser[mail.from] && dataUser[mail.from].email){
+    if (mail.from && dataUser[mail.from] && dataUser[mail.from].email) {
         var mailAddress = {
-            email : dataUser[mail.from].email,
-            name: dataUser[mail.from].name+ '| Jobo'
+            email: dataUser[mail.from].email,
+            name: dataUser[mail.from].name + '| Jobo'
         }
     } else {
         var mailAddress = {
-            email : 'contact@jobo.asia',
+            email: 'contact@jobo.asia',
             name: 'Jobo - Việc làm lương tốt'
         }
     }
@@ -4200,7 +4206,7 @@ function sendemailMarketing(mail, email) {
     var subject = mail.title
     var mailOptions = {
         from: {
-            name:  mailAddress.name,
+            name: mailAddress.name,
             address: mailAddress.email
         },
         to: email,
@@ -4209,40 +4215,146 @@ function sendemailMarketing(mail, email) {
     };
     return mailTransport.sendMail(mailOptions).then(function () {
         console.log('New email sent to: ' + email);
+        if (userId) {
+            emailRef.child(userId + '/' + subject).update({sent: true}, function (a) {
+                console.log('save', a)
+            });
+        }
+
     }, function (error) {
         console.log('Some thing wrong when sent email to ' + email + ':' + error);
     });
 }
 
+app.get('/registerheadhunter', function (req, res) {
+    var id = req.param('id')
+    emailRef.child(id).once('value', function (data) {
+        var user = data.val()
+        if(user){
+            emailRef.child(id).update({headhunter: new Date().getTime()}).then(function () {
+                res.send('Bạn đã đăng ký thành công, hãy sử dụng mã giới thiệu: ' + user.email + ' và chia sẻ link ứng tuyển cho bạn bè nhé')
 
-var mail = {
-    title:'New Email',
-    data: [{
-        image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/images%2Fmyhuyen0.35821898669061825?alt=media&token=8efd2ab3-1b05-4d70-85da-61f265794ff5',
-        title: 'Lê Khánh Thông',
-        body: 'Marketer',
-        linktoaction: 'https://jobo.asia',
-        calltoaction: ' Tuyển! '
-    },{
-        image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/images%2Fmyhuyen0.35821898669061825?alt=media&token=8efd2ab3-1b05-4d70-85da-61f265794ff5',
-        title: 'Lê Khánh Thông',
-        body: 'Marketer',
-        linktoaction: 'https://jobo.asia',
-        calltoaction: ' Tuyển! '
-    }],
-    image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/images%2Fmyhuyen0.35821898669061825?alt=media&token=8efd2ab3-1b05-4d70-85da-61f265794ff5',
-    description1: 'Chào Chuỗi Nhà hàng Kombo',
-    description2: 'Jobo.asia là dự án cung cấp nhân viên gấp cho ngành dịch vụ trong vòng 24h, với mong muốn giúp nhà tuyển dụng tiết kiệm thời gian để tìm được ứng viên phù hợp.',
-    linktoaction: 'https://jobo.asia',
-    calltoaction: ' Xem ngay! '
-}
-app.get('/sendemailMarketing', function (req,res) {
-    var mailStr = req.param('mail')
-    var mail = JSON.parse(mailStr)
-    if(mail.to == 'all'){
+            })
+        } else {
+            res.send('Xảy ra lỗi')
+        }
+
+    })
+
+
+})
+
+
+app.get('/sendemailMarketing', function (req, res) {
+    // var mailStr = req.param('mail')
+    // var mail = JSON.parse(mailStr)
+    var mail = {to: 'all'}
+    if (mail.to == 'all') {
+        emailRef.once('value', function (snap) {
+            // var dataEmail = snap.val()
+            // var arrayEmail = []
+            // for (var i in dataEmail) {
+            //     arrayEmail.push(dataEmail[i])
+            // }
+            var arrayEmail = [{
+                email: 'thonglk.mac@gmail.com',
+                name: 'Lê Khánh Thông',
+                id: 'sdfsdfsdf'
+            }, {
+                email: 'thonglk@joboapp.com',
+                name: 'Lê Khánh Hưng',
+                id: '3243423'
+            }]
+            return new Promise(function (resolve, reject) {
+                resolve(arrayEmail)
+            }).then(function (arrayEmail) {
+
+                var k = 0;                     //  set your counter to 1
+                function myLoop() {
+                    //  create a loop function
+                    setTimeout(function () {    //  call a 3s setTimeout when the loop is called
+                        var sendData = arrayEmail[k]
+                        var user = sendData
+                        var mail = {
+                            title: 'Giới thiệu việc làm cho bạn bè, Nhận ngay 1,000,000đ cho 1 người giới thiệu',
+                            image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/image%2Fthonglk?alt=media&token=165b3f68-72a5-44df-a7fe-42a75f4af31e',
+                            description2: 'Chào ' + getLastName(user.name) + ', chương trình <b>Become a freelance headhunter at Jobo </b> là cơ hội giúp các bạn phát triển khả năng bản thân, có thêm thu nhập vô cùng hấp dẫn và giới thiệu kênh tìm việc hiệu quả cho bạn bè.<br> <br>\n' +
+                            '\n' +
+                            '➡ TẠI SAO BẠN NÊN THAM GIA <br>\n' +
+                            '🎖️ Hoa hồng vô cùng hấp dẫn (lên đến 1,000,000đ khi người giới thiệu ứng tuyển thành công)  <br>\n' +
+                            '🎖️ Không phải đến văn phòng làm việc, chỉ cần làm việc online vẫn có thêm thu nhập  <br>\n' +
+                            '🎖️ Hệ thống quản lý thông tin minh bạch và rõ ràng. Bạn có thể tự kiểm tra kết quả công việc của mình. <br>\n' +
+                            '🎖️ Hỗ trợ chuyên nghiệp và nhanh chóng. Bất cứ khi nào có khó khăn bạn có thể liên hệ ngay với Jobo để nhận được sự hỗ trợ.  <br> <br>\n' +
+                            '🌐 DANH SÁCH VIỆC LÀM:  <br>\n' +
+                            '<b>Marketing & Sale</b><br>\n' +
+                            '1. Nhân viên kinh doanh | AIA Vietnam | HCM (8 người)<br>\n' +
+                            '🏆 Phần thưởng: 1,000,000đ/người  <br>\n' +
+                            '🔗 Link: https://jobo.asia/view/store/s9111250738949#ref=' + user.email + ' <br>\n' +
+                            '2. Nhân viên kinh doanh | Jobo Vietnam | HN,HCM (4 người) <br>\n' +
+                            '🏆: 1,000,000đ/người <br>\n' +
+                            '🔗 : https://jobo.asia/view/store/-KlCK75iK0bf7zFdpHB1#ref=' + user.email + '<br>\n' +
+                            '3. Nhân viên bán hàng | CORÈLE V | HCM (4 người) <br>\n' +
+                            '🏆: 150,000đ/người <br>\n' +
+                            '🔗: https://jobo.asia/view/store/s95995521315678#ref=' + user.email + '<br>\n' +
+                            '<b>Food Service</b><br>\n' +
+                            '1. Phục vụ | Góc Hà Thành | Hà Nội (12 người) <br>\n' +
+                            '🏆: 150,000đ/người <br>\n' +
+                            '🔗: https://jobo.asia/view/store/-Kop_Dcf9r_gj94B_D3z?job=server#ref=' + user.email + ' <br>\n' +
+                            '2. Phục vụ | Ụt Ụt BBQ | SG (30 người) <br>\n' +
+                            '🏆: 150,000đ/người <br>\n' +
+                            '🔗: https://jobo.asia/view/store/-Ko888eO-cKhfXzJzSQh?job=server#ref=' + user.email + '<br>' +
+                            '(trên đây là những công việc ưu tiên tuyển gấp trong tuần, còn hơn 150 công việc khác sẽ được giới thiệu trong tuần sau.)<br>\n' +
+                            '\n' +
+                            '➡ CÁCH THỨC HOẠT ĐỘNG:<br>\n' +
+                            '◆ Mã giới thiệu của bạn chính là ' + user.email + ' , đã được gắn ở link phía trên <br>\n' +
+                            '◆ Chia sẻ cho bạn bè của mình (bạn bè quen biết, các câu lạc bộ, tổ chức sinh viên tại trường đang theo học/ các trường lân cận,...) để họ ứng tuyển qua đường link đã gắn mã giới thiệu của bạn <br>\n' +
+                            '◆ Bạn sẽ được nhận thông báo mỗi khi bạn bè ứng tuyển, được mời đi phỏng vấn và được chọn (thông báo về email này). <br><br>\n' +
+                            '➡ HOA HỒNG VÀ THANH TOÁN:<br>\n' +
+                            '◆ Khi bạn giới thiệu bạn bè tìm việc thành công, bạn được phép yêu cầu thanh toán, sẽ được gửi tới tài khoản ngân hàng mà bạn cung cấp.<br><br>\n',
+                            description3: '➡ <b>TOP WEEKLY FREELANCE HEADHUNTER:</b><br>\n' +
+                            '1️⃣ huyenmy07 💸 2,580,000 đ<br>\n' +
+                            '2️⃣ thaohuynh 💸 1,450,000 đ<br>\n' +
+                            '3️⃣ chauchau 💸 800,000 đ<br>\n' +
+                            '4️⃣ linhdieu 💸 740,000 đ<br>\n' +
+                            '5️⃣ my.nt 💸 670,000 đ<br><br>_____________________<br>\n' +
+                            '❖ Jobo Technologies, Inc.<br>\n' +
+                            '◆ Email: contact@jobo.asia<br>\n' +
+                            '◆ Hotline: 0968 269 860<br>\n' +
+                            '◆ Địa chỉ HN: 25T2 Hoàng Đạo Thúy, HN<br>\n' +
+                            '◆ Địa chỉ SG: số 162 Pasteur, Q1, HCM',
+                            linktoaction: 'https://jobohihi.herokuapp.com/registerheadhunter?key=' + user.id,
+                            calltoaction: 'ĐĂNG KÝ LÀM HEADHUNTER!'
+                        }
+                        if (sendData) {
+                            if (!sendData[mail.title]) {
+
+                                sendemailMarketing(mail, user.email)
+
+                                k++;
+                                console.log(k)
+                                if (k < arrayEmail.length) {
+                                    myLoop();
+                                }
+                            } else {
+                                k++;
+                                myLoop();
+
+                            }
+                        } else {
+                            console.log('out of email')
+                        }
+
+                    }, 100)
+                }
+
+                myLoop();
+                res.send('sent' + arrayEmail.length)
+            })
+        })
 
     } else {
         sendemailMarketing(mail, mail.to)
+        res.send('mail sent to ' + mail.to)
     }
 })
 
