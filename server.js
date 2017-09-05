@@ -179,7 +179,7 @@ var facebookAccount = {
     toi: 'EAAEMfZASjMhgBAKbZBRnVyD2HBurOAlVCOTLWweBA5zLqa3fCexZCQFsIPZAZC9gZAZACWWR2Na8Oz4IGiXwycQ965e9QMFnbipFAlHSaGbZCXGVQmgZAlqFfVunfikRi8Yhx7eOyhHEoIZCqufqNJTr2q5RwrE9kZBb5MZD',
     thythy: 'EAAEMfZASjMhgBADcRIvfJo0Dd3CPpwpvQ6ZBJL23d0ZCoJ2VEvTgxLwId7OJs9ZA0FNkKlZAKfsU8AvDQTYntYAzZAFnamq8OuzVvSOvflRD8C0X11ZAmRsF0HKwiSSEnNxCWak5pPTghw0sDDO9pP438fhpe2ZCBrgZD',
     khanh: 'EAAEMfZASjMhgBADZA8LfYxe8NnnZCcrdwuaAaZBtZBu7yfEPZAMiGFl6QR9UXASc33kDm7BcFvPCbzvyQg4OoLe9fCZBW4uskKTNIToZC1BegoOuCrFS09dTmec2G9BrmZBl5tP2AfQKcRabs5dnpxSHHXxPSXfosa00oDjPtaETo7gZDZD',
-    dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',
+    dieulinh: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
     maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
     dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
     mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
@@ -187,7 +187,7 @@ var facebookAccount = {
     thao: 'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
 
 }
-
+var linh = {dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',}
 var db = firebase.database();
 var firsttime;
 
@@ -596,9 +596,7 @@ function init() {
 
     })
 
-    leadRef.on('value', function (data) {
-        dataLead = data.val()
-    })
+
     return new Promise(function (resolve, reject) {
         resolve(dataProfile)
     }).then(function () {
@@ -608,7 +606,6 @@ function init() {
 
     })
 }
-
 
 app.get('/lookalike', function (req, res) {
     var job = req.param('job')
@@ -1829,8 +1826,8 @@ app.get('/update/lead', function (req, res) {
 
     if (lead) {
         console.log(lead)
-        lead.storeId = jobRef.push().key
-        leadRef.child(lead.key).update(lead, function (err) {
+        lead.storeId = leadRef.push().key
+        leadRef.child(lead.storeId).update(lead, function (err) {
             if (err) {
                 res.send({
                     code: 'error'
@@ -1848,27 +1845,28 @@ app.get('/update/lead', function (req, res) {
 });
 
 app.get('/sendFirstEmail', function (req, res) {
-
-
+    var mailStr = req.param('mail')
+    var mail = JSON.parse(mailStr)
+    var maxsent = 21
+    var countsend = 0
+    var profileEmail = '';
     for (var i in dataProfile) {
         var card = dataProfile[i];
         if (card.location
             && card.avatar
             && card.name
-            && ((card.job && card.job[firstJob]) || (!firstJob && card.feature == true))
+            && ((card.job && card.job[mail.job]) || (!mail.job && card.feature == true))
         ) {
+            countsend++
             card.url = CONFIG.WEBURL + '/view/profile/' + card.userId;
             var yourlat = card.location.lat;
             var yourlng = card.location.lng;
-            var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng);
+            var dis = getDistanceFromLatLonInKm(mail.location.lat, mail.location.lng, yourlat, yourlng);
             var stringJob = getStringJob(card.job)
-            console.log(dis)
             if (
                 dis < 20
             ) {
-                mail.countsend++;
                 profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" > ' + stringJob + ' cách ' + dis + ' km  </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Tuyển</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
-
             }
             console.log(card.name)
             if (mail.countsend == maxsent) {
@@ -1887,21 +1885,33 @@ app.get('/sendFirstEmail', function (req, res) {
 
         var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description2 + '</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description3 + '<br> ' + CONFIG.WEBURL + ' </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>'
 
-        var email = mail.email;
-        console.log('send, ' + email);
 
         var htmlEmail = headerEmail + profileEmail + footerEmail
 
 
-        if (email && userInfo.wrongEmail != true) {
+        if (mail.from && dataUser[mail.from] && dataUser[mail.from].email) {
+            var mailAddress = {
+                email: dataUser[mail.from].email,
+                name: dataUser[mail.from].name + '| Jobo'
+            }
+        } else {
+            var mailAddress = {
+                email: 'contact@jobo.asia',
+                name: 'Jobo - Việc làm lương tốt'
+            }
+        }
+
+        var email = mail.to;
+
+        if (email) {
             var mailOptions = {
                 from: {
-                    name: 'Khánh Thông | Jobo - Tìm việc nhanh',
-                    address: 'thonglk.mac@gmail.com'
+                    name: mailAddress.name,
+                    address: mailAddress.email
                 },
                 cc: ['thonglk@joboapp.com', 'myhuyen@joboapp.com', 'linhcm@joboapp.com'],
-                to: mail.email,
-                subject: 'Chào mừng ' + mail.storeName + ' tuyển gấp nhân viên trên Jobo',
+                to: email,
+                subject: mail.title,
                 html: htmlEmail,
                 attachments: [
                     {   // filename and content type is derived from path
@@ -1912,42 +1922,36 @@ app.get('/sendFirstEmail', function (req, res) {
 
             return mailTransport.sendMail(mailOptions).then(function () {
                 console.log('New email sent to: ' + email);
+                mail.mail_sent = Date.now()
+                console.log(mail);
+
+                leadRef.child(mail.storeId).update({firstEmail: mail}).then(function (data) {
+                    res.send({
+                        code: 'success'
+                    })
+                })
+
+
             }, function (error) {
+
                 console.log('Some thing wrong when sent email to ' + email + ':' + error);
+                res.send({
+                    code: 'error',
+                    msg: 'Some thing wrong when sent email to ' + email + ':' + error
+                })
             });
+        } else {
+            res.send({
+                code: 'error',
+                msg: 'no email'
+            })
         }
-        var notification = {
-            title: 'Chào mừng ' + storeData.storeName + ' tuyển gấp nhân viên trên Jobo',
-            body: 'Hãy cập nhật vị trí đăng tuyển và lướt chọn những ứng viên phù hợp',
-            subtitle: '',
-            calltoaction: 'Bắt đầu',
-            linktoaction: '',
-            image: '',
-            storeId: storeData.storeId
-        }
-        sendNotification(userInfo, notification, false, true, true)
+
     })
 
 
 })
 
-
-app.get('/api/lead', function (req, res) {
-
-
-    var query = req.param('q')
-    var param = JSON.parse(query)
-
-    var page = req.param('p');
-
-
-    var sorded = _.sortBy(dataLead, function (card) {
-        return -card.createdAt
-    })
-    var sendData = getPaginatedItems(sorded, page)
-    res.send(sendData)
-
-});
 
 app.get('/getLongToken', function (req, res) {
     var shortToken = req.param('token')
@@ -2710,8 +2714,9 @@ app.get('/sendWelcomeEmailToStore', function (req, res) {
 
 app.get('/initStore', function (req, res) {
     var storeId = req.param('storeId');
-    var storeData = dataStore[storeId]
+    var job = req.param('job');
 
+    var storeData = dataStore[storeId]
 
     sendWelcomeEmailToStore(storeId)
     if (storeData.job) {
@@ -2719,7 +2724,7 @@ app.get('/initStore', function (req, res) {
             sendStoretoPage(storeId)
         }, 5000)
         setTimeout(function () {
-            PostStore(storeId)
+            PostStore(storeId, null, job)
         }, 10000)
         setTimeout(function () {
             sendNotiSubcribleToProfile(storeId)
@@ -4230,7 +4235,7 @@ app.get('/registerheadhunter', function (req, res) {
     var id = req.param('id')
     emailRef.child(id).once('value', function (data) {
         var user = data.val()
-        if(user){
+        if (user) {
             emailRef.child(id).update({headhunter: new Date().getTime()}).then(function () {
                 res.send('Bạn đã đăng ký thành công, hãy sử dụng mã giới thiệu: ' + user.email + ' và chia sẻ link ứng tuyển cho bạn bè nhé')
 
@@ -4251,20 +4256,12 @@ app.get('/sendemailMarketing', function (req, res) {
     var mail = {to: 'all'}
     if (mail.to == 'all') {
         emailRef.once('value', function (snap) {
-            // var dataEmail = snap.val()
-            // var arrayEmail = []
-            // for (var i in dataEmail) {
-            //     arrayEmail.push(dataEmail[i])
-            // }
-            var arrayEmail = [{
-                email: 'thonglk.mac@gmail.com',
-                name: 'Lê Khánh Thông',
-                id: 'sdfsdfsdf'
-            }, {
-                email: 'thonglk@joboapp.com',
-                name: 'Lê Khánh Hưng',
-                id: '3243423'
-            }]
+            var dataEmail = snap.val()
+            var arrayEmail = []
+            for (var i in dataEmail) {
+                arrayEmail.push(dataEmail[i])
+            }
+
             return new Promise(function (resolve, reject) {
                 resolve(arrayEmail)
             }).then(function (arrayEmail) {
@@ -4322,7 +4319,7 @@ app.get('/sendemailMarketing', function (req, res) {
                             '◆ Hotline: 0968 269 860<br>\n' +
                             '◆ Địa chỉ HN: 25T2 Hoàng Đạo Thúy, HN<br>\n' +
                             '◆ Địa chỉ SG: số 162 Pasteur, Q1, HCM',
-                            linktoaction: 'https://jobohihi.herokuapp.com/registerheadhunter?key=' + user.id,
+                            linktoaction: 'https://jobohihi.herokuapp.com/registerheadhunter?id=' + user.id,
                             calltoaction: 'ĐĂNG KÝ LÀM HEADHUNTER!'
                         }
                         if (sendData) {
@@ -4904,7 +4901,7 @@ function PostStoreLoop(storeId, poster) {
 
 }
 
-function PostStore(storeId, poster) {
+function PostStore(storeId, poster, job) {
     var where = isWhere(storeId)
 
     setTimeout(function () {
@@ -4912,7 +4909,10 @@ function PostStore(storeId, poster) {
 
 
             var send = createJDStore(storeId);
-            if (send && groupData[i].groupId && (groupData[i].area == where || groupData[i].area == 'vn')) {
+            if (send
+                && groupData[i].groupId
+                && (groupData[i].area == where || groupData[i].area == 'vn')
+                && (groupData[i].job && groupData[i].job.match(job) || !job )) {
                 var data = {};
                 if (!poster) {
                     if (groupData[i].poster) {
