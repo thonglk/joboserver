@@ -211,7 +211,7 @@ var logRef = db.ref('log')
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
 var buyRef = db.ref('activity/buy');
-var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti,dataEmail, dataLead, Lang
+var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang
 var groupRef = firebase.database().ref('groupData')
 
 var groupData, groupArray
@@ -546,19 +546,20 @@ app.get('/lookalike', function (req, res) {
 
 })
 
-app.get('/updateDeadline',function (req,res) {
+app.get('/updateDeadline', function (req, res) {
 
     updateDeadline()
     res.send('done')
 })
+
 function updateDeadline() {
-    var deadline  = Date.now() + 1000*86400*7
+    var deadline = Date.now() + 1000 * 86400 * 7
     jobRef.once('value', function (snap) {
         dataJob = snap.val()
         for (var i in dataJob) {
             var job = dataJob[i]
             if (job.storeId && job.job && dataStore[job.storeId] && dataStore[job.storeId].storeName) {
-                jobRef.child(i).update({deadline:deadline})
+                jobRef.child(i).update({deadline: deadline})
             } else {
                 console.log(job)
             }
@@ -1049,13 +1050,13 @@ app.get('/api/email', function (req, res) {
     var param = JSON.parse(query)
 
 
-
     var page = req.param('p');
     var resultArray = []
     for (var i in dataEmail) {
         var data = dataEmail[i]
         if ((data.headhunter || !param.headhunter)
             && (data.from == param.from || !param.from)
+            && (data.email == param.email || !param.email)
         ) {
             resultArray.push(data)
         }
@@ -1071,6 +1072,111 @@ app.get('/api/email', function (req, res) {
     })
 
 });
+
+app.get('/sendemailMarketing', function (req, res) {
+    var mailStr = req.param('mail');
+    var mail = JSON.parse(mailStr);
+    var query = req.param('q');
+    var param = JSON.parse(query);
+
+    var arrayEmail = [];
+    for (var i in dataEmail) {
+        var data = dataEmail[i]
+        if ((data.headhunter || !param.headhunter)
+            && (data.from == param.from || !param.from)
+            && (data.email == param.email || !param.email)
+        ) {
+            arrayEmail.push(data)
+        }
+    }
+
+    return new Promise(function (resolve, reject) {
+        resolve(arrayEmail)
+    }).then(function (arrayEmail) {
+        var k = 0;                     //  set your counter to 1
+        function myLoop() {
+            //  create a loop function
+            setTimeout(function () {    //  call a 3s setTimeout when the loop is called
+                var sendData = arrayEmail[k]
+                var user = sendData
+                // var mail = {
+                //     title: 'Giới thiệu việc làm cho bạn bè, Nhận ngay 1,000,000đ cho 1 người giới thiệu',
+                //     image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/image%2Fthonglk?alt=media&token=165b3f68-72a5-44df-a7fe-42a75f4af31e',
+                //     description2: 'Chào ' + getLastName(user.name) + ', chương trình <b>Become a freelance headhunter at Jobo </b> là cơ hội giúp các bạn phát triển khả năng bản thân, có thêm thu nhập vô cùng hấp dẫn và giới thiệu kênh tìm việc hiệu quả cho bạn bè.<br> <br>\n' +
+                //     '\n' +
+                //     '➡ TẠI SAO BẠN NÊN THAM GIA <br>\n' +
+                //     '🎖️ Hoa hồng vô cùng hấp dẫn (lên đến 1,000,000đ khi người giới thiệu ứng tuyển thành công)  <br>\n' +
+                //     '🎖️ Không phải đến văn phòng làm việc, chỉ cần làm việc online vẫn có thêm thu nhập  <br>\n' +
+                //     '🎖️ Hệ thống quản lý thông tin minh bạch và rõ ràng. Bạn có thể tự kiểm tra kết quả công việc của mình. <br>\n' +
+                //     '🎖️ Hỗ trợ chuyên nghiệp và nhanh chóng. Bất cứ khi nào có khó khăn bạn có thể liên hệ ngay với Jobo để nhận được sự hỗ trợ.  <br> <br>\n' +
+                //     '🌐 DANH SÁCH VIỆC LÀM:  <br>\n' +
+                //     '<b>Marketing & Sale</b><br>\n' +
+                //     '1. Nhân viên kinh doanh | AIA Vietnam | HCM (8 người)<br>\n' +
+                //     '🏆 Phần thưởng: 1,000,000đ/người  <br>\n' +
+                //     '🔗 Link: https://jobo.asia/view/store/s9111250738949#ref=' + user.email + ' <br>\n' +
+                //     '2. Nhân viên kinh doanh | Jobo Vietnam | HN,HCM (4 người) <br>\n' +
+                //     '🏆: 1,000,000đ/người <br>\n' +
+                //     '🔗 : https://jobo.asia/view/store/-KlCK75iK0bf7zFdpHB1#ref=' + user.email + '<br>\n' +
+                //     '3. Nhân viên bán hàng | CORÈLE V | HCM (4 người) <br>\n' +
+                //     '🏆: 150,000đ/người <br>\n' +
+                //     '🔗: https://jobo.asia/view/store/s95995521315678#ref=' + user.email + '<br>\n' +
+                //     '<b>Food Service</b><br>\n' +
+                //     '1. Phục vụ | Góc Hà Thành | Hà Nội (12 người) <br>\n' +
+                //     '🏆: 150,000đ/người <br>\n' +
+                //     '🔗: https://jobo.asia/view/store/-Kop_Dcf9r_gj94B_D3z?job=server#ref=' + user.email + ' <br>\n' +
+                //     '2. Phục vụ | Ụt Ụt BBQ | SG (30 người) <br>\n' +
+                //     '🏆: 150,000đ/người <br>\n' +
+                //     '🔗: https://jobo.asia/view/store/-Ko888eO-cKhfXzJzSQh?job=server#ref=' + user.email + '<br>' +
+                //     '(trên đây là những công việc ưu tiên tuyển gấp trong tuần, còn hơn 150 công việc khác sẽ được giới thiệu trong tuần sau.)<br>\n' +
+                //     '\n' +
+                //     '➡ CÁCH THỨC HOẠT ĐỘNG:<br>\n' +
+                //     '◆ Mã giới thiệu của bạn chính là ' + user.email + ' , đã được gắn ở link phía trên <br>\n' +
+                //     '◆ Chia sẻ cho bạn bè của mình (bạn bè quen biết, các câu lạc bộ, tổ chức sinh viên tại trường đang theo học/ các trường lân cận,...) để họ ứng tuyển qua đường link đã gắn mã giới thiệu của bạn <br>\n' +
+                //     '◆ Bạn sẽ được nhận thông báo mỗi khi bạn bè ứng tuyển, được mời đi phỏng vấn và được chọn (thông báo về email này). <br><br>\n' +
+                //     '➡ HOA HỒNG VÀ THANH TOÁN:<br>\n' +
+                //     '◆ Khi bạn giới thiệu bạn bè tìm việc thành công, bạn được phép yêu cầu thanh toán, sẽ được gửi tới tài khoản ngân hàng mà bạn cung cấp.<br><br>\n',
+                //     description3: '➡ <b>TOP WEEKLY FREELANCE HEADHUNTER:</b><br>\n' +
+                //     '1️⃣ huyenmy07 💸 2,580,000 đ<br>\n' +
+                //     '2️⃣ thaohuynh 💸 1,450,000 đ<br>\n' +
+                //     '3️⃣ chauchau 💸 800,000 đ<br>\n' +
+                //     '4️⃣ linhdieu 💸 740,000 đ<br>\n' +
+                //     '5️⃣ my.nt 💸 670,000 đ<br><br>_____________________<br>\n' +
+                //     '❖ Jobo Technologies, Inc.<br>\n' +
+                //     '◆ Email: contact@jobo.asia<br>\n' +
+                //     '◆ Hotline: 0968 269 860<br>\n' +
+                //     '◆ Địa chỉ HN: 25T2 Hoàng Đạo Thúy, HN<br>\n' +
+                //     '◆ Địa chỉ SG: số 162 Pasteur, Q1, HCM',
+                //     linktoaction: 'https://jobohihi.herokuapp.com/registerheadhunter?id=' + user.id,
+                //     calltoaction: 'ĐĂNG KÝ LÀM HEADHUNTER!'
+                // }
+                if (sendData) {
+                    if (!sendData[mail.title]) {
+
+                        sendemailMarketing(mail, user.email)
+
+                        k++;
+                        console.log(k)
+                        if (k < arrayEmail.length) {
+                            myLoop();
+                        }
+                    } else {
+                        k++;
+                        myLoop();
+
+                    }
+                } else {
+                    console.log('out of email')
+                }
+
+            }, 100)
+        }
+        myLoop();
+        res.send('sent' + arrayEmail.length)
+    })
+
+
+})
+
 
 //
 // app.use('/upload', (req, res, next) => {
@@ -1713,10 +1819,9 @@ app.get('/update/user', function (req, res) {
     var storeDataStr = req.param('store')
 
 
-
     if (userId) {
 
-        if(userDataStr){
+        if (userDataStr) {
             var userData = JSON.parse(userDataStr)
             userRef.child(userId).update(userData)
 
@@ -1733,10 +1838,9 @@ app.get('/update/user', function (req, res) {
 
         }
 
-        res.send({code:'success',id: userId})
+        res.send({code: 'success', id: userId})
 
     }
-
 
 
 });
@@ -1817,7 +1921,7 @@ app.get('/sendFirstEmail', function (req, res) {
     var mail = JSON.parse(mailStr)
     var profileEmail = '';
 
-    if(mail.profileList) {
+    if (mail.profileList) {
 
 
         var maxsent = 21
@@ -1881,7 +1985,7 @@ app.get('/sendFirstEmail', function (req, res) {
                     name: mailAddress.name,
                     address: mailAddress.email
                 },
-                bcc: ['thonglk@jobo.asia',mailAddress.email],
+                bcc: ['thonglk@jobo.asia', mailAddress.email],
                 to: email,
                 subject: mail.title,
                 html: htmlEmail,
@@ -4209,111 +4313,6 @@ app.get('/registerheadhunter', function (req, res) {
 
 })
 
-
-app.get('/sendemailMarketing', function (req, res) {
-    // var mailStr = req.param('mail')
-    // var mail = JSON.parse(mailStr)
-    var mail = {to: 'all'}
-    if (mail.to == 'all') {
-        emailRef.once('value', function (snap) {
-            var dataEmail = snap.val()
-            var arrayEmail = []
-            for (var i in dataEmail) {
-                arrayEmail.push(dataEmail[i])
-            }
-
-            return new Promise(function (resolve, reject) {
-                resolve(arrayEmail)
-            }).then(function (arrayEmail) {
-
-                var k = 0;                     //  set your counter to 1
-                function myLoop() {
-                    //  create a loop function
-                    setTimeout(function () {    //  call a 3s setTimeout when the loop is called
-                        var sendData = arrayEmail[k]
-                        var user = sendData
-                        var mail = {
-                            title: 'Giới thiệu việc làm cho bạn bè, Nhận ngay 1,000,000đ cho 1 người giới thiệu',
-                            image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/image%2Fthonglk?alt=media&token=165b3f68-72a5-44df-a7fe-42a75f4af31e',
-                            description2: 'Chào ' + getLastName(user.name) + ', chương trình <b>Become a freelance headhunter at Jobo </b> là cơ hội giúp các bạn phát triển khả năng bản thân, có thêm thu nhập vô cùng hấp dẫn và giới thiệu kênh tìm việc hiệu quả cho bạn bè.<br> <br>\n' +
-                            '\n' +
-                            '➡ TẠI SAO BẠN NÊN THAM GIA <br>\n' +
-                            '🎖️ Hoa hồng vô cùng hấp dẫn (lên đến 1,000,000đ khi người giới thiệu ứng tuyển thành công)  <br>\n' +
-                            '🎖️ Không phải đến văn phòng làm việc, chỉ cần làm việc online vẫn có thêm thu nhập  <br>\n' +
-                            '🎖️ Hệ thống quản lý thông tin minh bạch và rõ ràng. Bạn có thể tự kiểm tra kết quả công việc của mình. <br>\n' +
-                            '🎖️ Hỗ trợ chuyên nghiệp và nhanh chóng. Bất cứ khi nào có khó khăn bạn có thể liên hệ ngay với Jobo để nhận được sự hỗ trợ.  <br> <br>\n' +
-                            '🌐 DANH SÁCH VIỆC LÀM:  <br>\n' +
-                            '<b>Marketing & Sale</b><br>\n' +
-                            '1. Nhân viên kinh doanh | AIA Vietnam | HCM (8 người)<br>\n' +
-                            '🏆 Phần thưởng: 1,000,000đ/người  <br>\n' +
-                            '🔗 Link: https://jobo.asia/view/store/s9111250738949#ref=' + user.email + ' <br>\n' +
-                            '2. Nhân viên kinh doanh | Jobo Vietnam | HN,HCM (4 người) <br>\n' +
-                            '🏆: 1,000,000đ/người <br>\n' +
-                            '🔗 : https://jobo.asia/view/store/-KlCK75iK0bf7zFdpHB1#ref=' + user.email + '<br>\n' +
-                            '3. Nhân viên bán hàng | CORÈLE V | HCM (4 người) <br>\n' +
-                            '🏆: 150,000đ/người <br>\n' +
-                            '🔗: https://jobo.asia/view/store/s95995521315678#ref=' + user.email + '<br>\n' +
-                            '<b>Food Service</b><br>\n' +
-                            '1. Phục vụ | Góc Hà Thành | Hà Nội (12 người) <br>\n' +
-                            '🏆: 150,000đ/người <br>\n' +
-                            '🔗: https://jobo.asia/view/store/-Kop_Dcf9r_gj94B_D3z?job=server#ref=' + user.email + ' <br>\n' +
-                            '2. Phục vụ | Ụt Ụt BBQ | SG (30 người) <br>\n' +
-                            '🏆: 150,000đ/người <br>\n' +
-                            '🔗: https://jobo.asia/view/store/-Ko888eO-cKhfXzJzSQh?job=server#ref=' + user.email + '<br>' +
-                            '(trên đây là những công việc ưu tiên tuyển gấp trong tuần, còn hơn 150 công việc khác sẽ được giới thiệu trong tuần sau.)<br>\n' +
-                            '\n' +
-                            '➡ CÁCH THỨC HOẠT ĐỘNG:<br>\n' +
-                            '◆ Mã giới thiệu của bạn chính là ' + user.email + ' , đã được gắn ở link phía trên <br>\n' +
-                            '◆ Chia sẻ cho bạn bè của mình (bạn bè quen biết, các câu lạc bộ, tổ chức sinh viên tại trường đang theo học/ các trường lân cận,...) để họ ứng tuyển qua đường link đã gắn mã giới thiệu của bạn <br>\n' +
-                            '◆ Bạn sẽ được nhận thông báo mỗi khi bạn bè ứng tuyển, được mời đi phỏng vấn và được chọn (thông báo về email này). <br><br>\n' +
-                            '➡ HOA HỒNG VÀ THANH TOÁN:<br>\n' +
-                            '◆ Khi bạn giới thiệu bạn bè tìm việc thành công, bạn được phép yêu cầu thanh toán, sẽ được gửi tới tài khoản ngân hàng mà bạn cung cấp.<br><br>\n',
-                            description3: '➡ <b>TOP WEEKLY FREELANCE HEADHUNTER:</b><br>\n' +
-                            '1️⃣ huyenmy07 💸 2,580,000 đ<br>\n' +
-                            '2️⃣ thaohuynh 💸 1,450,000 đ<br>\n' +
-                            '3️⃣ chauchau 💸 800,000 đ<br>\n' +
-                            '4️⃣ linhdieu 💸 740,000 đ<br>\n' +
-                            '5️⃣ my.nt 💸 670,000 đ<br><br>_____________________<br>\n' +
-                            '❖ Jobo Technologies, Inc.<br>\n' +
-                            '◆ Email: contact@jobo.asia<br>\n' +
-                            '◆ Hotline: 0968 269 860<br>\n' +
-                            '◆ Địa chỉ HN: 25T2 Hoàng Đạo Thúy, HN<br>\n' +
-                            '◆ Địa chỉ SG: số 162 Pasteur, Q1, HCM',
-                            linktoaction: 'https://jobohihi.herokuapp.com/registerheadhunter?id=' + user.id,
-                            calltoaction: 'ĐĂNG KÝ LÀM HEADHUNTER!'
-                        }
-                        if (sendData) {
-                            if (!sendData[mail.title]) {
-
-                                sendemailMarketing(mail, user.email)
-
-                                k++;
-                                console.log(k)
-                                if (k < arrayEmail.length) {
-                                    myLoop();
-                                }
-                            } else {
-                                k++;
-                                myLoop();
-
-                            }
-                        } else {
-                            console.log('out of email')
-                        }
-
-                    }, 100)
-                }
-
-                myLoop();
-                res.send('sent' + arrayEmail.length)
-            })
-        })
-
-    } else {
-        sendemailMarketing(mail, mail.to)
-        res.send('mail sent to ' + mail.to)
-    }
-})
 
 function sendNotification(userData, mail, letter, web, mobile, messenger, time) {
     if (userData) {
