@@ -1823,7 +1823,7 @@ app.get('/sendFirstEmail', function (req, res) {
                     name: mailAddress.name,
                     address: mailAddress.email
                 },
-                bcc: 'thonglk@jobo.asia',
+                bcc: ['thonglk@jobo.asia',mailAddress.email],
                 to: email,
                 subject: mail.title,
                 html: htmlEmail,
@@ -1833,7 +1833,6 @@ app.get('/sendFirstEmail', function (req, res) {
                     }
                 ]
             };
-
             return mailTransport.sendMail(mailOptions).then(function () {
                 console.log('New email sent to: ' + email);
                 mail.mail_sent = Date.now()
@@ -1860,12 +1859,9 @@ app.get('/sendFirstEmail', function (req, res) {
                 msg: 'no email'
             })
         }
-
     })
 
-
-})
-
+});
 
 app.get('/getLongToken', function (req, res) {
     var shortToken = req.param('token')
