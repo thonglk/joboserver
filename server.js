@@ -188,6 +188,7 @@ var facebookAccount = {
 
 }
 var linh = {dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',}
+var adminEmailList = []
 var db = firebase.database();
 var firsttime;
 
@@ -309,52 +310,8 @@ function init() {
     // })
     userRef.on('value', function (snap) {
         dataUser = snap.val();
-
-        var fields = ['name', 'phone', 'email', 'type'];
-        var myUser = []
-        for (var i in dataUser) {
-            var user = dataUser[i]
-            if (user.phone) {
-                var phoneStr = user.phone.toString()
-                if (!phoneStr.match(/^0/g)) phoneStr = "0" + phoneStr;
-            } else {
-                var phoneStr = ''
-            }
-
-            if (user.type == 2) {
-                myUser.push({
-                    name: user.name || '',
-                    phone: phoneStr,
-                    email: user.email || '',
-                    type: user.type || ''
-                })
-            }
-        }
-        return new Promise(function (resolve, reject) {
-            resolve(myUser)
-        }).then(function (myUser) {
-            var csv = json2csv({data: myUser, fields: fields});
-
-            fs.writeFile('jobseeker.csv', csv, function (err) {
-                if (err) throw err;
-                console.log('file saved');
-            });
-
-        })
-
-        // analyticsUserToday()
-
-
     });
-    // profileCol.find({}).toArray(function (err, suc) {
-    //     dataProfile = {}
-    //     for (var i in suc) {
-    //         var user = suc[i]
-    //         dataProfile[user.userId] = user
-    //     }
-    //     console.log('dataProfile', suc.length)
-    //
-    // })
+
 
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
@@ -401,84 +358,9 @@ function init() {
 
     });
 
-    // storeCol.find({}).toArray(function (err, suc) {
-    //     dataStore = {}
-    //     for(var i in suc){
-    //         dataStore[suc[i].storeId] = suc[i]
-    //     }
-    //     console.log('dataStore', suc.length)
-    //
-    // })
+
     jobRef.on('value', function (snap) {
         dataJob = snap.val()
-
-        //
-        // var fields = ['email', 'phone','storeName'];
-        // var myUser = []
-        // for (var i in dataUser) {
-        //     var user = dataUser[i];
-        //     if(user.type == 1){
-        //         var storeName = '';
-        //         if(user.currentStore && dataStore[user.currentStore] && dataStore[user.currentStore].storeName){
-        //             storeName = dataStore[user.currentStore].storeName
-        //         }
-        //         myUser.push({
-        //             email: dataUser[i].email || '',
-        //             phone: dataUser[i].phone,
-        //             storeName: storeName
-        //         })
-        //     }
-        //
-        // }
-        // return new Promise(function (resolve, reject) {
-        //     resolve(myUser)
-        // }).then(function (myUser) {
-        //     var csv = json2csv({data: myUser, fields: fields});
-        //
-        //     fs.writeFile('file.csv', csv, function (err) {
-        //         if (err) throw err;
-        //         console.log('file saved');
-        //     });
-        //
-        // })
-        // for(var i in dataUser){
-        //     if(dataUser[i].type == 1 && dataUser[i].package == 'premium'){
-        //
-        //         sendWelcomeEmailToStore(dataUser[i])
-        //     }
-        // }
-
-        // var fields = ['name','address','location'];
-        // var myUser = []
-        // for (var i in dataStore) {
-        //     var storeData = dataStore[i]
-        //     if(storeData.location && storeData.createdBy && dataUser[storeData.createdBy] && dataUser[storeData.createdBy].package == 'premium')
-        //     myUser.push({
-        //         name: dataStore[i].storeName || '',
-        //         address: dataStore[i].address,
-        //         location: dataStore[i].location
-        //
-        //     })
-        // }
-        // return new Promise(function (resolve, reject) {
-        //     resolve(myUser)
-        // }).then(function (myUser) {
-        //     var csv = json2csv({data: myUser, fields: fields});
-        //
-        //     fs.writeFile('storelocation.csv', csv, function (err) {
-        //         if (err) throw err;
-        //         console.log('file saved');
-        //     });
-        //
-        // })
-
-        // var storeCollection = md.collection('store')
-        // for(var i in dataStore){
-        //     var storeData = dataStore[i]
-        //     storeCollection.insert(storeData,function (err,suc) {
-        //         console.log(err)
-        //     })
-        // }
 
     });
 
@@ -596,14 +478,11 @@ function init() {
 
     })
 
-
     return new Promise(function (resolve, reject) {
         resolve(dataProfile)
     }).then(function () {
         startList()
-        Email_happyBirthDayProfile()
-
-
+        checkInadequate()
     })
 }
 
@@ -611,8 +490,8 @@ app.get('/lookalike', function (req, res) {
     var job = req.param('job')
 
     var fields = ['name', 'phone', 'email', 'type'];
-    var myUser = []
-    var a = 0
+    var myUser = [];
+    var a = 0;
 
     for (var i in dataProfile) {
         var profile = dataProfile[i]
@@ -657,6 +536,26 @@ app.get('/lookalike', function (req, res) {
     })
 
 })
+
+app.get('/updateDeadline',function (req,res) {
+
+    updateDeadline()
+    res.send('done')
+})
+function updateDeadline() {
+    var deadline  = Date.now() + 1000*86400*7
+    jobRef.once('value', function (snap) {
+        dataJob = snap.val()
+        for (var i in dataJob) {
+            var job = dataJob[i]
+            if (job.storeId && job.job && dataStore[job.storeId] && dataStore[job.storeId].storeName) {
+                jobRef.child(i).update({deadline:deadline})
+            } else {
+                console.log(job)
+            }
+        }
+    });
+}
 
 function createListPremiumStore() {
     var jobHN = "HN \n"
@@ -949,6 +848,16 @@ function checkInadequate() {
             }
         }
     })
+    userRef.once('value', function (a) {
+        var dataUsers = a.val()
+
+        for (var i in dataUsers) {
+            var user = dataUsers[i]
+            if (user.admin) {
+                adminEmailList.push(user.email)
+            }
+        }
+    })
 }
 
 function shortAddress(fullAddress) {
@@ -1095,6 +1004,9 @@ app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 app.get('/check', function (req, res) {
     checkInadequate()
 })
+schedule.scheduleJob({hour: 12, minute: 30}, function () {
+    checkInadequate()
+});
 
 app.get('/', function (req, res) {
     res.send('Jobo Homepage');
@@ -1732,34 +1644,41 @@ app.get('/delete/job', function (req, res) {
 // });
 
 app.get('/update/user', function (req, res) {
-    var userData = JSON.parse(req.param('user'))
     var userId = req.param('userId')
+
+
+    var userDataStr = req.param('user')
+
     var profileDataStr = req.param('profile')
-    if (profileDataStr) {
-        var profileData = JSON.parse(profileDataStr)
-    }
+
     var storeId = req.param('storeId')
     var storeDataStr = req.param('store')
-    if (storeDataStr) {
-        var storeData = JSON.parse(storeDataStr)
-    }
+
+
 
     if (userId) {
-        if (userData) {
-            console.log(userData)
+
+        if(userDataStr){
+            var userData = JSON.parse(userDataStr)
             userRef.child(userId).update(userData)
-        }
 
-        if (profileData) {
+        }
+        if (profileDataStr) {
+            var profileData = JSON.parse(profileDataStr)
             profileRef.child(userId).update(profileData)
+
         }
 
-        if (storeId && storeData) {
+        if (storeDataStr) {
+            var storeData = JSON.parse(storeDataStr)
             storeRef.child(storeId).update(storeData)
+
         }
-        res.send(dataUser[userId])
+
+        res.send({code:'success',id: userId})
 
     }
+
 
 
 });
@@ -1775,17 +1694,8 @@ app.get('/update/review', function (req, res) {
             code: 'success'
         })
     }
-
-
 });
-// app.get('/update/setting', function (req, res) {
-//     var settingStr = req.param('setting')
-//     var userId = req.param('userId')
-//     if (settingStr) {
-//         var setting = JSON.parse(settingStr)
-//         settingRef.child(userId).update(setting)
-//     }
-// });
+
 
 app.get('/update/job', function (req, res) {
     var userId = req.param('userId')
@@ -1826,7 +1736,7 @@ app.get('/update/lead', function (req, res) {
 
     if (lead) {
         console.log(lead)
-        lead.storeId = leadRef.push().key
+        lead.storeId = leadRef.push().key;
         leadRef.child(lead.storeId).update(lead, function (err) {
             if (err) {
                 res.send({
@@ -1847,35 +1757,39 @@ app.get('/update/lead', function (req, res) {
 app.get('/sendFirstEmail', function (req, res) {
     var mailStr = req.param('mail')
     var mail = JSON.parse(mailStr)
-    var maxsent = 21
-    var countsend = 0
     var profileEmail = '';
-    for (var i in dataProfile) {
-        var card = dataProfile[i];
-        if (card.location
-            && card.avatar
-            && card.name
-            && ((card.job && card.job[mail.job]) || (!mail.job && card.feature == true))
-        ) {
-            countsend++
-            card.url = CONFIG.WEBURL + '/view/profile/' + card.userId;
-            var yourlat = card.location.lat;
-            var yourlng = card.location.lng;
-            var dis = getDistanceFromLatLonInKm(mail.location.lat, mail.location.lng, yourlat, yourlng);
-            var stringJob = getStringJob(card.job)
-            if (
-                dis < 20
+
+    if(mail.profileList) {
+
+
+        var maxsent = 21
+        var countsend = 0
+        for (var i in dataProfile) {
+            var card = dataProfile[i];
+            if (card.location
+                && card.avatar
+                && card.name
+                && ((card.job && card.job[mail.job]) || (!mail.job && card.feature == true))
             ) {
-                profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" > ' + stringJob + ' cách ' + dis + ' km  </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Tuyển</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
+                countsend++
+                card.url = CONFIG.WEBURL + '/view/profile/' + card.userId;
+                var yourlat = card.location.lat;
+                var yourlng = card.location.lng;
+                var dis = getDistanceFromLatLonInKm(mail.location.lat, mail.location.lng, yourlat, yourlng);
+                var stringJob = getStringJob(card.job)
+                if (
+                    dis < 20
+                ) {
+                    profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" > ' + stringJob + ' cách ' + dis + ' km  </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Tuyển</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
+                }
+                console.log(card.name)
+                if (mail.countsend == maxsent) {
+                    break
+                }
             }
-            console.log(card.name)
-            if (mail.countsend == maxsent) {
-                break
-            }
+
         }
-
     }
-
     return new Promise(function (resolve, reject) {
         resolve(profileEmail)
     }).then(function (profileEmail) {
@@ -1883,7 +1797,7 @@ app.get('/sendFirstEmail', function (req, res) {
 
         var headerEmail = '<!doctype html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head> <title></title> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <style type="text/css"> #outlook a { padding: 0; } .ReadMsgBody { width: 100%; } .ExternalClass { width: 100%; } .ExternalClass * { line-height: 100%; } body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; } table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; } p { display: block; margin: 13px 0; } </style> <!--[if !mso]><!--> <style type="text/css"> @media only screen and (max-width:480px) { @-ms-viewport { width: 320px; } @viewport { width: 320px; } } </style> <!--<![endif]--> <!--[if mso]><xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings></xml><![endif]--> <!--[if lte mso 11]><style type="text/css"> .outlook-group-fix { width:100% !important; }</style><![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-33 { width: 33.333333333333336%!important; } } </style></head><body> <div> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" > <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description1 + '</p> </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="500" align="center" style="width:500px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:500px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr>'
 
-        var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description2 + '</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description3 + '<br> ' + CONFIG.WEBURL + ' </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>'
+        var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description2 + '</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description3 + '<br> ' + CONFIG.WEBURL + ' </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>';
 
 
         var htmlEmail = headerEmail + profileEmail + footerEmail
@@ -1892,7 +1806,7 @@ app.get('/sendFirstEmail', function (req, res) {
         if (mail.from && dataUser[mail.from] && dataUser[mail.from].email) {
             var mailAddress = {
                 email: dataUser[mail.from].email,
-                name: dataUser[mail.from].name + '| Jobo'
+                name: dataUser[mail.from].name + ' từ Jobo'
             }
         } else {
             var mailAddress = {
@@ -1909,7 +1823,7 @@ app.get('/sendFirstEmail', function (req, res) {
                     name: mailAddress.name,
                     address: mailAddress.email
                 },
-                cc: ['thonglk@joboapp.com', 'myhuyen@joboapp.com', 'linhcm@joboapp.com'],
+                bcc: 'thonglk@jobo.asia',
                 to: email,
                 subject: mail.title,
                 html: htmlEmail,
@@ -2278,7 +2192,7 @@ app.get('/checkUser', function (req, res) {
 
 app.get('/admin/createuser', function (req, res) {
     var userId = req.param('uid')
-    var email = req.param('uid') + '@joboapp.com'
+    var email = req.param('uid') + '@jobo.asia'
     var password = req.param('pass')
     secondary.auth().createUser({
         uid: userId,
@@ -3434,10 +3348,10 @@ function sendWelcomeEmailToStore(storeId, userId) {
             if (email && userInfo.wrongEmail != true) {
                 var mailOptions = {
                     from: {
-                        name: 'Khánh Thông | Jobo - Tìm việc nhanh',
-                        address: 'thonglk.mac@gmail.com'
+                        name: 'Jobo - Cung cấp nhân sự trong 24h',
+                        address: 'contact@jobo.asia'
                     },
-                    cc: ['thonglk@joboapp.com', 'myhuyen@joboapp.com', 'linhcm@joboapp.com'],
+                    bcc: adminEmailList,
                     to: mail.email,
                     subject: 'Chào mừng ' + mail.storeName + ' tuyển gấp nhân viên trên Jobo',
                     html: htmlEmail,
@@ -4608,6 +4522,7 @@ app.get('/sendRemind', function (req, res) {
 schedule.scheduleJob({hour: 18, minute: 0}, function () {
     analyticsRemind()
 });
+
 app.get('/admin/analyticsUser', function (req, res) {
         var dateStart = new Date()
         dateStart.setHours(0, 0, 0, 0)
