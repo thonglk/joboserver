@@ -211,7 +211,7 @@ var logRef = db.ref('log')
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
 var buyRef = db.ref('activity/buy');
-var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataLead, Lang
+var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti,dataEmail, dataLead, Lang
 var groupRef = firebase.database().ref('groupData')
 
 var groupData, groupArray
@@ -465,6 +465,15 @@ function init() {
     //     }
     //
     // });
+
+
+    leadRef.on('value', function (data) {
+        dataLead = data.val()
+    })
+
+    emailRef.on('value', function (data) {
+        dataEmail = data.val()
+    })
     var now = new Date().getTime();
     notificationRef.startAt(now).once('value', function (snap) {
         var data = snap.val()
@@ -1014,6 +1023,55 @@ app.get('/', function (req, res) {
 app.get('/group', function (req, res) {
     res.send(groupData);
 });
+
+
+app.get('/api/lead', function (req, res) {
+
+
+    var query = req.param('q')
+    var param = JSON.parse(query)
+
+    var page = req.param('p');
+
+
+    var sorded = _.sortBy(dataLead, function (card) {
+        return -card.createdAt
+    })
+    var sendData = getPaginatedItems(sorded, page)
+    res.send(sendData)
+
+});
+
+app.get('/api/email', function (req, res) {
+
+
+    var query = req.param('q')
+    var param = JSON.parse(query)
+
+
+
+    var page = req.param('p');
+    var resultArray = []
+    for (var i in dataEmail) {
+        var data = dataEmail[i]
+        if ((data.headhunter || !param.headhunter)
+            && (data.from == param.from || !param.from)
+        ) {
+            resultArray.push(data)
+        }
+    }
+    return new Promise(function (resolve, reject) {
+        resolve(resultArray)
+    }).then(function (resultArray) {
+        var sorded = _.sortBy(resultArray, function (card) {
+            return -card.createdAt
+        })
+        var sendData = getPaginatedItems(sorded, page)
+        res.send(sendData)
+    })
+
+});
+
 //
 // app.use('/upload', (req, res, next) => {
 //     console.log(req.originalUrl);
@@ -4109,8 +4167,8 @@ function sendemailMarketing(mail, email, userId) {
         }
     }
 
-    var bodyHtml = htmlMail
-    var subject = mail.title
+    var bodyHtml = htmlMail;
+    var subject = mail.title;
     var mailOptions = {
         from: {
             name: mailAddress.name,
