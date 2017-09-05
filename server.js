@@ -3248,14 +3248,6 @@ function startList() {
                 if (likeData) {
                     sendMailNotiMatchToStore(likeData)
 
-                    if (dataStatic[card.data.userId]) {
-                        var a = dataStatic[card.data.storeId].matched++ || 1
-                        staticRef.child(card.data.userId).update({liked: a})
-                    }
-                    if (dataStatic[card.storeId]) {
-                        var b = dataStatic[card.userId].match++
-                        staticRef.child(card.storeId).update({like: b})
-                    }
                     actRef.child(key).remove()
 
                 } else {
