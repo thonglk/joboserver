@@ -22,6 +22,8 @@ var cors = require('cors')
 var graph = require('fbgraph');
 var json2csv = require('json2csv');
 var shortLinkData = {}
+var { Pxl, JoboPxlForEmails, FirebasePersistenceLayer } = require('./pxl');
+var imgNocache = require('nocache');
 
 var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
@@ -49,6 +51,20 @@ var staticData = {
     profile: 0
 }
 
+firebase.initializeApp({
+    credential: firebase.credential.cert('adminsdk.json'),
+    databaseURL: "https://jobfast-359da.firebaseio.com"
+});
+
+var secondary = firebase.initializeApp({
+    credential: firebase.credential.cert('adminsdk-jobo.json'),
+    databaseURL: "https://jobo-b8204.firebaseio.com"
+}, "secondary");
+
+var joboPxl = firebase.initializeApp({
+    credential: firebase.credential.cert('./pxl/jobo-pxl.json'),
+    databaseURL: "https://jobo-pxl.firebaseio.com"
+}, 'jobo-pxl');
 //Mongo//
 const MongoClient = require('mongodb');
 
@@ -70,18 +86,6 @@ var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
 // });
 
 
-// TODO(DEVELOPER): Configure your email transport.
-// Configure the email transport using the default SMTP transport and a GMail account.
-// See: https://nodemailer.com/
-// For other types of transports (Amazon SES, Sendgrid...) see https://nodemailer.com/2-0-0-beta/setup-transporter/
-// var mailTransport = nodemailer.createTransport('smtps://<user>%40gmail.com:<password>@smtp.gmail.com');
-//
-// var mailTransport = nodemailer.createTransport(ses({
-//     accessKeyId: 'AKIAJB7IJS2GP6NGLFSQ',
-//     secretAccessKey: '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',
-//     region: 'us-west-2'
-// }));
-
 var mailTransport = nodemailer.createTransport(ses({
     accessKeyId: 'AKIAJHPP64MDOXMXAZRQ',
     secretAccessKey: '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',
@@ -90,21 +94,110 @@ var mailTransport = nodemailer.createTransport(ses({
 
 
 app.use(cors());
+
+app.use(imgNocache());
+app.use(express.static(__dirname + '/static'));
 app.use(function (req, res, next) {
     res.contentType('application/json');
     next();
 });
 
+var pxlConfig = require('./pxl/pxl-config');
+var sendEmail = (addressTo, subject = 'Hello ✔', emailMarkup,notiId) => {
+    return new Promise((resolve, reject) => {
+        // setup email data with unicode symbols
+        let mailOptions = {
+            from: {
+                name: 'Khánh Thông | Jobo - Tìm việc nhanh',
+                address: 'contact@jobo.asia'
+            }, // sender address
+            to: addressTo, // list of receivers
+            subject: subject, // Subject line
+            // text: 'Hello world?', // plain text body
+            html: `${emailMarkup}` // html body
+        };
 
-firebase.initializeApp({
-    credential: firebase.credential.cert('adminsdk.json'),
-    databaseURL: "https://jobfast-359da.firebaseio.com"
+        // send mail with defined transport object
+        mailTransport.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                // console.log(error);
+                reject(error);
+            }
+            // console.log('Message sent: %s', info.messageId);
+            notificationRef.child(notiId).update({mail_sent: Date.now()})
+            resolve(info.messageId);
+
+
+        });
+    });
+}
+joboPxl.database().ref('notification').on("child_changed", function(snapshot) {
+    var changedPost = snapshot.val();
+    console.log("The updated post title is " + changedPost.notiId);
+    if(changedPost.mail_open){
+        notificationRef.child(changedPost.notiId).update({mail_open: changedPost.mail_open})
+    }
 });
 
-var secondary = firebase.initializeApp({
-    credential: firebase.credential.cert('adminsdk-jobo.json'),
-    databaseURL: "https://jobo-b8204.firebaseio.com"
-}, "secondary");
+// PXL initialize
+var pxl = new Pxl({
+    persistenceLayer: new FirebasePersistenceLayer({db:joboPxl.database()}),
+    queryParam: 'noti',
+    queryUser: 'user',
+    logPxlFailed(err, pxlCode, url) {
+        console.log({ pxlCode, url, err });
+    }
+});
+app.use(pxl.trackPxl);
+app.get('/link/:linkId', pxl.redirect);
+
+// PXL FOR Emails initialize
+var pxlForEmails = new JoboPxlForEmails({
+    pxl,
+    openTracking: {
+        shouldApply(link) {
+            return {
+                shorten: !link.startsWith(pxlConfig.host)
+            }
+        }
+    },
+    clickTracking: {
+        shouldApply(link) {
+            return {
+                shorten: !link.startsWith(pxlConfig.host)
+            }
+        }
+    },
+    getFullShortenedLink(linkId) {
+        return `${pxlConfig.host}/link/${ linkId }`
+    }
+});
+
+const sendPXLEmail = (userId, addressTo, subject = 'Hello ✔', emailMarkup, notiId) => {
+    return new Promise((resolve, reject) => {
+        pxlForEmails
+            .addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
+                to: userId,
+                title: "Helloooooo",
+                body: "123",
+                createdAt: Date.now(),
+                time: Date.now(),
+                notiId: notiId,
+            })
+            .then(html => {
+                return sendEmail(addressTo, subject, html,notiId);
+            })
+            .then(messageId => resolve(messageId))
+            .catch(err => reject(err));
+    });
+}
+
+sendPXLEmail(Date.now(), 'thonglk.mac@gmail.com', 'Helloooooo', '<a href="https://joboapp.com/">Test</a>','abcd')
+    .then(messageId => console.log('Message sent: %s', messageId))
+    .catch(err => console.log(err));
+
+
+
 
 
 var publishChannel = {
@@ -273,41 +366,12 @@ function init() {
     langRef.on('value', function (snap) {
         Lang = snap.val()
     })
-    // userCol.find({}).toArray(function (err, suc) {
-    //     dataUser = {}
-    //     for (var i in suc) {
-    //         var user = suc[i]
-    //         dataUser[user.userId] = user
-    //         if(user.package){
-    //             console.log(user.package,user.userId)
-    //         }
-    //     }
-    //     console.log('dataUser', suc.length)
-    //     analyticsUserToday()
-    // })
+
     staticRef.on('value', function (snap) {
         dataStatic = snap.val()
-        // var staticCollection = md.collection('static')
-        // for(var i in dataStatic){
-        //     var staticData = dataStatic[i]
-        //     staticCollection.insert(staticData,function (err,suc) {
-        //         console.log(err)
-        //     })
-        // }
+
     });
 
-    // userCol.find({}).toArray(function (err, suc) {
-    //     dataUser = {}
-    //     for (var i in suc) {
-    //         var user = suc[i]
-    //         dataUser[user.userId] = user
-    //         if(user.package){
-    //             console.log(user.package,user.userId)
-    //         }
-    //     }
-    //     console.log('dataUser', suc.length)
-    //     analyticsUserToday()
-    // })
     userRef.on('value', function (snap) {
         dataUser = snap.val();
     });
@@ -315,45 +379,8 @@ function init() {
 
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
-        // var a = 0
-        // for (var i in dataProfile) {
-        //     var profileData = dataProfile[i]
-        //     if (profileData.actData) {
-        //         a++
-        //         console.log(a)
-        //         db.ref('profile/'+i).child('actData').remove()
-        //     }
-        // }
-        profileRef.child('undefined').remove()
-        // var profileCollection = md.collection('profile')
-        // for(var i in dataProfile){
-        //     var profileData = dataProfile[i]
-        //     profileCollection.insert(profileData,function (err,suc) {
-        //         console.log(err)
-        //     })
-        // }
 
-        // var fields = ['name','address'];
-        // var myUser = []
-        // for (var i in dataProfile) {
-        //     var profileData = dataProfile[i]
-        //     if(profileData.address && profileData.name)
-        //         myUser.push({
-        //             name: profileData.name || '',
-        //             address: profileData.address,
-        //         })
-        // }
-        // return new Promise(function (resolve, reject) {
-        //     resolve(myUser)
-        // }).then(function (myUser) {
-        //     var csv = json2csv({data: myUser, fields: fields});
-        //
-        //     fs.writeFile('profilelocation.csv', csv, function (err) {
-        //         if (err) throw err;
-        //         console.log('file saved');
-        //     });
-        //
-        // })
+        profileRef.child('undefined').remove()
 
 
     });
@@ -364,14 +391,7 @@ function init() {
 
     });
 
-    // jobCol.find({}).toArray(function (err, suc) {
-    //     dataJob = {}
-    //     for(var i in suc){
-    //         dataJob[suc[i].jobId] = suc[i]
-    //     }
-    //     console.log('dataJob', suc.length)
-    //
-    // })
+
     storeRef.on('value', function (snap) {
         dataStore = snap.val()
         storeRef.child('undefined').remove()
@@ -861,10 +881,23 @@ function checkInadequate() {
     userRef.once('value', function (a) {
         var dataUsers = a.val()
 
+
         for (var i in dataUsers) {
             var user = dataUsers[i]
             if (user.admin) {
                 adminEmailList.push(user.email)
+            }
+            if (user.email && user.email.length < 4) {
+                secondary.auth().getUser(i)
+                    .then(function (userRecord) {
+                        // See the UserRecord reference doc for the contents of userRecord.
+                        if (userRecord.email) {
+                            userRef.child(i).update({email: userRecord.email})
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log("Error fetching user data:", error);
+                    });
             }
         }
     })
@@ -1170,6 +1203,7 @@ app.get('/sendemailMarketing', function (req, res) {
 
             }, 100)
         }
+
         myLoop();
         res.send('sent' + arrayEmail.length)
     })
@@ -1190,13 +1224,6 @@ app.get('/api/dashboard', function (req, res) {
     dashboard.employer = _.where(dataStore, {feature: true})
     res.send(dashboard)
 
-    // profileCol.find({feature: true}).toArray(function (err, suc) {
-    //     dashboard.jobseeker = suc
-    //     storeCol.find({feature: true}).toArray(function (err, suc) {
-    //         dashboard.employer = suc
-    //         res.send(dashboard)
-    //     })
-    // })
 })
 // function createdUserFromCC() {
 //     for (var i in userD) {
@@ -2162,7 +2189,29 @@ app.get('/view/store', function (req, res) {
     var storeId = req.param('storeId');
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
+        if (storeData.interviewTime) {
+            var now = new Date()
+            now.setHours(storeData.interviewTime.hour)
+            now.setMinutes(0)
 
+            if (storeData.interviewTime.daily) {
+
+                storeData.interviewOption = {
+                    1: now.getTime() + 86400 * 1000,
+                    2: now.getTime() + 2 * 86400 * 1000,
+                    3: now.getTime() + 3 * 86400 * 1000
+                }
+            } else {
+                var daytoset = storeData.interviewTime.day
+                var currentDay = new Date().getDay()
+                var dis = (daytoset + 7 - currentDay) % 7
+                storeData.interviewOption = {
+                    1: now.getTime() + dis * 86400 * 1000,
+                    2: now.getTime() + dis * 86400 * 1000 + 7 * 86400 * 1000,
+                    3: now.getTime() + dis * 86400 * 1000 + 2 * 7 * 86400 * 1000
+                }
+            }
+        }
         storeData.jobData = _.where(dataJob, {storeId: storeId});
         storeData.actData = {}
         storeData.actData.match = _.where(likeActivity, {storeId: storeId, status: 1});
@@ -2498,8 +2547,6 @@ function sendNotificationToGivenUser(registrationToken, body, title, cta, type, 
         .catch(function (error) {
             console.log("Error sending message:", error);
         });
-
-
 }
 
 function sendEmail(email, subject, bodyHtml, key) {
@@ -2822,10 +2869,6 @@ function startList() {
 
     function run(card, key) {
 
-
-        if (!dataStatic[card.userId]) {
-            staticRef.child(card.userId).update(staticData)
-        }
 
         //save static for each store and profile
 
@@ -4404,6 +4447,10 @@ function StaticCountingNewUser(dateStart, dateEnd) {
         facebook: 0,
         normal: 0
     }
+
+    var lead = {
+        total: 0
+    }
     for (var i in dataUser) {
         var userData = dataUser[i];
         if (userData.createdAt) {
@@ -4481,6 +4528,22 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             }
         }
     }
+    for (var i in dataLead) {
+        var storeData = dataLead[i];
+        if (storeData.createdAt) {
+            if ((storeData.createdAt > dateStart || dateStart == 0) && (storeData.createdAt < dateEnd || dateEnd == 0)) {
+                lead.total++
+                if (!lead[storeData.userId]) {
+                    lead[storeData.userId] = 1
+                } else {
+                    lead[storeData.userId]++
+                }
+            }
+        } else {
+            console.log('Static_Lead_No_CreatedAt', i)
+
+        }
+    }
 
     for (var i in likeActivity) {
         var likeData = likeActivity[i];
@@ -4531,7 +4594,8 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             noPhone: noPhone,
             noProfile: noProfile,
             provider: provider,
-            act: act
+            act: act,
+            lead: lead
 
         };
         console.log(data);
@@ -4552,7 +4616,7 @@ function analyticsRemind() {
             preview: `Từ ${dayy} đến ${new Date(data.dateEnd)}: Total User: ${data.total}`,
             subtitle: '',
             description1: 'Dear friend,',
-            description2: `Từ ${dayy} đến ${new Date(data.dateEnd)}:<br> Total User: ${data.total} <br> <b>Employer:</b><br> - New account: ${data.employer.employer} <br> - New store: ${data.employer.store} <br> - New premium: ${data.employer.premium}<br> <b>Jobseeker:</b><br> - HN: ${data.jobseeker.hn} <br> -SG: ${data.jobseeker.sg} <br> <b>Operation/Sale:</b> <br>- Ứng viên thành công: ${data.act.success} <br> - Ứng viên đi phỏng vấn:${data.act.meet} <br> - Lượt ứng tuyển: ${data.act.userLikeStore} <br> - Lượt tuyển: ${data.act.storeLikeUser} <br> - Lượt tương hợp: ${data.act.match}`,
+            description2: `Từ ${dayy} đến ${new Date(data.dateEnd)}:<br> Total User: ${data.total} <br> <b>Employer:</b><br> - New account: ${data.employer.employer} <br> - New store: ${data.employer.store} <br> - New premium: ${data.employer.premium}<br> <b>Jobseeker:</b><br> - HN: ${data.jobseeker.hn} <br> -SG: ${data.jobseeker.sg} <br> <b>Operation:</b> <br>- Ứng viên thành công: ${data.act.success} <br> - Ứng viên đi phỏng vấn:${data.act.meet} <br> - Lượt ứng tuyển: ${data.act.userLikeStore} <br> - Lượt tuyển: ${data.act.storeLikeUser} <br> - Lượt tương hợp: ${data.act.match} <br> <b>Sale:</b> <br>- Lead :<br>${JSON.stringify(data.lead)}`,
             description3: 'Keep up guys! We can do it <3',
             calltoaction: 'Hello the world',
             linktoaction: 'https://www.messenger.com/t/979190235520989',
@@ -4561,7 +4625,6 @@ function analyticsRemind() {
 
         for (var i in dataUser) {
             if (dataUser[i].admin == true) {
-                console.log(dataUser[i].email)
                 sendNotification(dataUser[i], mail, true, true, true)
             }
         }
@@ -4569,7 +4632,7 @@ function analyticsRemind() {
 }
 
 app.get('/sendRemind', function (req, res) {
-    analyticsRemind()
+    analyticsRemind();
     res.send('sendRemind done')
 })
 schedule.scheduleJob({hour: 18, minute: 0}, function () {
