@@ -92,7 +92,6 @@ var mailTransport = nodemailer.createTransport(ses({
     region: 'us-east-1'
 }));
 
-
 app.use(cors());
 
 app.use(imgNocache());
@@ -124,7 +123,9 @@ var sendEmail = (addressTo, subject = 'Hello ✔', emailMarkup,notiId) => {
                 reject(error);
             }
             // console.log('Message sent: %s', info.messageId);
-            notificationRef.child(notiId).update({mail_sent: Date.now()})
+            if(notiId){
+                notificationRef.child(notiId).update({mail_sent: Date.now()})
+            }
             resolve(info.messageId);
 
 
@@ -369,7 +370,6 @@ function init() {
 
     staticRef.on('value', function (snap) {
         dataStatic = snap.val()
-
     });
 
     userRef.on('value', function (snap) {
@@ -379,23 +379,17 @@ function init() {
 
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
-
-        profileRef.child('undefined').remove()
-
-
     });
 
 
     jobRef.on('value', function (snap) {
         dataJob = snap.val()
-
     });
 
 
     storeRef.on('value', function (snap) {
-        dataStore = snap.val()
+        dataStore = snap.val();
         storeRef.child('undefined').remove()
-
         //
         // var fields = ['email', 'phone','storeName'];
         // var myUser = []
