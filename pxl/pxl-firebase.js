@@ -64,7 +64,7 @@ class FirebasePersistenceLayer extends Pxl.PersistenceLayerBase {
             .once('value')
             .then(result => {
                 // const count = result.val().count + 1;
-                return this.collectionPxls.child(`${pxl}`).update({email_open: Date.now()});
+                return this.collectionPxls.child(`${pxl}`).update({mail_open: Date.now()});
             })
             .then(() => {
                 return this.collectionPxls.child(`${pxl}`)
