@@ -69,21 +69,19 @@ var joboPxl = firebase.initializeApp({
 const MongoClient = require('mongodb');
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-// var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
-//
-// // MongoClient.connect(uri, function (err, db) {
-// //     md = db
-// //     userCol = md.collection('user');
-// //     profileCol = md.collection('profile');
-// //     storeCol = md.collection('store');
-// //     jobCol = md.collection('job');
-// //     notificationCol = md.collection('notification');
-// //     staticCol = md.collection('static');
-// //
-// //     console.log("Connected correctly to server.");
-// //
-// //
-// // });
+var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
+
+MongoClient.connect(uri, function (err, db) {
+    md = db
+    userCol = md.collection('user');
+    profileCol = md.collection('profile');
+    storeCol = md.collection('store');
+    jobCol = md.collection('job');
+    notificationCol = md.collection('notification');
+    staticCol = md.collection('static');
+
+    console.log("Connected correctly to server.");
+});
 
 
 var mailTransport = nodemailer.createTransport(ses({
@@ -208,6 +206,42 @@ var publishChannel = {
         token: 'EAAEMfZASjMhgBAIeW7dEVfhrQjZCtKszDRfuzsn1nDhOTaZBsejy1Xf71XxbvZBlSSHaFBg5L9eSwmNTDURRxdAetC9V1cArFnV1dM7sISSZB7weBIycRagE2RZCGZCaiQbDpFuy2cXiVyynKWpDbz9SM29yU273UkynZCBgmxU74gZDZD'
     }
 };
+
+function PostToFacebook(toId, content, accessToken) {
+
+    if (toId && content && accessToken)
+        if (content.image && content.text) {
+            graph.post(toId + "/photos?access_token=" + accessToken,
+                {
+                    "url": content.image,
+                    "caption": content.text
+                },
+                function (err, res) {
+                    // returns the post id
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(res);
+
+                    }
+                });
+        } else if (content.text) {
+            graph.post(toId + "/feed?access_token=" + accessToken,
+                {
+                    "message": content.text,
+                    "link": content.link
+                },
+                function (err, res) {
+                    // returns the post id
+                    if (err) {
+                        console.log(err);
+
+                    } else {
+                        console.log(res);
+                    }
+                });
+        }
+}
 
 
 function PublishPost(userId, text, accessToken) {
@@ -3079,7 +3113,6 @@ function startList() {
                 actRef.child(key).remove()
             }
         }
-
         /**
          * Update Store
          */
@@ -4355,7 +4388,6 @@ function sendNotification(userData, mail, letter, web, mobile, messenger, time) 
         if (userData.mobileToken && mobile) {
             schedule.scheduleJob(time, function () {
                 sendNotificationToGivenUser(userData.mobileToken, mail.body, mail.title, mail.linktoaction, 'app', mail.key)
-
             });
         }
         if (userData.messengerId && messenger) {
