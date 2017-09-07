@@ -69,21 +69,21 @@ var joboPxl = firebase.initializeApp({
 const MongoClient = require('mongodb');
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
-
-// MongoClient.connect(uri, function (err, db) {
-//     md = db
-//     userCol = md.collection('user');
-//     profileCol = md.collection('profile');
-//     storeCol = md.collection('store');
-//     jobCol = md.collection('job');
-//     notificationCol = md.collection('notification');
-//     staticCol = md.collection('static');
+// var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
 //
-//     console.log("Connected correctly to server.");
-//
-//
-// });
+// // MongoClient.connect(uri, function (err, db) {
+// //     md = db
+// //     userCol = md.collection('user');
+// //     profileCol = md.collection('profile');
+// //     storeCol = md.collection('store');
+// //     jobCol = md.collection('job');
+// //     notificationCol = md.collection('notification');
+// //     staticCol = md.collection('static');
+// //
+// //     console.log("Connected correctly to server.");
+// //
+// //
+// // });
 
 
 var mailTransport = nodemailer.createTransport(ses({
@@ -772,9 +772,9 @@ function createJDStore(storeId) {
         if (Job) {
             var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId
 
-            var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type1'
+            var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type1';
 
-            text = `Hiện tại ${storeData.storeName} ở ${shortAddress(storeData.address)} đang cần tuyển ${Job.unit || ''} bạn làm ${Lang[Job.job]}`
+            text = `Hiện tại ${storeData.storeName} ở ${shortAddress(storeData.address)} đang cần tuyển ${Job.unit || ''} bạn làm ${Lang[Job.job]}`;
 
             if (Job.salary) {
                 text = text + ` lương tháng ${Job.salary}tr `
@@ -785,8 +785,8 @@ function createJDStore(storeId) {
             if (Job.figure) {
                 text = text + 'cần ngoại hình ưa nhìn cởi mở 😊,'
             }
-            text = text + ` bạn nào muốn làm liện hệ với mình hoặc số : +84 968269860 A Thông, hoặc ứng tuyển qua Jobo tại link ${link}.\n \n
-            Mình đang sử dụng Jobo để tuyển nhân viên, ứng dụng Jobo giúp các bạn trẻ định hướng và tìm các việc phù hợp, cam kết miễn phí, khuyên các bạn tìm việc dùng thử ứng dụng này https://joboapp.com`
+            text = text + ` bạn nào muốn làm liện hệ với mình hoặc số : 0166 7951 678 Chị Thảo, hoặc ứng tuyển qua Jobo tại link ${link}.\n \n
+            Mình đang sử dụng Jobo để tuyển nhân viên, ứng dụng Jobo giúp các bạn trẻ định hướng và tìm các việc phù hợp, cam kết miễn phí, khuyên các bạn tìm việc dùng thử ứng dụng này `+ CONFIG.WEBURL
             if (storeData.photo) {
                 storeData.photo.push(storeData.avatar)
             } else {
@@ -1329,26 +1329,6 @@ app.get('/api/places', function (req, res) {
 });
 
 
-// function scheduleJob(job,time,content) {
-//     firebase.database().ref('schedule').update({
-//         job: job,
-//         time:time,
-//         content: content
-//     })
-//
-//     graph.post(userId + "/feed?access_token=" + accessToken,
-//         {
-//             "message": text.text,
-//             "link": text.link
-//         },
-//         function (err, res) {
-//             // returns the post id
-//             console.log(res, err);
-//
-//
-//         });
-//
-// }
 
 
 app.get('/dash/job', function (req, res) {
@@ -2866,18 +2846,7 @@ function startList() {
 
         //save static for each store and profile
 
-        if (card.data
-            && card.data.storeId
-            && !dataStatic[card.data.storeId]) {
 
-            staticRef.child(card.data.storeId).update(staticData)
-        }
-
-        if (card.data
-            && card.data.userId
-            && !dataStatic[card.data.userId]) {
-            staticRef.child(card.data.userId).update(staticData)
-        }
 
         /**
          * Track View
