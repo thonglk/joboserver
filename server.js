@@ -2624,7 +2624,7 @@ function getStringJob(listJob) {
     var stringJob = '';
     for (var i in listJob) {
         if (Lang[i]) {
-            stringJob += Lang[i]
+            stringJob += Lang[i] + ', '
         }
     }
     if (stringJob.length > 1) {
