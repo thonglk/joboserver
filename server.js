@@ -22,7 +22,7 @@ var cors = require('cors')
 var graph = require('fbgraph');
 var json2csv = require('json2csv');
 var shortLinkData = {}
-var { Pxl, JoboPxlForEmails, FirebasePersistenceLayer } = require('./pxl');
+var {Pxl, JoboPxlForEmails, FirebasePersistenceLayer} = require('./pxl');
 var imgNocache = require('nocache');
 
 var privateKey = fs.readFileSync('server.key', 'utf8');
@@ -102,7 +102,7 @@ app.use(function (req, res, next) {
 });
 
 var pxlConfig = require('./pxl/pxl-config');
-var sendEmail = (addressTo, subject = 'Hello ✔', emailMarkup,notiId) => {
+var sendEmail = (addressTo, subject = 'Hello ✔', emailMarkup, notiId) => {
     return new Promise((resolve, reject) => {
         // setup email data with unicode symbols
         let mailOptions = {
@@ -123,7 +123,7 @@ var sendEmail = (addressTo, subject = 'Hello ✔', emailMarkup,notiId) => {
                 reject(error);
             }
             // console.log('Message sent: %s', info.messageId);
-            if(notiId){
+            if (notiId) {
                 notificationRef.child(notiId).update({mail_sent: Date.now()})
             }
             resolve(info.messageId);
@@ -132,21 +132,21 @@ var sendEmail = (addressTo, subject = 'Hello ✔', emailMarkup,notiId) => {
         });
     });
 }
-joboPxl.database().ref('notification').on("child_changed", function(snapshot) {
+joboPxl.database().ref('notification').on("child_changed", function (snapshot) {
     var changedPost = snapshot.val();
     console.log("The updated post title is " + changedPost.notiId);
-    if(changedPost.mail_open){
+    if (changedPost.mail_open) {
         notificationRef.child(changedPost.notiId).update({mail_open: changedPost.mail_open})
     }
 });
 
 // PXL initialize
 var pxl = new Pxl({
-    persistenceLayer: new FirebasePersistenceLayer({db:joboPxl.database()}),
+    persistenceLayer: new FirebasePersistenceLayer({db: joboPxl.database()}),
     queryParam: 'noti',
     queryUser: 'user',
     logPxlFailed(err, pxlCode, url) {
-        console.log({ pxlCode, url, err });
+        console.log({pxlCode, url, err});
     }
 });
 app.use(pxl.trackPxl);
@@ -186,19 +186,16 @@ const sendPXLEmail = (userId, addressTo, subject = 'Hello ✔', emailMarkup, not
                 notiId: notiId,
             })
             .then(html => {
-                return sendEmail(addressTo, subject, html,notiId);
+                return sendEmail(addressTo, subject, html, notiId);
             })
             .then(messageId => resolve(messageId))
             .catch(err => reject(err));
     });
 }
 
-sendPXLEmail(Date.now(), 'thonglk.mac@gmail.com', 'Helloooooo', '<a href="https://joboapp.com/">Test</a>','abcd')
+sendPXLEmail(Date.now(), 'thonglk.mac@gmail.com', 'Helloooooo', '<a href="https://joboapp.com/">Test</a>', 'abcd')
     .then(messageId => console.log('Message sent: %s', messageId))
     .catch(err => console.log(err));
-
-
-
 
 
 var publishChannel = {
@@ -786,7 +783,7 @@ function createJDStore(storeId) {
                 text = text + 'cần ngoại hình ưa nhìn cởi mở 😊,'
             }
             text = text + ` bạn nào muốn làm liện hệ với mình hoặc số : 0166 7951 678 Chị Thảo, hoặc ứng tuyển qua Jobo tại link ${link}.\n \n
-            Mình đang sử dụng Jobo để tuyển nhân viên, ứng dụng Jobo giúp các bạn trẻ định hướng và tìm các việc phù hợp, cam kết miễn phí, khuyên các bạn tìm việc dùng thử ứng dụng này `+ CONFIG.WEBURL
+            Mình đang sử dụng Jobo để tuyển nhân viên, ứng dụng Jobo giúp các bạn trẻ định hướng và tìm các việc phù hợp, cam kết miễn phí, khuyên các bạn tìm việc dùng thử ứng dụng này ` + CONFIG.WEBURL
             if (storeData.photo) {
                 storeData.photo.push(storeData.avatar)
             } else {
@@ -1327,8 +1324,6 @@ app.get('/api/places', function (req, res) {
         console.log("Got error: " + e.message);
     });
 });
-
-
 
 
 app.get('/dash/job', function (req, res) {
@@ -2847,7 +2842,6 @@ function startList() {
         //save static for each store and profile
 
 
-
         /**
          * Track View
          */
@@ -3103,8 +3097,12 @@ function startList() {
                             jobRef.child(i).update({createdBy: card.userId})
                         }
                         if (!jobData.jobName) {
+                            if (jobData.job && CONFIG.data.job[jobData.job]) {
+                                jobRef.child(i).update({jobName: CONFIG.data.job[jobData.job]})
+                            } else {
+                                jobRef.child(i).update({jobName: jobData.job})
 
-                            jobRef.child(i).update({jobName: CONFIG.data.job[jobData.job]})
+                            }
                         }
 
                         if (storeData) {
