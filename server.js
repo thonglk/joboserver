@@ -927,7 +927,7 @@ function init() {
         dataStore = snap.val();
     });
 
-    likeActivityRef.on('value', function (snap) {
+    likeActivityRef.once('value', function (snap) {
         likeActivity = snap.val()
     });
     // logRef.once('value', function (snap) {
@@ -946,14 +946,14 @@ function init() {
     //
     // });
 
-    leadRef.on('value', function (data) {
-        dataLead = data.val()
-
-    })
-
-    emailRef.on('value', function (data) {
-        dataEmail = data.val()
-    })
+    // leadRef.on('value', function (data) {
+    //     dataLead = data.val()
+    //
+    // })
+    //
+    // emailRef.on('value', function (data) {
+    //     dataEmail = data.val()
+    // })
     var now = new Date().getTime();
     notificationRef.startAt(now).once('value', function (snap) {
         var data = snap.val()
@@ -1811,7 +1811,6 @@ app.get('/api/jobOther', function (req, res) {
     var show = req.param('show');
     var page = req.param('p');
     getGoogleJob(mylat, mylng, industryfilter)
-
     var joblist = [];
     for (var i in datagoogleJob) {
 
@@ -2810,13 +2809,11 @@ app.get('/view/store', function (req, res) {
         }
         res.send(storeData)
 
-    } else if(datagoogleJob[storeId]){
+    } else if (datagoogleJob[storeId]) {
         var storeData = datagoogleJob[storeId]
-
         res.send(storeData)
-
     } else {
-        res.send({code:'error'})
+        res.send({code: 'error'})
     }
 });
 
@@ -3070,7 +3067,21 @@ app.get('/admin/storeEmail', function (req, res) {
     res.send(send)
 })
 
-
+app.get('/answerTest', function (req, res) {
+    var userId = req.param('userId');
+    var storeId = req.param('storeId');
+    var jobId = req.param('jobId');
+    var preApply = req.param('preApply');
+    var activityData = _.findWhere(likeActivity, {userId: userId, storeId: storeId, jobId: jobId})
+    if(activityData && activityData.actId){
+        activityData = Object.assign(activityData,preApply)
+        likeActivityRef.child(activityData.actId).update(activityData).then(function () {
+            res.send({code:'success'})
+        })
+    } else {
+        res.send({code:'error', msg: 'Không tìm thấy đơn'})
+    }
+});
 /**
  * Send the new star notification email to the given email.
  */
