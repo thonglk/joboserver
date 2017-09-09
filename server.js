@@ -902,7 +902,7 @@ function init() {
         dataStatic = snap.val()
     });
 
-    userRef.once('value', function (snap) {
+    userRef.on('value', function (snap) {
         dataUser = snap.val();
 
     });
@@ -927,41 +927,6 @@ function init() {
     storeRef.on('value', function (snap) {
         dataStore = snap.val();
         secondary.database().ref('store').update(dataStore)
-        //
-        // var fields = ['email', 'phone','storeName'];
-        // var myUser = []
-        // for (var i in dataUser) {
-        //     var user = dataUser[i];
-        //     if(user.type == 1){
-        //         var storeName = '';
-        //         if(user.currentStore && dataStore[user.currentStore] && dataStore[user.currentStore].storeName){
-        //             storeName = dataStore[user.currentStore].storeName
-        //         }
-        //         myUser.push({
-        //             email: dataUser[i].email || '',
-        //             phone: dataUser[i].phone,
-        //             storeName: storeName
-        //         })
-        //     }
-        //
-        // }
-        // return new Promise(function (resolve, reject) {
-        //     resolve(myUser)
-        // }).then(function (myUser) {
-        //     var csv = json2csv({data: myUser, fields: fields});
-        //
-        //     fs.writeFile('file.csv', csv, function (err) {
-        //         if (err) throw err;
-        //         console.log('file saved');
-        //     });
-        //
-        // })
-        // for(var i in dataUser){
-        //     if(dataUser[i].type == 1 && dataUser[i].package == 'premium'){
-        //
-        //         sendWelcomeEmailToStore(dataUser[i])
-        //     }
-        // }
 
 
     });
@@ -1831,7 +1796,7 @@ app.get('/api/places', function (req, res) {
 
 function getRandomJob(industry) {
     var random = Math.round(Math.random() * (industry.length - 1))
-    console.log('industry[random]',industry, industry[random])
+    console.log('industry[random]', industry, industry[random])
     return industry[random]
 }
 
