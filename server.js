@@ -927,7 +927,7 @@ function init() {
         dataStore = snap.val();
     });
 
-    likeActivityRef.once('value', function (snap) {
+    likeActivityRef.on('value', function (snap) {
         likeActivity = snap.val()
     });
     // logRef.once('value', function (snap) {
