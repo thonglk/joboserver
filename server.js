@@ -898,7 +898,7 @@ function init() {
 
     })
 
-    staticRef.ref('static').on('value', function (snap) {
+    staticRef.on('value', function (snap) {
         dataStatic = snap.val()
     });
 
