@@ -911,6 +911,13 @@ function init() {
         if (!datagoogleJob) {
             datagoogleJob = {}
         }
+        for(var i in datagoogleJob){
+            var job = datagoogleJob[i]
+            if(job.photos && job.photos[0] && job.photos[0].photo_reference){
+                console.log(job.photos[0].photo_reference)
+                googleJobRef.child(i).update({avatar: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=' + job.photos[0].photo_reference + '&key=' + CONFIG.PlaceKey})
+            }
+        }
     })
 
     profileRef.on('value', function (snap) {
@@ -926,8 +933,6 @@ function init() {
 
     storeRef.on('value', function (snap) {
         dataStore = snap.val();
-        secondary.database().ref('store').update(dataStore)
-
 
     });
 
@@ -1913,8 +1918,8 @@ function getGoogleJob(mylat, mylng, industry) {
                             storeData.job = 'sale'
 
                         }
-                        if (storeData.reference) {
-                            storeData.avatar = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=' + storeData.reference + '&key=' + CONFIG.PlaceKey
+                        if (storeData.photos && storeData.photos[0] && storeData.photos[0].photo_reference) {
+                            storeData.avatar = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=' + storeData.photos[0].photo_reference + '&key=' + CONFIG.PlaceKey
                         }
                         storeData.location = storeData.geometry.location
                         storeData.address = storeData.vicinity
