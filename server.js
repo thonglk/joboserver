@@ -898,13 +898,12 @@ function init() {
 
     })
 
-    staticRef.on('value', function (snap) {
+    staticRef.ref('static').on('value', function (snap) {
         dataStatic = snap.val()
     });
 
     userRef.on('value', function (snap) {
         dataUser = snap.val();
-
     });
     googleJobRef.on('value', function (snap) {
         datagoogleJob = snap.val()
@@ -933,7 +932,6 @@ function init() {
 
     storeRef.on('value', function (snap) {
         dataStore = snap.val();
-
     });
 
     likeActivityRef.on('value', function (snap) {
@@ -1821,7 +1819,7 @@ app.get('/api/jobOther', function (req, res) {
     var page = req.param('p');
     getGoogleJob(mylat, mylng, industryfilter)
 
-    var joblist = []
+    var joblist = [];
     for (var i in datagoogleJob) {
 
         var card = datagoogleJob[i]
@@ -2819,9 +2817,13 @@ app.get('/view/store', function (req, res) {
         }
         res.send(storeData)
 
-    } else {
-        res.send('NO_DATA')
+    } else if(datagoogleJob[storeId]){
+        var storeData = datagoogleJob[storeId]
 
+        res.send(storeData)
+
+    } else {
+        res.send({code:'error'})
     }
 });
 
