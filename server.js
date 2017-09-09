@@ -1810,7 +1810,10 @@ app.get('/api/jobOther', function (req, res) {
     var sort = req.param('sort');
     var show = req.param('show');
     var page = req.param('p');
-    getGoogleJob(mylat, mylng, industryfilter)
+
+    if(!page || page <2){
+        getGoogleJob(mylat, mylng, industryfilter)
+    }
     var joblist = [];
     for (var i in datagoogleJob) {
 
