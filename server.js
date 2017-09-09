@@ -2767,6 +2767,8 @@ app.get('/view/profile', function (req, res) {
 app.get('/view/store', function (req, res) {
     var userId = req.param('userId');
     var storeId = req.param('storeId');
+    var jobId = req.param('jobId');
+
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
         if (storeData.interviewTime) {
@@ -2806,6 +2808,10 @@ app.get('/view/store', function (req, res) {
             if (dataUser[userId].admin == true) {
                 storeData.adminData = dataUser[storeData.createdBy]
             }
+        }
+        if(jobId){
+            storeData.currentJobData = dataJob[jobId]
+
         }
         res.send(storeData)
 
@@ -3763,7 +3769,7 @@ function startList() {
 
         if (card.action == 'like' && card.data.storeId) {
             var actKey = card.data.storeId + ':' + card.userId
-            var likeData = likeActivity[actKey]
+            likeActivityRef.child(actKey).update({actId: actKey})
             setTimeout(function () {
                 sendMailNotiLikeToStore(likeData)
 
@@ -3791,6 +3797,7 @@ function startList() {
             card.storeId = gct(card.userId)
             var actKey = card.storeId + ':' + card.data.userId
             var likeData = likeActivity[actKey]
+            likeActivityRef.child(actKey).update({actId: actKey})
             setTimeout(function () {
                     if (likeData) {
                         sendMailNotiLikeToProfile(likeData)
