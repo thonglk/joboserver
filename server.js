@@ -50,6 +50,12 @@ var staticData = {
     login: 1,
     profile: 0
 }
+var jobType = {
+    restaurants: ["server", "barista", "bartender", "cashier", "cook", "prepcook", "receptionist_cashier", "shipper"],
+    cafe: ["server", "barista", "bartender", "cashier", "receptionist_cashier"],
+    lodging: ["cook", "prepcook", "receptionist_cashier", "manager", "security"],
+    store: ["sale", "manager"]
+};
 
 firebase.initializeApp({
     credential: firebase.credential.cert('adminsdk.json'),
@@ -186,10 +192,9 @@ const sendPXLEmail = (addressTo, subject, emailMarkup, notiId, name, address, bc
     return new Promise((resolve, reject) => {
         pxlForEmails.addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
             notiId: notiId,
+        }).then(html => {
+            return sendEmail(addressTo, subject, emailMarkup, notiId, name, address, bcc, attachments);
         })
-            .then(html => {
-                return sendEmail(addressTo, subject, emailMarkup, notiId, name, address, bcc, attachments);
-            })
             .then(messageId => resolve(messageId))
             .catch(err => reject(err));
     });
@@ -807,7 +812,7 @@ function PublishComment(postId, text, accessToken) {
 }
 
 var adminEmailList = []
-var db = firebase.database();
+var db = secondary.database();
 
 
 var configRef = db.ref('config');
@@ -820,6 +825,7 @@ var profileRef = db.ref('profile');
 var storeRef = db.ref('store');
 var jobRef = db.ref('job');
 var leadRef = db.ref('lead')
+var googleJobRef = secondary.database().ref('googleJob');
 
 var notificationRef = db.ref('notification')
 var likeActivityRef = db.ref('activity/like');
@@ -828,14 +834,14 @@ var logRef = db.ref('log')
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
 var buyRef = db.ref('activity/buy');
-var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang
-var groupRef = firebase.database().ref('groupData')
+var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
+    datagoogleJob
+var groupRef = db.ref('groupData');
 
-var groupData, groupArray
+var groupData, groupArray;
 groupRef.once('value', function (snap) {
     groupData = snap.val()
     groupArray = _.toArray(groupData)
-    //
     // var a = 0
     //
     // function loop() {
@@ -889,30 +895,38 @@ function init() {
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
+
     })
 
     staticRef.on('value', function (snap) {
         dataStatic = snap.val()
     });
 
-    userRef.on('value', function (snap) {
+    userRef.once('value', function (snap) {
         dataUser = snap.val();
-    });
 
+    });
+    googleJobRef.on('value', function (snap) {
+        datagoogleJob = snap.val()
+        if (!datagoogleJob) {
+            datagoogleJob = {}
+        }
+    })
 
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
+
     });
 
 
     jobRef.on('value', function (snap) {
         dataJob = snap.val()
-    });
 
+    });
 
     storeRef.on('value', function (snap) {
         dataStore = snap.val();
-        storeRef.child('undefined').remove()
+        secondary.database().ref('store').update(dataStore)
         //
         // var fields = ['email', 'phone','storeName'];
         // var myUser = []
@@ -952,7 +966,6 @@ function init() {
 
     });
 
-
     likeActivityRef.on('value', function (snap) {
         likeActivity = snap.val()
     });
@@ -972,9 +985,9 @@ function init() {
     //
     // });
 
-
     leadRef.on('value', function (data) {
         dataLead = data.val()
+
     })
 
     emailRef.on('value', function (data) {
@@ -990,7 +1003,6 @@ function init() {
             var mail = data[i]
             sendNotification(dataUser[i], mail, true, true, true, true, mail.time)
         }
-
     })
 
     return new Promise(function (resolve, reject) {
@@ -1291,9 +1303,7 @@ function createJDStore(storeId) {
                 link: link,
                 image: storeData.photo[randomphoto]
             }
-
         }
-
 
     }
     else {
@@ -1803,7 +1813,7 @@ app.get('/api/places', function (req, res) {
     var query = req.param('query')
     var type = req.param('type')
 
-    var url = 'https://maps.googleapis.com/maps/api/place/textsearch/json?query=' + query + '&language=vi&type=' + type + '&components=country:vi&sensor=true&key=' + CONFIG.APIKey + '&callback=JSON_CALLBACK';
+    var url = 'https://maps.googleapis.com/maps/api/place/textsearch/json?query=' + query + '&language=vi&type=' + type + '&components=country:vi&sensor=true&key=' + 'AIzaSyCw7daa2mCBd-LNrxTCzyVf-DiJwUmOpV4' + '&callback=JSON_CALLBACK';
 
     https.get(url, function (response) {
         var body = '';
@@ -1819,6 +1829,153 @@ app.get('/api/places', function (req, res) {
     });
 });
 
+function getRandomJob(industry) {
+    var random = Math.round(Math.random() * (industry.length - 1))
+    console.log('industry[random]',industry, industry[random])
+    return industry[random]
+}
+
+app.get('/api/jobOther', function (req, res) {
+
+    var userId = req.param('userId')
+    var industryfilter = req.param('industry');
+    var jobfilter = req.param('job');
+    var working_typefilter = req.param('working_type');
+    var salaryfilter = req.param('salary');
+    var distancefilter = req.param('distance');
+    var mylng = req.param('lng');
+    var mylat = req.param('lat');
+
+    var sort = req.param('sort');
+    var show = req.param('show');
+    var page = req.param('p');
+    getGoogleJob(mylat, mylng, industryfilter)
+
+    var joblist = []
+    for (var i in datagoogleJob) {
+
+        var card = datagoogleJob[i]
+
+        if (card.location && mylng && mylat && distancefilter) {
+            card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
+        }
+
+        if (userId) {
+
+            var keyAct = card.place_id + ":" + userId;
+
+            if (likeActivity[keyAct]) {
+                card.act = likeActivity[keyAct]
+            }
+        }
+
+        if (
+            (card.job == jobfilter || !jobfilter)
+            && (card.distance < 50 || !card.distance)
+            && (card.working_type == working_typefilter || !working_typefilter )
+            && (card.industry == industryfilter || !industryfilter)
+            && (card.salary > salaryfilter || !salaryfilter)
+        ) {
+            joblist.push(card)
+        }
+    }
+    return new Promise(function (resolve, reject) {
+        resolve(joblist)
+    }).then(function (joblist) {
+            var sorded;
+            if (sort == 'viewed' || sort == 'rate' || sort == 'createdAt') {
+                sorded = _.sortBy(joblist, function (card) {
+                    return -card[sort]
+                });
+            } else if (sort == 'distance') {
+                sorded = _.sortBy(joblist, function (card) {
+                    return card[sort]
+                })
+            } else {
+                sorded = _.sortBy(joblist, function (card) {
+                    return -card.rating
+                })
+            }
+            var sendData = getPaginatedItems(sorded, page)
+            res.send(sendData)
+        }
+    )
+
+});
+
+app.get('/places', function (req, res) {
+    var mylat = req.param('lat') || '10.779942';
+    var mylng = req.param('lng') || '106.704354';
+    var industry = req.param('industry') || 'restaurant';
+
+    getGoogleJob(mylat, mylng, industry)
+
+});
+
+function getGoogleJob(mylat, mylng, industry) {
+    if (!mylat || !mylng || !industry) return
+
+    var url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + mylat + ',' + mylng + '&type=' + industry + '&radius=50000&key=' + CONFIG.PlaceKey;
+    console.log(url)
+    var b = 1
+    a()
+
+    function a(nextpage) {
+        if (nextpage) {
+            url = url + '&pagetoken=' + nextpage
+        }
+        https.get(url, function (response) {
+            var body = '';
+            response.on('data', function (chunk) {
+                body += chunk;
+            });
+
+            response.on('end', function () {
+                var bodyObject = JSON.parse(body)
+                var storeList = bodyObject.results
+                for (var i in storeList) {
+                    var storeData = storeList[i]
+                    if (!datagoogleJob[storeData.place_id]) {
+                        console.log(storeData.types)
+                        var ins = storeData.types[0]
+                        if (jobType[ins]) {
+                            storeData.job = getRandomJob(jobType[ins])
+                        } else if (storeData.types[1] && jobType[storeData.types[1]]) {
+                            ins = storeData.types[1]
+                            storeData.job = getRandomJob(jobType[ins])
+
+                        } else {
+                            storeData.job = 'sale'
+
+                        }
+                        if (storeData.reference) {
+                            storeData.avatar = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=' + storeData.reference + '&key=' + CONFIG.PlaceKey
+                        }
+                        storeData.location = storeData.geometry.location
+                        storeData.address = storeData.vicinity
+                        storeData.storeName = storeData.name
+                        storeData.jobName = CONFIG.data.job[storeData.job]
+                        storeData.industry = ins
+                        storeData.createdAt = Date.now() - 86400 * 1000
+                        googleJobRef.child(storeData.place_id).update(storeData)
+                    }
+                }
+                if (bodyObject.next_page_token) {
+                    b++
+                    console.log('bodyObject.next_page_token', b, bodyObject.next_page_token)
+                    if (b < 3) {
+                        setTimeout(function () {
+                            a(bodyObject.next_page_token)
+                        }, 4000)
+                    }
+                }
+            });
+        }).on('error', function (e) {
+            console.log("Got error: " + e.message);
+        });
+    }
+
+}
 
 app.get('/dash/job', function (req, res) {
 
