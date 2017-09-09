@@ -910,13 +910,6 @@ function init() {
         if (!datagoogleJob) {
             datagoogleJob = {}
         }
-        for(var i in datagoogleJob){
-            var job = datagoogleJob[i]
-            if(job.photos && job.photos[0] && job.photos[0].photo_reference){
-                console.log(job.photos[0].photo_reference)
-                googleJobRef.child(i).update({avatar: 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=' + job.photos[0].photo_reference + '&key=' + CONFIG.PlaceKey})
-            }
-        }
     })
 
     profileRef.on('value', function (snap) {
