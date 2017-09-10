@@ -3142,8 +3142,8 @@ app.get('/answerTest', function (req, res) {
     var preApply = req.param('preApply');
     var activityData = _.findWhere(likeActivity, {userId: userId, storeId: storeId, jobId: jobId})
     if (activityData && activityData.actId) {
-        activityData = Object.assign(activityData, preApply)
-        likeActivityRef.child(activityData.actId).update(activityData).then(function () {
+        console.log(preApply)
+        likeActivityRef.child(activityData.actId).update(preApply).then(function () {
             res.send({code: 'success'})
         })
     } else {
