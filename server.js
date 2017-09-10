@@ -1246,7 +1246,6 @@ app.get('/createJDStore', function (req, res) {
 function createJDStore(storeId, a) {
     var storeData = dataStore[storeId];
     if(!storeData) return
-
     storeData.jobData = _.where(dataJob, {storeId: storeId});
 
     var text = '';
@@ -3820,6 +3819,7 @@ function startList() {
 
         if (card.action == 'like' && card.data.storeId) {
             var actKey = card.data.storeId + ':' + card.userId
+            likeActivityRef.child(actKey).update({actId: actKey})
             setTimeout(function () {
                 sendMailNotiLikeToStore(likeData)
 
