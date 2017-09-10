@@ -57,6 +57,7 @@ var jobType = {
     store: ["sale", "manager"]
 };
 
+
 firebase.initializeApp({
     credential: firebase.credential.cert('adminsdk.json'),
     databaseURL: "https://jobfast-359da.firebaseio.com"
@@ -72,7 +73,93 @@ var joboPxl = firebase.initializeApp({
     databaseURL: "https://jobo-pxl.firebaseio.com"
 }, 'jobo-pxl');
 //Mongo//
+
+
+var adminEmailList = []
+var db = secondary.database();
+
+
+var configRef = db.ref('config');
+var actRef = db.ref('act');
+var emailRef = db.ref('emailChannel');
+
+var staticRef = db.ref('static');
+var userRef = db.ref('user');
+var profileRef = db.ref('profile');
+var storeRef = db.ref('store');
+var jobRef = db.ref('job');
+var leadRef = db.ref('lead')
+var googleJobRef = secondary.database().ref('googleJob');
+
+var notificationRef = db.ref('notification')
+var likeActivityRef = db.ref('activity/like');
+var logRef = db.ref('log')
+
+var ratingRef = db.ref('activity/rating');
+var langRef = db.ref('tran/vi');
+var buyRef = db.ref('activity/buy');
+
+var facebookContentRef = db.ref('facebookContent')
+var facebookPostRef = db.ref('facebookPost');
+
+var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
+    datagoogleJob;
+
+var groupRef = db.ref('groupData');
+
+var groupData, groupArray;
+groupRef.once('value', function (snap) {
+    groupData = snap.val()
+    groupArray = _.toArray(groupData)
+    // var a = 0
+    //
+    // function loop() {
+    //     var groupDataObj = groupArray[a]
+    //     var poster = []
+    //     for (var i in groupDataObj) {
+    //         if (groupDataObj[i] == true) {
+    //             poster.push(i)
+    //         }
+    //     }
+    //     console.log(poster)
+    //     groupDataObj.poster = poster
+    //     if (groupDataObj.groupId) {
+    //         groupRef.child(groupDataObj.groupId).update(groupDataObj)
+    //     }
+    //     a++
+    //     if (a < groupArray.length) {
+    //         loop()
+    //     }
+    //
+    // }
+    //
+    // loop()
+    //
+    //
+    // var fields = ['name', 'groupId', 'link', 'finder', 'job', 'area', 'poster', 'thuythuy', 'thong', 'thao2', 'toi', 'thythy', 'khanh', 'dieulinh', 'maitran', 'dong', 'mailinh', 'myhuyen2', 'thao'];
+    // var myUser = []
+    // for (var i in groupData) {
+    //     var group = groupData[i]
+    //     myUser.push(group)
+    // }
+    // return new Promise(function (resolve, reject) {
+    //     resolve(myUser)
+    // }).then(function (myUser) {
+    //     var csv = json2csv({data: myUser, fields: fields});
+    //
+    //     fs.writeFile('groupActive.csv', csv, function (err) {
+    //         if (err) throw err;
+    //         console.log('file saved');
+    //     });
+    //
+    // })
+
+
+})
+
+
 const MongoClient = require('mongodb');
+
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
 var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
@@ -149,29 +236,29 @@ var pxlForEmails = new JoboPxlForEmails({
     }
 });
 
-var sendEmail = (addressTo, subject, emailMarkup, notiId, name, address, bcc, attachments) => {
+var sendEmail = (addressTo, mail, emailMarkup, notiId) => {
     return new Promise((resolve, reject) => {
         // setup email data with unicode symbols
 
         let mailOptions = {
             from: {
-                name: name || 'Jobo | Tìm việc nhanh',
-                address: address || 'contact@jobo.asia'
+                name: mail.name || 'Jobo | Tìm việc nhanh',
+                address: mail.address || 'contact@jobo.asia'
             },
-            bcc: bcc,
+            bcc: mail.bcc,
             to: addressTo, // list of receivers
-            subject: subject, // Subject line
+            subject: mail.title, // Subject line
             // text: 'Hello world?', // plain text body
             html: `${emailMarkup}`, // html body
         }
-        if (attachments) {
+        if (mail.attachments) {
             mailOptions.attachments = [
                 {   // filename and content type is derived from path
                     path: 'https://jobo.asia/img/proposal_pricing_included.pdf'
                 }
             ]
         }
-
+        console.log('sendEmail')
         // send mail with defined transport object
         mailTransport.sendMail(mailOptions, (error, info) => {
             if (error) {
@@ -188,12 +275,12 @@ var sendEmail = (addressTo, subject, emailMarkup, notiId, name, address, bcc, at
     });
 }
 
-const sendPXLEmail = (addressTo, subject, emailMarkup, notiId, name, address, bcc, attachments) => {
+const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
     return new Promise((resolve, reject) => {
         pxlForEmails.addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
             notiId: notiId,
         }).then(html => {
-            return sendEmail(addressTo, subject, emailMarkup, notiId, name, address, bcc, attachments);
+            return sendEmail(addressTo, mail, emailMarkup, notiId);
         })
             .then(messageId => resolve(messageId))
             .catch(err => reject(err));
@@ -204,7 +291,7 @@ sendPXLEmail('thonglk.mac@gmail.com', 'Helloooooo', '<a href="https://joboapp.co
     .then(messageId => console.log('Message sent: %s', messageId))
     .catch(err => console.log(err));
 
-function sendEmailTemplate(mail, email) {
+function sendEmailTemplate(email, mail) {
     var card = {}
 
     var header = '<!doctype html>\n' +
@@ -623,11 +710,11 @@ function sendEmailTemplate(mail, email) {
     }
 
     htmlMail = htmlMail + footer
-
-    sendPXLEmail(email, mail.title, htmlMail, mail.notiId, mail.from, mail.bcc, mail.attachments)
+    console.log('sendEmailTemplate')
+    sendPXLEmail(email, mail, htmlMail, mail.notiId)
 }
 
-function sendNotification(userData, mail, {letter, web, mobile, messenger, time}) {
+function sendNotification(userData, mail, {letter, web, mobile, messenger}, time) {
     if (!userData) return
 
     if (!time) {
@@ -641,22 +728,20 @@ function sendNotification(userData, mail, {letter, web, mobile, messenger, time}
 
     notificationRef.child(mail.notiId).update(mail)
 
-
+    console.log('sendNotification', mail)
     if (userData.email && userData.wrongEmail != true && letter) {
-        sendEmailTemplate(mail, userData.email)
-
+        sendEmailTemplate(userData.email, mail)
     }
-
     if (userData.webToken && web) {
-        sendNotificationToGivenUser(userData.webToken, mail.body, mail.title, mail.linktoaction, 'web', mail.notiId)
+        sendNotificationToGivenUser(userData.webToken, mail, 'web', mail.notiId)
     }
 
     if (userData.mobileToken && mobile) {
-        sendNotificationToGivenUser(userData.mobileToken, mail.body, mail.title, mail.linktoaction, 'app', mail.notiId)
+        sendNotificationToGivenUser(userData.mobileToken, mail, 'app', mail.notiId)
 
     }
     if (userData.messengerId && messenger) {
-        sendMessenger(userData.messengerId, mail.body, mail.calltoaction, mail.linktoaction, mail.notiId)
+        sendMessenger(userData.messengerId, mail, mail.notiId)
     }
 
 
@@ -686,8 +771,6 @@ var facebookAccount = {
 
 }
 
-var facebookContentRef = secondary.database().ref('facebookContent')
-var facebookPostRef = secondary.database().ref('facebookPost');
 
 app.get('/PostToFacebook', function (req, res) {
     PostToFacebook({text: 'hihi', group: '103163799824216'})
@@ -709,11 +792,9 @@ function PostToFacebook({image = null, text, link = null, group = null, job = nu
         ) {
             if (!poster) {
                 if (groupData[i].poster) {
-                    var random = Math.round(Math.random() * groupData[i].poster.length)
+                    var random = Math.round(Math.random() * (groupData[i].poster.length - 1))
                     if (groupData[i].poster[random]) {
                         poster = groupData[i].poster[random]
-                    } else {
-                        poster = 'thuythuy'
                     }
                 } else {
                     poster = 'thuythuy'
@@ -731,30 +812,68 @@ function PostToFacebook({image = null, text, link = null, group = null, job = nu
             });
 
             schedule.scheduleJob(time, function () {
-                PublishFacebook(to, {text}, poster, postId)
+                PublishFacebook(to, {text, link}, poster, postId)
             });
 
         }
     }
 }
 
-function PublishFacebook(to, {text, link = null}, poster, postId) {
+function sendStoretoPage(storeId) {
+    var storeData = dataStore[storeId];
+    storeData.jobData = _.where(dataJob, {storeId: storeId});
+    if (storeData.jobData) {
+        if (storeData.createdBy
+            && dataUser[storeData.createdBy]) {
+
+            storeData.userInfo = dataUser[storeData.createdBy]
+            if (storeData.avatar) {
+                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 0), publishChannel.Jobo.token)
+            } else {
+                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 0), publishChannel.Jobo.token)
+            }
+        }
+
+    }
+
+}
+
+
+function PublishFacebook(to, content, poster, postId) {
     var accessToken = facebookAccount[poster]
-    if (to && text && accessToken) {
-        graph.post(to + "/feed?access_token=" + accessToken,
-            {"message": text, "link": link},
-            function (err, res) {
-                // returns the post id
-                if (err) {
-                    console.log(err.message);
-                } else {
-                    var id = res.id;
-                    console.log(id);
-                    facebookPostRef.child(postId).update({id, sent: Date.now()})
+    if (to && content && accessToken) {
+        if (content.image) {
+            graph.post(to + "/photos?access_token=" + accessToken,
+                {
+                    "url": content.image,
+                    "caption": content.text
+                },
+                function (err, res) {
+                    if (err) {
+                        console.log(err.message);
+                    } else {
+                        var id = res.id;
+                        console.log(id);
+                        facebookPostRef.child(postId).update({id, sent: Date.now()})
 
-                }
+                    }
+                });
+        } else {
+            graph.post(to + "/feed?access_token=" + accessToken,
+                {"message": content.text, "link": content.link},
+                function (err, res) {
+                    // returns the post id
+                    if (err) {
+                        console.log(err.message);
+                    } else {
+                        var id = res.id;
+                        console.log(id);
+                        facebookPostRef.child(postId).update({id, sent: Date.now()})
 
-            });
+                    }
+
+                });
+        }
     }
 }
 
@@ -810,83 +929,6 @@ function PublishComment(postId, text, accessToken) {
         console.log('PublishComment error')
     }
 }
-
-var adminEmailList = []
-var db = secondary.database();
-
-
-var configRef = db.ref('config');
-var actRef = db.ref('act');
-var emailRef = db.ref('emailChannel');
-
-var staticRef = db.ref('static');
-var userRef = db.ref('user');
-var profileRef = db.ref('profile');
-var storeRef = db.ref('store');
-var jobRef = db.ref('job');
-var leadRef = db.ref('lead')
-var googleJobRef = secondary.database().ref('googleJob');
-
-var notificationRef = db.ref('notification')
-var likeActivityRef = db.ref('activity/like');
-var logRef = db.ref('log')
-
-var ratingRef = db.ref('activity/rating');
-var langRef = db.ref('tran/vi');
-var buyRef = db.ref('activity/buy');
-var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
-    datagoogleJob
-var groupRef = db.ref('groupData');
-
-var groupData, groupArray;
-groupRef.once('value', function (snap) {
-    groupData = snap.val()
-    groupArray = _.toArray(groupData)
-    // var a = 0
-    //
-    // function loop() {
-    //     var groupDataObj = groupArray[a]
-    //     var poster = []
-    //     for (var i in groupDataObj) {
-    //         if (groupDataObj[i] == true) {
-    //             poster.push(i)
-    //         }
-    //     }
-    //     console.log(poster)
-    //     groupDataObj.poster = poster
-    //     if (groupDataObj.groupId) {
-    //         groupRef.child(groupDataObj.groupId).update(groupDataObj)
-    //     }
-    //     a++
-    //     if (a < groupArray.length) {
-    //         loop()
-    //     }
-    //
-    // }
-    //
-    // loop()
-    //
-    //
-    // var fields = ['name', 'groupId', 'link', 'finder', 'job', 'area', 'poster', 'thuythuy', 'thong', 'thao2', 'toi', 'thythy', 'khanh', 'dieulinh', 'maitran', 'dong', 'mailinh', 'myhuyen2', 'thao'];
-    // var myUser = []
-    // for (var i in groupData) {
-    //     var group = groupData[i]
-    //     myUser.push(group)
-    // }
-    // return new Promise(function (resolve, reject) {
-    //     resolve(myUser)
-    // }).then(function (myUser) {
-    //     var csv = json2csv({data: myUser, fields: fields});
-    //
-    //     fs.writeFile('groupActive.csv', csv, function (err) {
-    //         if (err) throw err;
-    //         console.log('file saved');
-    //     });
-    //
-    // })
-
-
-})
 
 function init() {
     console.log('init')
@@ -962,9 +1004,25 @@ function init() {
             i++
             console.log(i)
             var mail = data[i]
-            sendNotification(dataUser[i], mail, true, true, true, true, mail.time)
+            sendNotification(dataUser[i], mail, {web: true, letter: true, mobile: true, messenger: true}, mail.time)
         }
     })
+
+    facebookContentRef.once('value', function (snap) {
+        var data = snap.val()
+        var a = 0
+        for (var i in data) {
+
+            var content = data[i]
+            if (content && content.time > now) {
+                a++
+                console.log(a)
+                schedule.scheduleJob(content.time, function () {
+                    PublishFacebook(content.to, content.content, content.poster, content.postId)
+                })
+            }
+        }
+    });
 
     return new Promise(function (resolve, reject) {
         resolve(dataProfile)
@@ -1185,12 +1243,16 @@ app.get('/createJDStore', function (req, res) {
     res.send(createJDStore(storeId))
 })
 
-function createJDStore(storeId) {
+function createJDStore(storeId, a) {
     var storeData = dataStore[storeId];
+    if(!storeData) return
+
     storeData.jobData = _.where(dataJob, {storeId: storeId});
 
     var text = '';
-    var a = Math.round(Math.random() * 2);
+    if (!a) {
+        a = Math.round(Math.random() * 2);
+    }
     var today = new Date().getTime()
 
     if (a == 0) {
@@ -1215,7 +1277,7 @@ function createJDStore(storeId) {
         }
 
         var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type0'
-        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 01662002900 (My)`
+        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 0166 7951 678 (My)`
         if (storeData.photo) {
             storeData.photo.push(storeData.avatar)
         } else {
@@ -1266,11 +1328,10 @@ function createJDStore(storeId) {
             }
         }
 
-    }
-    else {
+    } else {
         var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type2'
 
-        text = `${storeData.storeName} TUYỂN DỤNG - TẠI ${shortAddress(storeData.address)}
+        text = `${storeData.storeName} tuyển dụng tại ${shortAddress(storeData.address)}
 📢  📢 Bạn năng động và ham học hỏi? Hãy tham gia vào chuỗi ${storeData.storeName} để có những trải nghiệm thú vị, kinh nghiệm mới và cơ hội được đào tạo nhiều kỹ năng chuyên nghiệp.
 👉 ${storeData.storeName} đang cần tuyển nhân viên cho chi nhánh mới với mức lương rất hấp dẫn, hãy nhanh chóng ứng tuyển ngay các vị trí sau:`
         for (var i in storeData.jobData) {
@@ -1282,7 +1343,7 @@ function createJDStore(storeId) {
 
         text = text + `
         👉 Ưu tiên ứng viên qua hoặc nộp hồ sơ online qua ${link}
-👉 Mọi thắc mắc vui lòng liên hệ số điện thoại: 0968269860 hoặc  01662002900 gặp Mrs My để được giải đáp nhé!`
+        👉 Mọi thắc mắc vui lòng liên hệ số điện thoại: 0166 7951 678 (Thảo)để được giải đáp nhé!`
 
         if (storeData.photo) {
             storeData.photo.push(storeData.avatar)
@@ -1811,7 +1872,7 @@ app.get('/api/jobOther', function (req, res) {
     var show = req.param('show');
     var page = req.param('p');
 
-    if(!page || page <2){
+    if (!page || page < 2) {
         getGoogleJob(mylat, mylng, industryfilter)
     }
     var joblist = [];
@@ -2812,7 +2873,7 @@ app.get('/view/store', function (req, res) {
                 storeData.adminData = dataUser[storeData.createdBy]
             }
         }
-        if(jobId){
+        if (jobId) {
             storeData.currentJobData = dataJob[jobId]
 
         }
@@ -3030,7 +3091,6 @@ app.get('/admin/scheduleemail', function (req, res) {
         console.log('scheduleemail', email, subject, body)
     });
     res.send(date, body)
-
 })
 
 app.get('/admin/deleteuser', function (req, res) {
@@ -3082,27 +3142,28 @@ app.get('/answerTest', function (req, res) {
     var jobId = req.param('jobId');
     var preApply = req.param('preApply');
     var activityData = _.findWhere(likeActivity, {userId: userId, storeId: storeId, jobId: jobId})
-    if(activityData && activityData.actId){
-        activityData = Object.assign(activityData,preApply)
+    if (activityData && activityData.actId) {
+        activityData = Object.assign(activityData, preApply)
         likeActivityRef.child(activityData.actId).update(activityData).then(function () {
-            res.send({code:'success'})
+            res.send({code: 'success'})
         })
     } else {
-        res.send({code:'error', msg: 'Không tìm thấy đơn'})
+        res.send({code: 'error', msg: 'Không tìm thấy đơn'})
     }
 });
+
 /**
  * Send the new star notification email to the given email.
  */
 
-function sendMessenger(messengerId, body, calltoaction, linktoaction, key) {
+function sendMessenger(messengerId, noti, key) {
     var url = 'https://jobobot.herokuapp.com/noti';
     var param = {
         messages: {
-            text: body,
-            calltoaction: calltoaction,
-            linktoaction: linktoaction,
-            image: image
+            text: noti.body,
+            calltoaction: noti.calltoaction,
+            linktoaction: noti.linktoaction,
+            image: noti.image
         },
         recipientIds: messengerId
     }
@@ -3122,15 +3183,15 @@ function sendMessenger(messengerId, body, calltoaction, linktoaction, key) {
 }
 
 
-function sendNotificationToGivenUser(registrationToken, body, title, cta, type, key) {
+function sendNotificationToGivenUser(registrationToken, noti, type, key) {
 
     var payload = {
         notification: {
-            title: title,
-            body: body
+            title: noti.title,
+            body: noti.body
         },
         data: {
-            cta: cta
+            cta: noti.linktoaction || ''
         }
     };
 
@@ -3384,15 +3445,9 @@ function sendFirstEmailToTotalStore() {
     function loop() {
         var userId = listEmployer[a].userId;
         var storeId = listEmployer[a].currentStore;
-        if (listEmployer[a].email == 'nhahangsaigon157@gmail.com') {
-            send = 1
-        }
-
-        if (send == 1) {
-            sendWelcomeEmailToStore(storeId, userId)
-            s++
-            console.log(s)
-        }
+        sendWelcomeEmailToStore(storeId, userId)
+        s++
+        console.log(s)
         a++
 
         if (send == 0) {
@@ -3407,13 +3462,6 @@ function sendFirstEmailToTotalStore() {
     loop()
 
 }
-
-app.get('/sendWelcomeEmailToStore', function (req, res) {
-    var storeId = req.param('storeId')
-    var userId = req.param('userId')
-    sendWelcomeEmailToStore(storeId, userId)
-    res.send(storeId + userId)
-})
 
 
 app.get('/initStore', function (req, res) {
@@ -3741,7 +3789,7 @@ function startList() {
 
                 if (card.data && card.data.job) {
                     sendNotiSubcribleToProfile(storeData.storeId)
-                    sendJobtoPage(storeData)
+                    sendStoretoPage(storeId)
                 } else {
                     console.log('thiếu thông tin store,', card.id)
                 }
@@ -3772,7 +3820,6 @@ function startList() {
 
         if (card.action == 'like' && card.data.storeId) {
             var actKey = card.data.storeId + ':' + card.userId
-            likeActivityRef.child(actKey).update({actId: actKey})
             setTimeout(function () {
                 sendMailNotiLikeToStore(likeData)
 
@@ -3967,49 +4014,6 @@ function startList() {
  * Mail Setup
  */
 
-function sendStoretoPage(storeId) {
-    var storeData = dataStore[storeId];
-    storeData.jobData = _.where(dataJob, {storeId: storeId});
-    if (storeData.jobData) {
-        if (storeData.createdBy
-            && dataUser[storeData.createdBy]) {
-
-            storeData.userInfo = dataUser[storeData.createdBy]
-            if (storeData.userInfo.package == 'premium') {
-                if (storeData.avatar) {
-                    PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId), publishChannel.Jobo.token)
-                } else {
-                    PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId), publishChannel.Jobo.token)
-                }
-            }
-        }
-
-    }
-
-}
-
-
-function sendJobtoPage(store) {
-    if (store) {
-        if (store.avatar) {
-            PublishPhoto(publishChannel.viecLamNhaHang.pageId, createJDStore(store.storeId), publishChannel.viecLamNhaHang.token)
-
-        } else {
-            PublishPost(publishChannel.viecLamNhaHang.pageId, createJDStore(store.storeId), publishChannel.viecLamNhaHang.token)
-        }
-
-        if (store.package == 'premium') {
-            if (store.avatar) {
-                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(store.storeId), publishChannel.Jobo.token)
-            } else {
-                PublishPost(publishChannel.Jobo.pageId, createJDStore(store.storeId), publishChannel.Jobo.token)
-            }
-        }
-    } else {
-        console.log('sendJobtoPage error')
-    }
-
-}
 
 function sendVerifyEmail(email, userId, name) {
     if (email) {
@@ -4050,6 +4054,13 @@ function sendWelcomeEmailToProfile(userData, profileData) {
     sendNotification(userData, mail, true, true, true)
 }
 
+app.get('/sendWelcomeEmailToStore', function (req, res) {
+    var storeId = req.param('storeId')
+    var userId = req.param('userId')
+    sendWelcomeEmailToStore(storeId, userId)
+    res.send(storeId + userId)
+})
+
 function sendWelcomeEmailToStore(storeId, userId) {
     var storeData = dataStore[storeId];
     var userInfo
@@ -4058,205 +4069,84 @@ function sendWelcomeEmailToStore(storeId, userId) {
     } else {
         userInfo = dataUser[userId]
     }
-    if (userInfo && storeData && storeId && storeData.storeName && storeData.job && storeData.location) {
-        var mail = {
-            email: userInfo.email,
-            password: 'tuyendungjobo',
-            storeName: storeData.storeName,
-            storeUrl: CONFIG.WEBURL + '/view/store/' + storeData.storeId
-        }
-        var firstJob = Object.keys(storeData.job)[0]
-        if (CONFIG.data.job[firstJob]) {
-            mail.job = CONFIG.data.job[firstJob]
-        } else {
-            firstJob = ''
-            mail.job = 'nhân viên'
-        }
-        mail.countsend = 0
+    if (!userInfo) return
 
-        console.log(firstJob)
-        var mylat = storeData.location.lat;
-        var mylng = storeData.location.lng;
-
-        var profileEmail = ''
-        var maxsent = 21
-        for (var i in dataProfile) {
-            var card = dataProfile[i];
-            if (card.location
-                && card.avatar
-                && card.name
-                && ((card.job && card.job[firstJob]) || (!firstJob && card.feature == true))
-            ) {
-                card.url = CONFIG.WEBURL + '/view/profile/' + card.userId;
-                var yourlat = card.location.lat;
-                var yourlng = card.location.lng;
-                var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng);
-                var stringJob = getStringJob(card.job)
-                console.log(dis)
-                if (
-                    dis < 20
-                ) {
-                    mail.countsend++;
-                    profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" > ' + stringJob + ' cách ' + dis + ' km  </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Tuyển</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
-
-                }
-                console.log(card.name)
-                if (mail.countsend == maxsent) {
-                    break
-                }
-            }
-
-        }
-
-        return new Promise(function (resolve, reject) {
-            resolve(profileEmail)
-        }).then(function (profileEmail) {
-
-
-            var headerEmail = '<!doctype html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head> <title></title> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <style type="text/css"> #outlook a { padding: 0; } .ReadMsgBody { width: 100%; } .ExternalClass { width: 100%; } .ExternalClass * { line-height: 100%; } body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; } table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; } p { display: block; margin: 13px 0; } </style> <!--[if !mso]><!--> <style type="text/css"> @media only screen and (max-width:480px) { @-ms-viewport { width: 320px; } @viewport { width: 320px; } } </style> <!--<![endif]--> <!--[if mso]><xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings></xml><![endif]--> <!--[if lte mso 11]><style type="text/css"> .outlook-group-fix { width:100% !important; }</style><![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-33 { width: 33.333333333333336%!important; } } </style></head><body> <div> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" > <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Chào ' + mail.storeName + '</p> <p> Jobo.asia là dự án cung cấp nhân viên gấp cho ngành dịch vụ trong vòng 24h, với mong muốn giúp nhà tuyển dụng tiết kiệm thời gian để tìm được ứng viên phù hợp. <br> Chúng tôi hiện đang có hơn 12000+ ứng viên và sẵn sàng cung cấp đủ số lượng ứng viên phù hợp với vị trí ' + mail.job + ' mà đối tác cần tuyển.<br> <br> <b>Các quyền lợi của ' + mail.storeName + ' khi trở thành đối tác của JOBO: </b><br> <br> - Cung cấp nhân sự ngay <b>trong vòng 24h</b> và không phải trả phí đối với các ứng viên bị loại.<br> - Tự động đăng tin lên hơn 20+ group tuyển dụng Facebook, website vệ tinh<br> - Quảng cáo thương hiệu <b>hoàn toàn miễn phí</b> trên các kênh truyền thông với hơn 200,000 lượt tiếp cận..<br> <br> Chúng tôi rất mong nhận được phản hồi và xin phép liên hệ lại để giải đáp tất cả các thắc mắc.<br> Để biết thêm các thông tin chi tiết về JOBO – Ứng dụng tuyển dụng nhanh, đối tác có thể tham khảo file đính kèm.</p> <p>Dưới đây là ' + mail.countsend + ' ứng viên phù hợp với vị trí ' + mail.job + ' mà Jobo đã tìm cho đối tác. Hãy chọn ứng viên nào đối tác thấy phù hợp và gọi cho chúng tôi để tuyển ứng viên đó</p> </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="500" align="center" style="width:500px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:500px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr>'
-
-            var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Nếu vẫn chưa chọn được ứng viên phù hợp, đối tác hãy truy cập vào web của jobo để xem thêm hơn +5500 ứng viên nữa.</p> <p>Tài khoản để sử dụng là: Tên đăng nhập: ' + mail.email + ' / Password: ' + mail.password + '</p> <p>Link truy cập: <a href="' + CONFIG.WEBURL + '">' + CONFIG.WEBURL + '</a></p> <p>Trang thương hiệu : <a href=' + mail.storeUrl + '>' + mail.storeName + '</a></p> <p>Jobo rất vinh dự được làm việc với đối tác!</p> <p>Khánh Thông - CEO & Founder, Jobo</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Sent with ♥ from Jobo</p> +84 968 269 860<br> ' + CONFIG.WEBURL + ' </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>'
-
-            var email = mail.email;
-            console.log('send, ' + email);
-
-            var htmlEmail = headerEmail + profileEmail + footerEmail
-
-
-            if (email && userInfo.wrongEmail != true) {
-                var mailOptions = {
-                    from: {
-                        name: 'Jobo - Cung cấp nhân sự trong 24h',
-                        address: 'contact@jobo.asia'
-                    },
-                    bcc: adminEmailList,
-                    to: mail.email,
-                    subject: 'Chào mừng ' + mail.storeName + ' tuyển gấp nhân viên trên Jobo',
-                    html: htmlEmail,
-                    attachments: [
-                        {   // filename and content type is derived from path
-                            path: 'https://joboapp.com/img/proposal_pricing_included.pdf'
-                        }
-                    ]
-                };
-
-                return mailTransport.sendMail(mailOptions).then(function () {
-                    console.log('New email sent to: ' + email);
-                }, function (error) {
-                    console.log('Some thing wrong when sent email to ' + email + ':' + error);
-                });
-            }
-            var notification = {
-                title: 'Chào mừng ' + storeData.storeName + ' tuyển gấp nhân viên trên Jobo',
-                body: 'Hãy cập nhật vị trí đăng tuyển và lướt chọn những ứng viên phù hợp',
-                subtitle: '',
-                calltoaction: 'Bắt đầu',
-                linktoaction: '',
-                image: '',
-                storeId: storeData.storeId
-            }
-            sendNotification(userInfo, notification, false, true, true)
-        })
-    } else if (userInfo && userInfo.email) {
-
-        var mail = {
-            email: userInfo.email,
-            password: 'tuyendungjobo'
-        }
-        if (storeData && storeData.storeName) {
-            mail.storeName = storeData.storeName
-        } else {
-            mail.storeName = 'đối tác'
-        }
-        if (storeData && storeData.storeId) {
-            mail.storeUrl = CONFIG.WEBURL + '/view/store/' + storeData.storeId
-        } else {
-            mail.storeUrl = CONFIG.WEBURL
-        }
-
-        if (storeData && storeData.job) {
-            var firstJob = Object.keys(storeData.job)[0]
-            mail.job = CONFIG.data.job[firstJob]
-        } else {
-            mail.job = 'nhân viên'
-        }
-
-        mail.countsend = 0
-
-        var profileEmail = ''
-
-        var maxsent = 21
-        for (var i in dataProfile) {
-            var card = dataProfile[i];
-            card.url = CONFIG.WEBURL + '/view/profile/' + card.userId
-
-            if (card.job
-                && card.avatar
-                && card.name
-                && card.feature == true
-            ) {
-                var stringJob = getStringJob(card.job)
-
-                mail.countsend++;
-                profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" > ' + stringJob + '  </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Tuyển</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
-
-                console.log(card.name)
-                if (mail.countsend == maxsent) {
-                    break
-                }
-            }
-
-        }
-
-        return new Promise(function (resolve, reject) {
-            resolve(profileEmail)
-        }).then(function (profileEmail) {
-
-            var headerEmail = '<!doctype html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head> <title></title> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <style type="text/css"> #outlook a { padding: 0; } .ReadMsgBody { width: 100%; } .ExternalClass { width: 100%; } .ExternalClass * { line-height: 100%; } body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; } table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; } p { display: block; margin: 13px 0; } </style> <!--[if !mso]><!--> <style type="text/css"> @media only screen and (max-width:480px) { @-ms-viewport { width: 320px; } @viewport { width: 320px; } } </style> <!--<![endif]--> <!--[if mso]><xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings></xml><![endif]--> <!--[if lte mso 11]><style type="text/css"> .outlook-group-fix { width:100% !important; }</style><![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-33 { width: 33.333333333333336%!important; } } </style></head><body> <div> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" > <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Chào ' + mail.storeName + '</p> <p> Joboapp.com là dự án cung cấp nhân viên gấp cho ngành dịch vụ trong vòng 24h, với mong muốn giúp nhà tuyển dụng tiết kiệm thời gian để tìm được ứng viên phù hợp. Các ứng viên của chúng tôi đa phần đã được đào tạo và có kinh nghiệm trong lĩnh vực Nhà hàng - Khách sạn, Nhân viên kinh doanh, Marketing ,Design , Hành chính... có thể làm bán thời gian hoặc toàn thời gian và đặc biệt cam kết làm việc lâu dài nếu phù hợp.”<br> <br> Chúng tôi hiện đang có hơn 12000+ ứng viên và sẵn sàng cung cấp đủ số lượng ứng viên phù hợp với vị trí Nhân viên phục vụ mà nhà hàng cần tuyển.<br> <br> Các quyền lợi của ' + mail.storeName + ' khi trở thành đối tác của JOBO:<br> <br> - Cung cấp nhân sự ngay trong vòng 24h và không phải trả phí đối với các ứng viên bị loại.<br> - Chỉ 15% ứng viên được tuyển chọn khắt khe của chúng tôi<br> - Đăng tin tuyển dụng và quảng cáo thương hiệu hoàn toàn miễn phí trên các kênh truyền thông với hơn 200,000 lượt tiếp cận..<br> <br> Chúng tôi rất mong nhận được phản hồi và xin phép liên hệ lại sớm nhất để giải đáp tất cả các thắc mắc của đối tác.<br> Để biết thêm các thông tin chi tiết về JOBO – Ứng dụng tuyển dụng nhanh, cửa hàng có thể tham khảo file đính kèm.</p> <p> Dưới đây là ' + mail.countsend + ' ứng viên phù hợp với vị trí ' + mail.job + ' mà Jobo đã tìm cho bạn. Hãy chọn ứng viên nào bạn muốn và gọi cho chúng tôi để tuyển ứng viên đó</p> </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="500" align="center" style="width:500px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:500px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr>'
-
-            var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Nếu vẫn chưa chọn được ứng viên phù hợp, bạn hãy truy cập vào web của jobo để xem thêm hơn +5500 ứng viên nữa.</p> <p>Tài khoản để anh/chị sử dụng là: Tên đăng nhập: ' + mail.email + ' / Password: ' + mail.password + '</p> <p>Link truy cập: <a href="' + CONFIG.WEBURL + '">' + CONFIG.WEBURL + '</a></p> <p>Trang thương hiệu của bạn: <a href=' + mail.storeUrl + '>' + mail.storeName + '</a></p> <p>Rất vui được giúp đỡ bạn!</p> <p>Khánh Thông - CEO & Founder, Jobo</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>Sent with ♥ from Jobo</p> +84 968 269 860<br> joboapp.com </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>'
-
-            var email = mail.email
-            console.log('send, ' + email)
-            var htmlEmail = headerEmail + profileEmail + footerEmail
-            var mailOptions = {
-                from: {
-                    name: 'Khánh Thông | Jobo - Tìm việc nhanh',
-                    address: 'thonglk.mac@gmail.com'
-                },
-                cc: ['thonglk@joboapp.com', 'myhuyen@joboapp.com', 'linhcm@joboapp.com'],
-                to: mail.email,
-                subject: 'Chào mừng ' + mail.storeName + ' tuyển gấp nhân viên trên Jobo',
-                html: htmlEmail,
-                attachments: [
-                    {   // filename and content type is derived from path
-                        path: 'https://joboapp.com/img/proposal_pricing_included.pdf'
-                    }
-                ]
-            };
-
-            return mailTransport.sendMail(mailOptions).then(function () {
-                console.log('New email sent to: ' + email);
-            }, function (error) {
-                console.log('Some thing wrong when sent email to ' + email + ':' + error);
-            });
-
-            var notification = {
-                title: 'Chào mừng ' + storeData.storeName + ' tuyển gấp nhân viên trên Jobo',
-                body: 'Hãy cập nhật vị trí đăng tuyển và lướt chọn những ứng viên phù hợp',
-                subtitle: '',
-                calltoaction: 'Bắt đầu',
-                linktoaction: '',
-                image: '',
-                storeId: storeData.storeId
-            }
-            sendNotification(userInfo, notification, false, true, true)
-        })
-
-    } else {
-        console.log('userInfo s')
+    if (!storeData.storeName) {
+        storeData.storeName = 'Đối tác'
     }
 
+    var data = {
+        email: userInfo.email,
+        password: 'tuyendungjobo',
+        storeUrl: CONFIG.WEBURL + '/view/store/' + storeData.storeId
+    }
+    var firstJob = Object.keys(storeData.job)[0]
+    if (CONFIG.data.job[firstJob]) {
+        data.job = CONFIG.data.job[firstJob]
+    } else {
+        firstJob = ''
+        data.job = 'nhân viên'
+    }
+    var profile = []
+
+
+    var countsend = 0
+    var maxsent = 21
+
+    for (var i in dataProfile) {
+        var card = dataProfile[i];
+        if (card.location
+            && card.avatar
+            && card.name
+            && ((card.job && card.job[firstJob]) || (!firstJob && card.feature == true))
+        ) {
+            if (storeData.location) {
+                var mylat = storeData.location.lat;
+                var mylng = storeData.location.lng;
+                var yourlat = card.location.lat;
+                var yourlng = card.location.lng;
+                var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng)
+            }
+
+            var stringJob = getStringJob(card.job)
+            console.log(dis)
+            if (
+                (dis < 20 || !dis)
+            ) {
+                console.log(card.name)
+
+                profile.push({
+                    title: card.name,
+                    image: card.avatar,
+                    body: stringJob + ' cách ' + dis + ' km',
+                    linktoaction: CONFIG.WEBURL + '/view/profile/' + card.userId,
+                    calltoaction: 'Tuyển'
+                })
+                countsend++;
+            }
+            if (countsend == maxsent) {
+                break
+            }
+        }
+
+    }
+
+    return new Promise(function (resolve, reject) {
+        resolve(profile)
+    }).then(function (profile) {
+        var mail = {
+            title: 'Chào mừng ' + storeData.storeName + ' tuyển gấp nhân viên trên Jobo',
+            body: 'Đăng tin miễn phí, hồ sơ ứng viên minh hoạ rõ ràng, dễ dàng tuyển chọn trong vài giờ',
+            data: profile,
+            description1: 'Chào ' + storeData.storeName + '<br> Jobo.asia là dự án cung cấp nhân viên gấp cho ngành dịch vụ trong vòng 24h, với mong muốn giúp nhà tuyển dụng tiết kiệm thời gian để tìm được ứng viên phù hợp. <br> Chúng tôi hiện đang có hơn 12000+ ứng viên và sẵn sàng cung cấp đủ số lượng ứng viên phù hợp với vị trí mà đối tác cần tuyển.<br> <br> <b>Các quyền lợi của ' + storeData.storeName + ' khi trở thành đối tác của JOBO: </b><br> <br> - Cung cấp nhân sự ngay <b>trong vòng 24h</b> và không phải trả phí đối với các ứng viên bị loại.<br> - Tự động đăng tin lên hơn 20+ group tuyển dụng Facebook, website vệ tinh<br> - Quảng cáo thương hiệu <b>hoàn toàn miễn phí</b> trên các kênh truyền thông với hơn 200,000 lượt tiếp cận..<br> <br> Chúng tôi rất mong nhận được phản hồi và xin phép liên hệ lại để giải đáp tất cả các thắc mắc.<br> Để biết thêm các thông tin chi tiết về JOBO – Ứng dụng tuyển dụng nhanh, đối tác có thể tham khảo file đính kèm.<br>Dưới đây là những ứng viên phù hợp với vị trí ' + data.job + ' mà Jobo đã tìm cho đối tác. Hãy chọn ứng viên nào đối tác thấy phù hợp và gọi cho chúng tôi để tuyển ứng viên đó',
+            description4: 'Nếu vẫn chưa chọn được ứng viên phù hợp, đối tác hãy truy cập vào web của jobo để xem thêm hơn +5500 ứng viên nữa.</p> <p>Tài khoản để sử dụng là: Tên đăng nhập: ' + data.email + ' / Password: ' + data.password + '</p> <p>Link truy cập: <a href="' + CONFIG.WEBURL + '">' + CONFIG.WEBURL + '</a><br>Trang thương hiệu : <a href=' + data.storeUrl + '>' + storeData.storeName + '</a><br><br>Jobo rất vinh dự được làm việc với đối tác!<br>Khánh Thông - CEO & Founder, Jobo',
+            attachments: true,
+            outtro: true
+        }
+
+
+        sendNotification(userInfo, mail, {letter: true, web: true, mobile: true, messenger: true})
+    })
 }
 
 
@@ -4318,20 +4208,24 @@ function sendNotiSubcribleToProfile(storeId) {
                     var mail = {
                         title: 'Jobo | ' + storeData.storeName + ' tuyển dụng',
                         body: storeData.storeName + ' đang tuyển dụng ' + getStringJob(storeData.job) + ' rất phù hợp với  bạn, xem mô tả và ứng tuyển ngay!',
-                        data: {
-                            name: storeData.storeName,
-                            avatar: storeData.avatar || '',
-                            job: getStringJob(storeData.job) + ' cách ' + dis + ' km'
-                        },
+                        data: [{
+                            title: storeData.storeName,
+                            image: storeData.avatar || '',
+                            body: getStringJob(storeData.job) + ' cách ' + dis + ' km',
+                            calltoaction: 'Xem chi tiết',
+                            linktoaction: '/view/store/' + storeData.storeId + '#ref=kt',
+                        }],
                         description1: 'Chào ' + getLastName(card.name),
                         description2: storeData.storeName + ' đang tuyển dụng ' + getStringJob(storeData.job) + ' rất phù hợp với  bạn, xem mô tả và ứng tuyển ngay!',
-                        subtitle: '',
-                        calltoaction: 'Xem chi tiết',
-                        linktoaction: '/view/store/' + storeData.storeId + '#ref=kt',
-                        image: '',
-                        description3: 'Nếu bạn không thích công việc này, hãy cho chúng tôi biết để chúng tôi giới thiệu những công việc phù hợp hơn.'
+                        description4: 'Nếu bạn không thích công việc này, hãy cho chúng tôi biết để chúng tôi giới thiệu những công việc phù hợp hơn.',
+                        outtro: true
                     };
-                    sendNotification(dataUser[card.userId], mail, true, true, true)
+                    sendNotification(dataUser[card.userId], mail, {
+                        letter: true,
+                        web: true,
+                        mobile: true,
+                        messenger: true
+                    })
 
                 }
 
@@ -4905,108 +4799,50 @@ function isWhere(storeId) {
 
 }
 
+app.get('/PostStore', function (req, res) {
+    var storeId = req.param('storeId');
+    var poster = req.param('poster');
+    var job = req.param('job');
 
-function PostStoreLoop(storeId, poster) {
-    var where = isWhere(storeId)
-
-
-    var a = 0
-
-    function loop() {
-        var group = groupArray[a];
-        var send = createJDStore(storeId);
-        if (send && group.groupId && (group.area == where || group.area == 'vn')) {
-            var data = {};
-            if (!poster) {
-                if (group.poster.length > 0) {
-                    console.log('group.poster.length', group.poster.length)
-                    var random = Math.round(Math.random() * group.poster.length)
-                    console.log('random', random)
-                    poster = group.poster[random]
-                } else {
-                    poster = 'thuythuy'
-                }
-
-            }
-            console.log(poster)
-            data[poster] = 'tried';
-            groupRef.child(group.groupId).update(data)
-
-            graph.post(group.groupId + "/feed?access_token=" + facebookAccount[poster],
-                {
-                    "message": send.text
-                },
-                function (err, res) {
-                    // returns the post id
-                    if (err) {
-                        console.log(err.message);
-                    } else {
-                        var postId = res.id
-                        console.log(postId);
-                        var array = postId.split('_')
-                        var groupId = array[0]
-                        data[poster] = true
-                        groupRef.child(groupId).update(data)
-                    }
-                    a++
-                    if (a < groupArray.length) {
-                        console.log('loop')
-                        loop()
-                    }
-
-                });
-        }
-    }
-
-    loop()
+    PostStore(storeId, poster, job);
+});
 
 
-}
-
-function PostStore(storeId, poster, job) {
+function PostStore(storeId, poster, job, time) {
     var where = isWhere(storeId)
 
     setTimeout(function () {
         for (var i in groupData) {
 
-
-            var send = createJDStore(storeId);
-            if (send
+            var content = createJDStore(storeId);
+            if (content
                 && groupData[i].groupId
                 && (groupData[i].area == where || groupData[i].area == 'vn')
                 && (groupData[i].job && groupData[i].job.match(job) || !job )) {
                 var data = {};
-                if (!poster) {
-                    if (groupData[i].poster) {
-                        var random = Math.round(Math.random() * groupData[i].poster.length)
-                        poster = groupData[i].poster[random]
-                    } else {
-                        poster = 'thuythuy'
-                    }
-
+                if (groupData[i].poster) {
+                    var random = Math.round(Math.random() * (groupData[i].poster.length - 1))
+                    poster = groupData[i].poster[random]
+                } else {
+                    poster = 'thuythuy'
                 }
                 console.log(poster)
                 data[poster] = 'tried';
                 groupRef.child(groupData[i].groupId).update(data)
-
-                graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount[poster],
-                    {
-                        "message": send.text
-                    },
-                    function (err, res) {
-                        // returns the post id
-                        if (err) {
-                            console.log(err.message);
-                        } else {
-                            var postId = res.id
-                            console.log(postId);
-                            var array = postId.split('_')
-                            var groupId = array[0]
-                            data[poster] = true
-                            groupRef.child(groupId).update(data)
-                        }
-
-                    });
+                if (!time) {
+                    time = Date.now()
+                } else {
+                    time = time + 60* 5 * 1000
+                }
+                console.log(new Date(time))
+                var postId = facebookPostRef.push().key;
+                var to = groupData[i].groupId
+                facebookPostRef.child(postId).update({postId, storeId, poster, content, time, to}, function (res) {
+                    console.log('facebookPostRef')
+                });
+                schedule.scheduleJob(time, function () {
+                    PublishFacebook(to, content, poster, postId)
+                })
             }
 
         }
@@ -5016,64 +4852,6 @@ function PostStore(storeId, poster, job) {
 
 }
 
-app.get('/PostToGroup', function (req, res) {
-    var text = req.param('text');
-    var where = req.param('where');
-    var poster = req.param('poster');
-    var job = req.param('job');
-
-    PostToGroup(text, poster, where, job);
-    res.send(text)
-});
-
-function PostToGroup(text, poster, where, job) {
-    for (var i in groupData) {
-
-        if (groupData[i].groupId
-            && (groupData[i].area == where || groupData[i].area == 'vn')
-            && ((groupData[i].job && groupData[i].job.match(job)) || !job )
-        ) {
-            var data = {};
-            if (!poster) {
-                if (groupData[i].poster) {
-                    var random = Math.round(Math.random() * groupData[i].poster.length)
-                    poster = groupData[i].poster[random]
-                } else {
-                    poster = 'thuythuy'
-                }
-            }
-            console.log(poster)
-            data[poster] = 'tried';
-            groupRef.child(groupData[i].groupId).update(data)
-
-            graph.post(groupData[i].groupId + "/feed?access_token=" + facebookAccount[poster],
-                {
-                    "message": text
-                },
-                function (err, res) {
-                    // returns the post id
-                    if (err) {
-                        console.log(err.message);
-                    } else {
-                        var postId = res.id
-                        console.log(postId);
-                        var array = postId.split('_')
-                        var groupId = array[0]
-                        data[poster] = true
-                        groupRef.child(groupId).update(data)
-                    }
-
-                });
-        }
-    }
-}
-
-
-app.get('/PostStore', function (req, res) {
-    var storeId = req.param('storeId');
-    var poster = req.param('poster');
-    PostStoreLoop(storeId, poster);
-});
 
 var rule3 = new schedule.RecurrenceRule();
 rule3.hour = 15;
