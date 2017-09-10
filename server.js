@@ -2865,8 +2865,9 @@ app.get('/view/store', function (req, res) {
         storeData.static = dataStatic[storeId];
 
         if (userId) {
-            if (likeActivity[storeId + ':' + userId]) {
-                storeData.act = likeActivity[storeId + ':' + userId]
+            var activityData = _.findWhere(likeActivity, {userId: userId, storeId: storeId, jobId: jobId})
+            if (activityData && activityData.actId) {
+                storeData.act = activityData
             }
             if (dataUser[userId].admin == true) {
                 storeData.adminData = dataUser[storeData.createdBy]
@@ -2874,7 +2875,6 @@ app.get('/view/store', function (req, res) {
         }
         if (jobId) {
             storeData.currentJobData = dataJob[jobId]
-
         }
         res.send(storeData)
 
@@ -3135,21 +3135,9 @@ app.get('/admin/storeEmail', function (req, res) {
     res.send(send)
 })
 
-app.get('/answerTest', function (req, res) {
-    var userId = req.param('userId');
-    var storeId = req.param('storeId');
-    var jobId = req.param('jobId');
-    var preApply = req.param('preApply');
-    var activityData = _.findWhere(likeActivity, {userId: userId, storeId: storeId, jobId: jobId})
-    if (activityData && activityData.actId) {
-        console.log(preApply)
-        likeActivityRef.child(activityData.actId).update(preApply).then(function () {
-            res.send({code: 'success'})
-        })
-    } else {
-        res.send({code: 'error', msg: 'Không tìm thấy đơn'})
-    }
-});
+app.get('/config',function (req,res) {
+    res.send(CONFIG)
+})
 
 /**
  * Send the new star notification email to the given email.
