@@ -126,7 +126,7 @@ var facebookContentRef = db.ref('facebookContent')
 var facebookPostRef = db.ref('facebookPost');
 
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
-    datagoogleJob;
+    keyListData, datagoogleJob;
 
 var groupRef = db.ref('groupData');
 
@@ -262,12 +262,16 @@ var sendEmail = (addressTo, mail, emailMarkup, notiId) => {
                 }
             ]
         }
-        console.log('sendEmail')
         // send mail with defined transport object
         mailTransport.sendMail(mailOptions, (error, info) => {
             if (error) {
+                console.log('Error sent email', addressTo)
+
                 reject(error);
             }
+
+            console.log('New email sent', addressTo)
+
             // console.log('Message sent: %s', info.messageId);
             if (notiId) {
                 notificationRef.child(notiId).update({mail_sent: Date.now()})
@@ -295,7 +299,7 @@ sendPXLEmail('thonglk.mac@gmail.com', 'Helloooooo', '<a href="https://joboapp.co
     .then(messageId => console.log('Message sent: %s', messageId))
     .catch(err => console.log(err));
 
-function sendEmailTemplate(email, mail) {
+function sendEmailTemplate(email, mail, notiId) {
     var card = {}
 
     var header = '<!doctype html>\n' +
@@ -714,43 +718,65 @@ function sendEmailTemplate(email, mail) {
     }
 
     htmlMail = htmlMail + footer
-    console.log('sendEmailTemplate')
-    sendPXLEmail(email, mail, htmlMail, mail.notiId)
+    sendPXLEmail(email, mail, htmlMail, notiId)
 }
 
-function sendNotification(userData, mail, {letter, web, mobile, messenger}, time) {
-    if (!userData) return
+function sendNotification(userData, mail, channel, time) {
+    if (!userData) return;
+    if (!channel) {
+        channel = {
+            web: true,
+            letter: true,
+            mobile: true,
+            messenger: true
+        }
+    }
+    var notiId = notificationRef.push().key;
+    var notification = {
+        userData: userData,
+        mail: mail,
+        notiId: notiId,
+        time: time || Date.now(),
+        createdAt: Date.now(),
+        channel: channel
+    }
+
+    notificationRef.child(notiId).update(notification);
+
 
     if (!time) {
-        time = new Date().getTime() + 5 * 1000
-    }
+        startSend(userData, mail, channel, notiId)
+    } else {
+        console.log('scheduleJob Noti', notiId)
 
-    mail.createdAt = new Date().getTime()
-    mail.to = userData.userId;
-    mail.time = time
-    mail.notiId = notificationRef.push().key;
-
-    notificationRef.child(mail.notiId).update(mail)
-
-    console.log('sendNotification', mail)
-    if (userData.email && userData.wrongEmail != true && letter) {
-        sendEmailTemplate(userData.email, mail)
-    }
-    if (userData.webToken && web) {
-        sendNotificationToGivenUser(userData.webToken, mail, 'web', mail.notiId)
-    }
-
-    if (userData.mobileToken && mobile) {
-        sendNotificationToGivenUser(userData.mobileToken, mail, 'app', mail.notiId)
+        schedule.scheduleJob(time, function () {
+            startSend(userData, mail, channel, notiId)
+        })
 
     }
-    if (userData.messengerId && messenger) {
-        sendMessenger(userData.messengerId, mail, mail.notiId)
-    }
-
 
 }
 
+function startSend(userData, mail, channel, notiId) {
+
+
+    console.log('startSend', notiId)
+    if (userData.email && userData.wrongEmail != true && channel.letter) {
+        sendEmailTemplate(userData.email, mail, notiId)
+    }
+    if (userData.webToken && channel.web) {
+        sendNotificationToGivenUser(userData.webToken, mail, 'web', notiId)
+    }
+
+    if (userData.mobileToken && channel.mobile) {
+        sendNotificationToGivenUser(userData.mobileToken, mail, 'app', notiId)
+
+    }
+    if (userData.messengerId && channel.messenger) {
+        sendMessenger(userData.messengerId, mail, notiId)
+    }
+
+}
 
 var publishChannel = {
     Jobo: {
@@ -775,6 +801,11 @@ var facebookAccount = {
 
 }
 
+app.get('/sendStoretoPage', function (req, res) {
+    var storeId = req.param('storeId')
+    sendStoretoPage(storeId)
+    res.send(storeId)
+})
 
 function sendStoretoPage(storeId) {
     var storeData = dataStore[storeId];
@@ -911,6 +942,10 @@ function init() {
         }
     })
 
+    leadRef.on('value', function (snap) {
+        dataLead = snap.val()
+    })
+
     profileRef.on('value', function (snap) {
         dataProfile = snap.val()
 
@@ -946,34 +981,48 @@ function init() {
     // });
 
 
-
-    var now = new Date().getTime();
-    notificationRef.startAt(now).once('value', function (snap) {
+    var now = Date.now();
+    var startTime = now;
+    var endTime = now + 86400 * 1000;
+    notificationRef.once('value', function (snap) {
         var data = snap.val()
-        var i = 0
+        var a = 0
         for (var i in data) {
-            i++
-            console.log(i)
-            var mail = data[i]
-            sendNotification(dataUser[i], mail, {web: true, letter: true, mobile: true, messenger: true}, mail.time)
+            var noti = data[i]
+            if (noti && noti.time > startTime && noti.time < endTime) {
+                a++
+                console.log('noti', a)
+                schedule.scheduleJob(noti.time, function () {
+                    startSend(noti.userData, noti.mail, noti.channel, noti.notiId)
+                })
+            }
+
         }
     })
 
-    facebookContentRef.once('value', function (snap) {
+    facebookPostRef.once('value', function (snap) {
         var data = snap.val()
+
         var a = 0
         for (var i in data) {
 
             var content = data[i]
-            if (content && content.time > now) {
+            if (content && content.time > startTime && content.time < endTime) {
                 a++
-                console.log(a);
+                console.log('post', a);
                 schedule.scheduleJob(content.time, function () {
                     PublishFacebook(content.to, content.content, content.poster, content.postId)
                 })
             }
         }
     });
+
+    db.ref('keyList').on('value', function (a) {
+        keyListData = a.val()
+        if (!keyListData) {
+            keyListData = {}
+        }
+    })
 
     return new Promise(function (resolve, reject) {
         resolve(dataProfile)
@@ -1095,6 +1144,10 @@ function getShortPremiumJob(ref) {
     }
 }
 
+app.get('/createListPremiumJob', function (req, res) {
+    res.send(createListPremiumJob())
+})
+
 function createListPremiumJob(where) {
     var jobHN = "";
     var jobHCM = "";
@@ -1131,6 +1184,40 @@ function createListPremiumJob(where) {
         return jobHN + jobHCM
     }
 }
+
+app.get('/createListGoogleJob', function (req, res) {
+    res.send(createListGoogleJob())
+})
+function createListGoogleJob(where) {
+    var jobHN = "";
+    var jobHCM = "";
+    var today = new Date().getTime()
+    var dataSort = _.sortBy(datagoogleJob, function (card) {
+        return -card.createdAt
+    })
+    for (var i in dataSort) {
+        var job = dataSort[i]
+        var jobString = '◆ ' + job.jobName + ' | ' + job.storeName + ' | ' + shortAddress(job.address) + ' | ' + new Date(job.createdAt) + '|' + job.rating + ' \n'
+        var disToHN = getDistanceFromLatLonInKm(job.location.lat, job.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+        var disToSG = getDistanceFromLatLonInKm(job.location.lat, job.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+        if (disToHN < 100) {
+            jobHN = jobHN + jobString
+        } else if (disToSG < 100) {
+            jobHCM = jobHCM + jobString
+        }
+    }
+
+    if (where == 'hn') {
+        return jobHN
+    } else if (where == 'hcm') {
+        return jobHCM
+    } else {
+        return jobHN + jobHCM
+    }
+}
+
+
+
 
 function shortenURL(longURL, key) {
     var shorturl = '';
@@ -1203,6 +1290,7 @@ function createJDStore(storeId, a) {
     if (!a) {
         a = Math.round(Math.random() * 2);
     }
+    console.log('a', a)
     var today = new Date().getTime()
 
     if (a == 0) {
@@ -1536,7 +1624,7 @@ function checkNotCreate() {
                 linktoaction: CONFIG.WEBURL,
                 description4: ''
             };
-            sendNotification(user, mail, true, true, true)
+            sendNotification(user, mail, {letter: true, web: true, messenger: true, mobile: true})
         }
         if (!dataUser[i].currentStore && dataUser[i].type == 1) {
             var user = dataUser[i]
@@ -1551,7 +1639,7 @@ function checkNotCreate() {
                 linktoaction: CONFIG.WEBURL,
                 description4: ''
             }
-            sendNotification(user, mail, true, true, true)
+            sendNotification(user, mail, {letter: true, web: true, messenger: true, mobile: true})
 
         }
     }
@@ -1583,68 +1671,127 @@ app.get('/group', function (req, res) {
     res.send(groupData);
 });
 
+app.get('/api/lead', (req, res) => {
+    let {
+        ref,
+        email,
+        p: page
+    } = req.query;
 
-app.get('/api/lead', function (req, res) {
+    var stage = {
 
-
-    var query = req.param('q')
-    var param = JSON.parse(query)
-
-    var page = req.param('p');
-
-
-    var sorded = _.sortBy(dataLead, function (card) {
-        return -card.createdAt
-    })
-    var sendData = getPaginatedItems(sorded, page)
-    res.send(sendData)
-
-});
-
-app.get('/api/email', function (req, res) {
-
-
-    var query = req.param('q')
-    var param = JSON.parse(query)
-
-
-    var page = req.param('p');
-    var resultArray = []
-    for (var i in dataEmail) {
-        var data = dataEmail[i]
-        if ((data.headhunter || !param.headhunter)
-            && (data.from == param.from || !param.from)
-            && (data.email == param.email || !param.email)
-        ) {
-            resultArray.push(data)
-        }
+        ref: {
+            $match: {
+                'ref': ref
+            }
+        },
+        email: {
+            $match: {
+                'email': email
+            }
+        },
     }
-    return new Promise(function (resolve, reject) {
-        resolve(resultArray)
-    }).then(function (resultArray) {
-        var sorded = _.sortBy(resultArray, function (card) {
-            return -card.createdAt
-        })
-        var sendData = getPaginatedItems(sorded, page)
-        res.send(sendData)
-    })
+    var pipeline = []
+    if (ref) {
+        pipeline.push(stage.ref)
+    }
+    if (email) {
+        pipeline.push(stage.email)
+    }
 
+    leadCol.aggregate(pipeline, (err, result) => {
+        if (err) {
+            res.send(err);
+        } else {
+            var sorded = _.sortBy(result, function (card) {
+                return -card.createdAt
+            })
+            var sendData = getPaginatedItems(sorded, page)
+            res.send(sendData)
+        }
+    })
 });
 
-app.get('/sendemailMarketing', function (req, res) {
+
+app.get('/api/email', (req, res) => {
+    let {
+        from,
+        headhunter,
+        email,
+        p: page
+    } = req.query;
+
+    var stage = {
+        headhunter: {
+            $match: {
+                'headhunter': true
+            }
+        },
+        from: {
+            $match: {
+                'from': from
+            }
+        },
+        email: {
+            $match: {
+                'email': email
+            }
+        },
+    }
+    var pipeline = []
+    if (headhunter) {
+        pipeline.push(stage.headhunter)
+    }
+    if (from) {
+        pipeline.push(stage.from)
+    }
+    if (email) {
+        pipeline.push(stage.email)
+    }
+
+    emailChannelCol.aggregate(pipeline, (err, result) => {
+        if (err) {
+            res.send(err);
+        } else {
+            var sorded = _.sortBy(result, function (card) {
+                return -card.createdAt
+            })
+            var sendData = getPaginatedItems(sorded, page)
+            res.send(sendData)
+        }
+    })
+});
+
+
+app.get('/sendEmailMarketing', function (req, res) {
     var mailStr = req.param('mail');
     var mail = JSON.parse(mailStr);
     var query = req.param('q');
     var param = JSON.parse(query);
+    var time = param.time;
+    var sendingList = {}
+    if (param.dataEmail == true) {
+        sendingList = dataEmail
+    }
+    if (param.dataLead == true) {
+        sendingList = Object.assign(sendingList, dataLead)
+    }
+    if (param.dataUser == true) {
+        sendingList = Object.assign(sendingList, dataUser)
+    }
 
-    var arrayEmail = [];
-    for (var i in dataEmail) {
-        var data = dataEmail[i]
-        if ((data.headhunter || !param.headhunter)
-            && (data.from == param.from || !param.from)
+    for (var i in sendingList) {
+        var data = sendingList[i]
+        if ((data.type == param.type || !param.type)
             && (data.email == param.email || !param.email)
         ) {
-            arrayEmail.push(data)
+
+            if (!time) {
+                time = Date.now() + 2000
+            } else {
+                time = time + 100
+            }
+            sendNotification(data, mail, null, time)
         }
     }
 
@@ -1652,84 +1799,6 @@ app.get('/sendemailMarketing', function (req, res) {
         resolve(arrayEmail)
     }).then(function (arrayEmail) {
         var k = 0;                     //  set your counter to 1
-        function myLoop() {
-            //  create a loop function
-            setTimeout(function () {    //  call a 3s setTimeout when the loop is called
-                var sendData = arrayEmail[k]
-                var user = sendData
-                // var mail = {
-                //     title: 'Giới thiệu việc làm cho bạn bè, Nhận ngay 1,000,000đ cho 1 người giới thiệu',
-                //     image: 'https://firebasestorage.googleapis.com/v0/b/jobfast-359da.appspot.com/o/image%2Fthonglk?alt=media&token=165b3f68-72a5-44df-a7fe-42a75f4af31e',
-                //     description2: 'Chào ' + getLastName(user.name) + ', chương trình <b>Become a freelance headhunter at Jobo </b> là cơ hội giúp các bạn phát triển khả năng bản thân, có thêm thu nhập vô cùng hấp dẫn và giới thiệu kênh tìm việc hiệu quả cho bạn bè.<br> <br>\n' +
-                //     '\n' +
-                //     '➡ TẠI SAO BẠN NÊN THAM GIA <br>\n' +
-                //     '🎖️ Hoa hồng vô cùng hấp dẫn (lên đến 1,000,000đ khi người giới thiệu ứng tuyển thành công)  <br>\n' +
-                //     '🎖️ Không phải đến văn phòng làm việc, chỉ cần làm việc online vẫn có thêm thu nhập  <br>\n' +
-                //     '🎖️ Hệ thống quản lý thông tin minh bạch và rõ ràng. Bạn có thể tự kiểm tra kết quả công việc của mình. <br>\n' +
-                //     '🎖️ Hỗ trợ chuyên nghiệp và nhanh chóng. Bất cứ khi nào có khó khăn bạn có thể liên hệ ngay với Jobo để nhận được sự hỗ trợ.  <br> <br>\n' +
-                //     '🌐 DANH SÁCH VIỆC LÀM:  <br>\n' +
-                //     '<b>Marketing & Sale</b><br>\n' +
-                //     '1. Nhân viên kinh doanh | AIA Vietnam | HCM (8 người)<br>\n' +
-                //     '🏆 Phần thưởng: 1,000,000đ/người  <br>\n' +
-                //     '🔗 Link: https://jobo.asia/view/store/s9111250738949#ref=' + user.email + ' <br>\n' +
-                //     '2. Nhân viên kinh doanh | Jobo Vietnam | HN,HCM (4 người) <br>\n' +
-                //     '🏆: 1,000,000đ/người <br>\n' +
-                //     '🔗 : https://jobo.asia/view/store/-KlCK75iK0bf7zFdpHB1#ref=' + user.email + '<br>\n' +
-                //     '3. Nhân viên bán hàng | CORÈLE V | HCM (4 người) <br>\n' +
-                //     '🏆: 150,000đ/người <br>\n' +
-                //     '🔗: https://jobo.asia/view/store/s95995521315678#ref=' + user.email + '<br>\n' +
-                //     '<b>Food Service</b><br>\n' +
-                //     '1. Phục vụ | Góc Hà Thành | Hà Nội (12 người) <br>\n' +
-                //     '🏆: 150,000đ/người <br>\n' +
-                //     '🔗: https://jobo.asia/view/store/-Kop_Dcf9r_gj94B_D3z?job=server#ref=' + user.email + ' <br>\n' +
-                //     '2. Phục vụ | Ụt Ụt BBQ | SG (30 người) <br>\n' +
-                //     '🏆: 150,000đ/người <br>\n' +
-                //     '🔗: https://jobo.asia/view/store/-Ko888eO-cKhfXzJzSQh?job=server#ref=' + user.email + '<br>' +
-                //     '(trên đây là những công việc ưu tiên tuyển gấp trong tuần, còn hơn 150 công việc khác sẽ được giới thiệu trong tuần sau.)<br>\n' +
-                //     '\n' +
-                //     '➡ CÁCH THỨC HOẠT ĐỘNG:<br>\n' +
-                //     '◆ Mã giới thiệu của bạn chính là ' + user.email + ' , đã được gắn ở link phía trên <br>\n' +
-                //     '◆ Chia sẻ cho bạn bè của mình (bạn bè quen biết, các câu lạc bộ, tổ chức sinh viên tại trường đang theo học/ các trường lân cận,...) để họ ứng tuyển qua đường link đã gắn mã giới thiệu của bạn <br>\n' +
-                //     '◆ Bạn sẽ được nhận thông báo mỗi khi bạn bè ứng tuyển, được mời đi phỏng vấn và được chọn (thông báo về email này). <br><br>\n' +
-                //     '➡ HOA HỒNG VÀ THANH TOÁN:<br>\n' +
-                //     '◆ Khi bạn giới thiệu bạn bè tìm việc thành công, bạn được phép yêu cầu thanh toán, sẽ được gửi tới tài khoản ngân hàng mà bạn cung cấp.<br><br>\n',
-                //     description3: '➡ <b>TOP WEEKLY FREELANCE HEADHUNTER:</b><br>\n' +
-                //     '1️⃣ huyenmy07 💸 2,580,000 đ<br>\n' +
-                //     '2️⃣ thaohuynh 💸 1,450,000 đ<br>\n' +
-                //     '3️⃣ chauchau 💸 800,000 đ<br>\n' +
-                //     '4️⃣ linhdieu 💸 740,000 đ<br>\n' +
-                //     '5️⃣ my.nt 💸 670,000 đ<br><br>_____________________<br>\n' +
-                //     '❖ Jobo Technologies, Inc.<br>\n' +
-                //     '◆ Email: contact@jobo.asia<br>\n' +
-                //     '◆ Hotline: 0968 269 860<br>\n' +
-                //     '◆ Địa chỉ HN: 25T2 Hoàng Đạo Thúy, HN<br>\n' +
-                //     '◆ Địa chỉ SG: số 162 Pasteur, Q1, HCM',
-                //     linktoaction: 'https://jobohihi.herokuapp.com/registerheadhunter?id=' + user.id,
-                //     calltoaction: 'ĐĂNG KÝ LÀM HEADHUNTER!'
-                // }
-                if (sendData) {
-                    if (!sendData[mail.title]) {
-
-                        sendemailMarketing(mail, user.email)
-
-                        k++;
-                        console.log(k)
-                        if (k < arrayEmail.length) {
-                            myLoop();
-                        }
-                    } else {
-                        k++;
-                        myLoop();
-
-                    }
-                } else {
-                    console.log('out of email')
-                }
-
-            }, 100)
-        }
-
-        myLoop();
         res.send('sent' + arrayEmail.length)
     })
 
@@ -1819,7 +1888,7 @@ app.get('/createuser', function (req, res) {
             linktoaction: CONFIG.WEBURL + '/view/store/' + userRecord.uid,
             image: ''
         }
-        sendNotification(userData, mail, true, true, true)
+        sendNotification(userData, mail, {letter: true, web: true, messenger: true, mobile: true})
 
 
     })
@@ -1968,7 +2037,7 @@ function getGoogleJob(mylat, mylng, industry) {
                 for (var i in storeList) {
                     var storeData = storeList[i]
                     if (!datagoogleJob[storeData.place_id]) {
-                        console.log(storeData.types)
+                        console.log(storeData.name)
                         var ins = storeData.types[0]
                         if (jobType[ins]) {
                             storeData.job = getRandomJob(jobType[ins])
@@ -1989,12 +2058,15 @@ function getGoogleJob(mylat, mylng, industry) {
                         storeData.jobName = CONFIG.data.job[storeData.job]
                         storeData.industry = ins
                         storeData.createdAt = Date.now() - 86400 * 1000
+                        storeData.storeId = storeData.place_id
                         googleJobRef.child(storeData.place_id).update(storeData)
+                    } else {
+                        console.log('own', storeData.name)
                     }
                 }
                 if (bodyObject.next_page_token) {
                     b++
-                    console.log('bodyObject.next_page_token', b, bodyObject.next_page_token)
+                    console.log(b)
                     if (b < 3) {
                         setTimeout(function () {
                             a(bodyObject.next_page_token)
@@ -2577,17 +2649,12 @@ app.get('/update/lead', function (req, res) {
 
     if (lead) {
         console.log(lead)
-        lead.storeId = leadRef.push().key;
-        leadRef.child(lead.storeId).update(lead, function (err) {
+        lead.storeId = createKey(lead.storeName)
+        leadCol.insert(lead, function (err, data) {
             if (err) {
-                res.send({
-                    code: 'error'
-                })
+                console.log(err)
             } else {
-                res.send({
-                    code: 'success',
-                    id: lead.storeId
-                })
+                res.send({code: 'success', id: lead.storeId})
             }
         })
     }
@@ -2595,16 +2662,254 @@ app.get('/update/lead', function (req, res) {
 
 });
 
+function latinese(str) {
+    if (str) {
+        var defaultDiacriticsRemovalMap = [
+            {
+                'base': 'A',
+                'letters': /[\u0041\u24B6\uFF21\u00C0\u00C1\u00C2\u1EA6\u1EA4\u1EAA\u1EA8\u00C3\u0100\u0102\u1EB0\u1EAE\u1EB4\u1EB2\u0226\u01E0\u00C4\u01DE\u1EA2\u00C5\u01FA\u01CD\u0200\u0202\u1EA0\u1EAC\u1EB6\u1E00\u0104\u023A\u2C6F]/g
+            },
+            {'base': 'AA', 'letters': /[\uA732]/g},
+            {'base': 'AE', 'letters': /[\u00C6\u01FC\u01E2]/g},
+            {'base': 'AO', 'letters': /[\uA734]/g},
+            {'base': 'AU', 'letters': /[\uA736]/g},
+            {'base': 'AV', 'letters': /[\uA738\uA73A]/g},
+            {'base': 'AY', 'letters': /[\uA73C]/g},
+            {'base': 'B', 'letters': /[\u0042\u24B7\uFF22\u1E02\u1E04\u1E06\u0243\u0182\u0181]/g},
+            {
+                'base': 'C',
+                'letters': /[\u0043\u24B8\uFF23\u0106\u0108\u010A\u010C\u00C7\u1E08\u0187\u023B\uA73E]/g
+            },
+            {
+                'base': 'D',
+                'letters': /[\u0044\u24B9\uFF24\u1E0A\u010E\u1E0C\u1E10\u1E12\u1E0E\u0110\u018B\u018A\u0189\uA779]/g
+            },
+            {'base': 'DZ', 'letters': /[\u01F1\u01C4]/g},
+            {'base': 'Dz', 'letters': /[\u01F2\u01C5]/g},
+            {
+                'base': 'E',
+                'letters': /[\u0045\u24BA\uFF25\u00C8\u00C9\u00CA\u1EC0\u1EBE\u1EC4\u1EC2\u1EBC\u0112\u1E14\u1E16\u0114\u0116\u00CB\u1EBA\u011A\u0204\u0206\u1EB8\u1EC6\u0228\u1E1C\u0118\u1E18\u1E1A\u0190\u018E]/g
+            },
+            {'base': 'F', 'letters': /[\u0046\u24BB\uFF26\u1E1E\u0191\uA77B]/g},
+            {
+                'base': 'G',
+                'letters': /[\u0047\u24BC\uFF27\u01F4\u011C\u1E20\u011E\u0120\u01E6\u0122\u01E4\u0193\uA7A0\uA77D\uA77E]/g
+            },
+            {
+                'base': 'H',
+                'letters': /[\u0048\u24BD\uFF28\u0124\u1E22\u1E26\u021E\u1E24\u1E28\u1E2A\u0126\u2C67\u2C75\uA78D]/g
+            },
+            {
+                'base': 'I',
+                'letters': /[\u0049\u24BE\uFF29\u00CC\u00CD\u00CE\u0128\u012A\u012C\u0130\u00CF\u1E2E\u1EC8\u01CF\u0208\u020A\u1ECA\u012E\u1E2C\u0197]/g
+            },
+            {'base': 'J', 'letters': /[\u004A\u24BF\uFF2A\u0134\u0248]/g},
+            {
+                'base': 'K',
+                'letters': /[\u004B\u24C0\uFF2B\u1E30\u01E8\u1E32\u0136\u1E34\u0198\u2C69\uA740\uA742\uA744\uA7A2]/g
+            },
+            {
+                'base': 'L',
+                'letters': /[\u004C\u24C1\uFF2C\u013F\u0139\u013D\u1E36\u1E38\u013B\u1E3C\u1E3A\u0141\u023D\u2C62\u2C60\uA748\uA746\uA780]/g
+            },
+            {'base': 'LJ', 'letters': /[\u01C7]/g},
+            {'base': 'Lj', 'letters': /[\u01C8]/g},
+            {'base': 'M', 'letters': /[\u004D\u24C2\uFF2D\u1E3E\u1E40\u1E42\u2C6E\u019C]/g},
+            {
+                'base': 'N',
+                'letters': /[\u004E\u24C3\uFF2E\u01F8\u0143\u00D1\u1E44\u0147\u1E46\u0145\u1E4A\u1E48\u0220\u019D\uA790\uA7A4]/g
+            },
+            {'base': 'NJ', 'letters': /[\u01CA]/g},
+            {'base': 'Nj', 'letters': /[\u01CB]/g},
+            {
+                'base': 'O',
+                'letters': /[\u004F\u24C4\uFF2F\u00D2\u00D3\u00D4\u1ED2\u1ED0\u1ED6\u1ED4\u00D5\u1E4C\u022C\u1E4E\u014C\u1E50\u1E52\u014E\u022E\u0230\u00D6\u022A\u1ECE\u0150\u01D1\u020C\u020E\u01A0\u1EDC\u1EDA\u1EE0\u1EDE\u1EE2\u1ECC\u1ED8\u01EA\u01EC\u00D8\u01FE\u0186\u019F\uA74A\uA74C]/g
+            },
+            {'base': 'OI', 'letters': /[\u01A2]/g},
+            {'base': 'OO', 'letters': /[\uA74E]/g},
+            {'base': 'OU', 'letters': /[\u0222]/g},
+            {'base': 'P', 'letters': /[\u0050\u24C5\uFF30\u1E54\u1E56\u01A4\u2C63\uA750\uA752\uA754]/g},
+            {'base': 'Q', 'letters': /[\u0051\u24C6\uFF31\uA756\uA758\u024A]/g},
+            {
+                'base': 'R',
+                'letters': /[\u0052\u24C7\uFF32\u0154\u1E58\u0158\u0210\u0212\u1E5A\u1E5C\u0156\u1E5E\u024C\u2C64\uA75A\uA7A6\uA782]/g
+            },
+            {
+                'base': 'S',
+                'letters': /[\u0053\u24C8\uFF33\u1E9E\u015A\u1E64\u015C\u1E60\u0160\u1E66\u1E62\u1E68\u0218\u015E\u2C7E\uA7A8\uA784]/g
+            },
+            {
+                'base': 'T',
+                'letters': /[\u0054\u24C9\uFF34\u1E6A\u0164\u1E6C\u021A\u0162\u1E70\u1E6E\u0166\u01AC\u01AE\u023E\uA786]/g
+            },
+            {'base': 'TZ', 'letters': /[\uA728]/g},
+            {
+                'base': 'U',
+                'letters': /[\u0055\u24CA\uFF35\u00D9\u00DA\u00DB\u0168\u1E78\u016A\u1E7A\u016C\u00DC\u01DB\u01D7\u01D5\u01D9\u1EE6\u016E\u0170\u01D3\u0214\u0216\u01AF\u1EEA\u1EE8\u1EEE\u1EEC\u1EF0\u1EE4\u1E72\u0172\u1E76\u1E74\u0244]/g
+            },
+            {'base': 'V', 'letters': /[\u0056\u24CB\uFF36\u1E7C\u1E7E\u01B2\uA75E\u0245]/g},
+            {'base': 'VY', 'letters': /[\uA760]/g},
+            {'base': 'W', 'letters': /[\u0057\u24CC\uFF37\u1E80\u1E82\u0174\u1E86\u1E84\u1E88\u2C72]/g},
+            {'base': 'X', 'letters': /[\u0058\u24CD\uFF38\u1E8A\u1E8C]/g},
+            {
+                'base': 'Y',
+                'letters': /[\u0059\u24CE\uFF39\u1EF2\u00DD\u0176\u1EF8\u0232\u1E8E\u0178\u1EF6\u1EF4\u01B3\u024E\u1EFE]/g
+            },
+            {
+                'base': 'Z',
+                'letters': /[\u005A\u24CF\uFF3A\u0179\u1E90\u017B\u017D\u1E92\u1E94\u01B5\u0224\u2C7F\u2C6B\uA762]/g
+            },
+            {
+                'base': 'a',
+                'letters': /[\u0061\u24D0\uFF41\u1E9A\u00E0\u00E1\u00E2\u1EA7\u1EA5\u1EAB\u1EA9\u00E3\u0101\u0103\u1EB1\u1EAF\u1EB5\u1EB3\u0227\u01E1\u00E4\u01DF\u1EA3\u00E5\u01FB\u01CE\u0201\u0203\u1EA1\u1EAD\u1EB7\u1E01\u0105\u2C65\u0250]/g
+            },
+            {'base': 'aa', 'letters': /[\uA733]/g},
+            {'base': 'ae', 'letters': /[\u00E6\u01FD\u01E3]/g},
+            {'base': 'ao', 'letters': /[\uA735]/g},
+            {'base': 'au', 'letters': /[\uA737]/g},
+            {'base': 'av', 'letters': /[\uA739\uA73B]/g},
+            {'base': 'ay', 'letters': /[\uA73D]/g},
+            {'base': 'b', 'letters': /[\u0062\u24D1\uFF42\u1E03\u1E05\u1E07\u0180\u0183\u0253]/g},
+            {
+                'base': 'c',
+                'letters': /[\u0063\u24D2\uFF43\u0107\u0109\u010B\u010D\u00E7\u1E09\u0188\u023C\uA73F\u2184]/g
+            },
+            {
+                'base': 'd',
+                'letters': /[\u0064\u24D3\uFF44\u1E0B\u010F\u1E0D\u1E11\u1E13\u1E0F\u0111\u018C\u0256\u0257\uA77A]/g
+            },
+            {'base': 'dz', 'letters': /[\u01F3\u01C6]/g},
+            {
+                'base': 'e',
+                'letters': /[\u0065\u24D4\uFF45\u00E8\u00E9\u00EA\u1EC1\u1EBF\u1EC5\u1EC3\u1EBD\u0113\u1E15\u1E17\u0115\u0117\u00EB\u1EBB\u011B\u0205\u0207\u1EB9\u1EC7\u0229\u1E1D\u0119\u1E19\u1E1B\u0247\u025B\u01DD]/g
+            },
+            {'base': 'f', 'letters': /[\u0066\u24D5\uFF46\u1E1F\u0192\uA77C]/g},
+            {
+                'base': 'g',
+                'letters': /[\u0067\u24D6\uFF47\u01F5\u011D\u1E21\u011F\u0121\u01E7\u0123\u01E5\u0260\uA7A1\u1D79\uA77F]/g
+            },
+            {
+                'base': 'h',
+                'letters': /[\u0068\u24D7\uFF48\u0125\u1E23\u1E27\u021F\u1E25\u1E29\u1E2B\u1E96\u0127\u2C68\u2C76\u0265]/g
+            },
+            {'base': 'hv', 'letters': /[\u0195]/g},
+            {
+                'base': 'i',
+                'letters': /[\u0069\u24D8\uFF49\u00EC\u00ED\u00EE\u0129\u012B\u012D\u00EF\u1E2F\u1EC9\u01D0\u0209\u020B\u1ECB\u012F\u1E2D\u0268\u0131]/g
+            },
+            {'base': 'j', 'letters': /[\u006A\u24D9\uFF4A\u0135\u01F0\u0249]/g},
+            {
+                'base': 'k',
+                'letters': /[\u006B\u24DA\uFF4B\u1E31\u01E9\u1E33\u0137\u1E35\u0199\u2C6A\uA741\uA743\uA745\uA7A3]/g
+            },
+            {
+                'base': 'l',
+                'letters': /[\u006C\u24DB\uFF4C\u0140\u013A\u013E\u1E37\u1E39\u013C\u1E3D\u1E3B\u017F\u0142\u019A\u026B\u2C61\uA749\uA781\uA747]/g
+            },
+            {'base': 'lj', 'letters': /[\u01C9]/g},
+            {'base': 'm', 'letters': /[\u006D\u24DC\uFF4D\u1E3F\u1E41\u1E43\u0271\u026F]/g},
+            {
+                'base': 'n',
+                'letters': /[\u006E\u24DD\uFF4E\u01F9\u0144\u00F1\u1E45\u0148\u1E47\u0146\u1E4B\u1E49\u019E\u0272\u0149\uA791\uA7A5]/g
+            },
+            {'base': 'nj', 'letters': /[\u01CC]/g},
+            {
+                'base': 'o',
+                'letters': /[\u006F\u24DE\uFF4F\u00F2\u00F3\u00F4\u1ED3\u1ED1\u1ED7\u1ED5\u00F5\u1E4D\u022D\u1E4F\u014D\u1E51\u1E53\u014F\u022F\u0231\u00F6\u022B\u1ECF\u0151\u01D2\u020D\u020F\u01A1\u1EDD\u1EDB\u1EE1\u1EDF\u1EE3\u1ECD\u1ED9\u01EB\u01ED\u00F8\u01FF\u0254\uA74B\uA74D\u0275]/g
+            },
+            {'base': 'oi', 'letters': /[\u01A3]/g},
+            {'base': 'ou', 'letters': /[\u0223]/g},
+            {'base': 'oo', 'letters': /[\uA74F]/g},
+            {'base': 'p', 'letters': /[\u0070\u24DF\uFF50\u1E55\u1E57\u01A5\u1D7D\uA751\uA753\uA755]/g},
+            {'base': 'q', 'letters': /[\u0071\u24E0\uFF51\u024B\uA757\uA759]/g},
+            {
+                'base': 'r',
+                'letters': /[\u0072\u24E1\uFF52\u0155\u1E59\u0159\u0211\u0213\u1E5B\u1E5D\u0157\u1E5F\u024D\u027D\uA75B\uA7A7\uA783]/g
+            },
+            {
+                'base': 's',
+                'letters': /[\u0073\u24E2\uFF53\u00DF\u015B\u1E65\u015D\u1E61\u0161\u1E67\u1E63\u1E69\u0219\u015F\u023F\uA7A9\uA785\u1E9B]/g
+            },
+            {
+                'base': 't',
+                'letters': /[\u0074\u24E3\uFF54\u1E6B\u1E97\u0165\u1E6D\u021B\u0163\u1E71\u1E6F\u0167\u01AD\u0288\u2C66\uA787]/g
+            },
+            {'base': 'tz', 'letters': /[\uA729]/g},
+            {
+                'base': 'u',
+                'letters': /[\u0075\u24E4\uFF55\u00F9\u00FA\u00FB\u0169\u1E79\u016B\u1E7B\u016D\u00FC\u01DC\u01D8\u01D6\u01DA\u1EE7\u016F\u0171\u01D4\u0215\u0217\u01B0\u1EEB\u1EE9\u1EEF\u1EED\u1EF1\u1EE5\u1E73\u0173\u1E77\u1E75\u0289]/g
+            },
+            {'base': 'v', 'letters': /[\u0076\u24E5\uFF56\u1E7D\u1E7F\u028B\uA75F\u028C]/g},
+            {'base': 'vy', 'letters': /[\uA761]/g},
+            {'base': 'w', 'letters': /[\u0077\u24E6\uFF57\u1E81\u1E83\u0175\u1E87\u1E85\u1E98\u1E89\u2C73]/g},
+            {'base': 'x', 'letters': /[\u0078\u24E7\uFF58\u1E8B\u1E8D]/g},
+            {
+                'base': 'y',
+                'letters': /[\u0079\u24E8\uFF59\u1EF3\u00FD\u0177\u1EF9\u0233\u1E8F\u00FF\u1EF7\u1E99\u1EF5\u01B4\u024F\u1EFF]/g
+            },
+            {
+                'base': 'z',
+                'letters': /[\u007A\u24E9\uFF5A\u017A\u1E91\u017C\u017E\u1E93\u1E95\u01B6\u0225\u0240\u2C6C\uA763]/g
+            }
+        ];
+
+        for (var i = 0; i < defaultDiacriticsRemovalMap.length; i++) {
+            str = str.replace(defaultDiacriticsRemovalMap[i].letters, defaultDiacriticsRemovalMap[i].base);
+        }
+        var split = str.split(' ')
+        var n = split.length
+        var text = ''
+        for (var i in split) {
+            text = text + split[i]
+        }
+        return text;
+    } else {
+        return ''
+    }
+
+}
+
+
+function createKey(fullname) {
+    if (fullname) {
+        var keyname = latinese(fullname)
+        if (keyListData[keyname]) {
+
+            var newname = keyname + Math.round(1000 * Math.random())
+            var obj = {}
+            obj[newname] = true
+            db.ref('keyList').update(obj, function (suc) {
+                console.log('done', suc)
+            })
+            return newname
+
+        } else {
+            var obj = {}
+            obj[keyname] = true
+            db.ref('keyList').update(obj, function (suc) {
+                console.log('done', suc)
+            })
+            return keyname
+
+        }
+    } else {
+        return Math.round(100000 * Math.random())
+    }
+
+
+}
+
+
 app.get('/sendFirstEmail', function (req, res) {
     var mailStr = req.param('mail')
     var mail = JSON.parse(mailStr)
-    var profileEmail = '';
+
+    var profile = []
 
     if (mail.profileList) {
-
-
-        var maxsent = 21
         var countsend = 0
+        var maxsent = 21
+
         for (var i in dataProfile) {
             var card = dataProfile[i];
             if (card.location
@@ -2612,97 +2917,59 @@ app.get('/sendFirstEmail', function (req, res) {
                 && card.name
                 && ((card.job && card.job[mail.job]) || (!mail.job && card.feature == true))
             ) {
-                countsend++
-                card.url = CONFIG.WEBURL + '/view/profile/' + card.userId;
-                var yourlat = card.location.lat;
-                var yourlng = card.location.lng;
-                var dis = getDistanceFromLatLonInKm(mail.location.lat, mail.location.lng, yourlat, yourlng);
+                if (mail.location) {
+                    var mylat = mail.location.lat;
+                    var mylng = mail.location.lng;
+                    var yourlat = card.location.lat;
+                    var yourlng = card.location.lng;
+                    var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng)
+                }
+
                 var stringJob = getStringJob(card.job)
                 if (
-                    dis < 20
+                    (dis < 20 || !dis)
                 ) {
-                    profileEmail = profileEmail + '<td style="vertical-align:top;width:200px;"> <![endif]--> <div class="mj-column-per-33 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0"> <tbody> <tr> <td style="width:150px;"><img alt="" title="" height="auto" src="' + card.avatar + '" style="border:none;border-radius:0px;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="150"></td> </tr> </tbody> </table> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;"> ' + card.name + ' </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="justify"> <div class="" style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;" > ' + stringJob + ' cách ' + dis + ' km  </div> </td> </tr> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="center"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0"> <tbody>  <tr> <td  style="border:none;border-radius:40px;background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);cursor:auto;padding:10px 25px;"align="center" valign="middle" bgcolor="#8ccaca"><a href="' + card.url + '"> <p style="text-decoration:none;line-height:100%;color:#ffffff;font-family:helvetica;font-size:12px;font-weight:normal;text-transform:none;margin:0px;">Tuyển</p></a> </td> </tr></tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td>'
+
+                    profile.push({
+                        title: card.name,
+                        image: card.avatar,
+                        body: stringJob + ' cách ' + dis + ' km',
+                        linktoaction: CONFIG.WEBURL + '/view/profile/' + card.userId,
+                        calltoaction: 'Tuyển'
+                    })
+                    countsend++;
                 }
-                console.log(card.name)
-                if (mail.countsend == maxsent) {
+                if (countsend == maxsent) {
                     break
                 }
             }
 
         }
+
     }
+
     return new Promise(function (resolve, reject) {
-        resolve(profileEmail)
-    }).then(function (profileEmail) {
-
-
-        var headerEmail = '<!doctype html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"><head> <title></title> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!--<![endif]--> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <style type="text/css"> #outlook a { padding: 0; } .ReadMsgBody { width: 100%; } .ExternalClass { width: 100%; } .ExternalClass * { line-height: 100%; } body { margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; } table, td { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; } img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; } p { display: block; margin: 13px 0; } </style> <!--[if !mso]><!--> <style type="text/css"> @media only screen and (max-width:480px) { @-ms-viewport { width: 320px; } @viewport { width: 320px; } } </style> <!--<![endif]--> <!--[if mso]><xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings></xml><![endif]--> <!--[if lte mso 11]><style type="text/css"> .outlook-group-fix { width:100% !important; }</style><![endif]--> <style type="text/css"> @media only screen and (min-width:480px) { .mj-column-per-33 { width: 33.333333333333336%!important; } } </style></head><body> <div> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" > <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description1 + '</p> </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="500" align="center" style="width:500px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:500px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr>'
-
-        var footerEmail = '<!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description2 + '</p></div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;"> <tr> <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"> <![endif]--> <div style="margin:0px auto;max-width:600px;"> <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0"> <tbody> <tr> <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;"> <!--[if mso | IE]> <table role="presentation" border="0" cellpadding="0" cellspacing="0"> <tr> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-100 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;"><p style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;"></p> <!--[if mso | IE]> <table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #E0E0E0;width:100%;" width="600"> <tr> <td style="height:0;line-height:0;"></td> </tr> </table><![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-80 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <div class="" style="cursor:auto;color:#000000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;"> <p>' + mail.description3 + '<br> ' + CONFIG.WEBURL + ' </div> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td> <td style="vertical-align:top;width:600px;"> <![endif]--> <div class="mj-column-per-20 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;"> <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"> <tbody> <tr> <td style="word-break:break-word;font-size:0px;padding:10px 25px;" align="left"> <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0"> <tbody> <tr> <td style="width:70px;"><img alt="" title="" height="auto" src="' + CONFIG.WEBURL + '/img/logo.png" style="border:none;border-radius:;display:block;outline:none;text-decoration:none;width:100%;height:auto;" width="70"></td> </tr> </tbody> </table> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--> </td> </tr> </tbody> </table> </div> <!--[if mso | IE]> </td></tr></table> <![endif]--></div></body></html>';
-
-
-        var htmlEmail = headerEmail + profileEmail + footerEmail
-
-
-        if (mail.from && dataUser[mail.from] && dataUser[mail.from].email) {
-            var mailAddress = {
-                email: dataUser[mail.from].email,
-                name: dataUser[mail.from].name + ' từ Jobo'
-            }
-        } else {
-            var mailAddress = {
-                email: 'contact@jobo.asia',
-                name: 'Jobo - Việc làm lương tốt'
-            }
-        }
-
-        var email = mail.to;
-
-        if (email) {
-            var mailOptions = {
-                from: {
-                    name: mailAddress.name,
-                    address: mailAddress.email
-                },
-                bcc: ['thonglk@jobo.asia', mailAddress.email],
-                to: email,
-                subject: mail.title,
-                html: htmlEmail,
-                attachments: [
-                    {   // filename and content type is derived from path
-                        path: 'https://joboapp.com/img/proposal_pricing_included.pdf'
-                    }
-                ]
-            };
-            return mailTransport.sendMail(mailOptions).then(function () {
-                console.log('New email sent to: ' + email);
-                mail.mail_sent = Date.now()
-                console.log(mail);
-
-                leadRef.child(mail.storeId).update({firstEmail: mail}).then(function (data) {
-                    res.send({
-                        code: 'success'
-                    })
-                })
-
-
-            }, function (error) {
-
-                console.log('Some thing wrong when sent email to ' + email + ':' + error);
-                res.send({
-                    code: 'error',
-                    msg: 'Some thing wrong when sent email to ' + email + ':' + error
-                })
-            });
-        } else {
-            res.send({
-                code: 'error',
-                msg: 'no email'
-            })
-        }
+        resolve(profile)
+    }).then(function (profile) {
+        mail.data = profile
+        console.log(mail)
+        sendNotification({email: mail.to, userId: mail.storeId}, mail, {
+            letter: true,
+            web: true,
+            mobile: true,
+            messenger: true
+        })
+        leadCol.updateOne(
+            {"storeId": mail.storeId},
+            {$set: {"firstEmail_mail_sent": Date.now()}}
+        ).then(function (data) {
+            console.log('data', data)
+            res.send({code: 'sucess'})
+        })
     })
 
-});
+})
+;
 
 app.get('/getLongToken', function (req, res) {
     var shortToken = req.param('token')
@@ -3166,19 +3433,19 @@ function sendMessenger(messengerId, noti, key) {
         },
         recipientIds: messengerId
     }
-    https.post(url, param, function (response) {
-        var body = '';
-        response.on('data', function (chunk) {
-            body += chunk;
-        });
-
-        response.on('end', function () {
-            console.log('sendMessenger')
-            notificationRef.child(key + '/messenger_sent').update(Date.now())
-        });
-    }).on('error', function (e) {
-        console.log("Got error: " + e.message);
-    });
+    // https.post(url, param, function (response) {
+    //     var body = '';
+    //     response.on('data', function (chunk) {
+    //         body += chunk;
+    //     });
+    //
+    //     response.on('end', function () {
+    //         console.log('sendMessenger')
+    //         notificationRef.child(key + '/messenger_sent').update(Date.now())
+    //     });
+    // }).on('error', function (e) {
+    //     console.log("Got error: " + e.message);
+    // });
 }
 
 
@@ -3190,7 +3457,7 @@ function sendNotificationToGivenUser(registrationToken, noti, type, key) {
             body: noti.body
         },
         data: {
-            cta: noti.linktoaction || ''
+            linktoaction: noti.linktoaction || ''
         }
     };
 
@@ -3204,9 +3471,11 @@ function sendNotificationToGivenUser(registrationToken, noti, type, key) {
 // registration token with the provided options.
     secondary.messaging().sendToDevice(registrationToken, payload, options)
         .then(function (response) {
-            console.log("secondary sent message:", JSON.stringify(response.results));
             if (response.successCount == 1 && type && key) {
-                notificationRef.child(key + '/' + type + '_sent').update(Date.now())
+                var data = {}
+                data[type + '_sent'] = Date.now()
+                console.log("secondary sent message:", data);
+                notificationRef.child(key).update(data)
             }
         })
         .catch(function (error) {
@@ -3893,7 +4162,12 @@ function startList() {
                             description4: '',
                             image: ''
                         };
-                        sendNotification(dataUser[card.data.to], notification, true, true, true)
+                        sendNotification(dataUser[card.data.to], notification, {
+                            letter: true,
+                            web: true,
+                            messenger: true,
+                            mobile: true
+                        })
 
                     } else {
                         console.log('error')
@@ -3913,7 +4187,12 @@ function startList() {
                             storeId: card.data.to
 
                         };
-                        sendNotification(dataUser[dataStore[card.data.to].createdBy], notification, true, true, true)
+                        sendNotification(dataUser[dataStore[card.data.to].createdBy], notification, {
+                            letter: true,
+                            web: true,
+                            messenger: true,
+                            mobile: true
+                        })
                     } else {
                         console.log('error')
                     }
@@ -4051,7 +4330,7 @@ function sendWelcomeEmailToProfile(userData, profileData) {
         linktoaction: 'tel:0968269860',
         image: ''
     };
-    sendNotification(userData, mail, true, true, true)
+    sendNotification(userData, mail, {letter: true, web: true, messenger: true, mobile: true})
 }
 
 app.get('/sendWelcomeEmailToStore', function (req, res) {
@@ -4182,7 +4461,12 @@ function sendNotiSubcribleToEmployer(userData) {
                         description3: 'Nếu bạn không thích ứng viên này, bạn có thể chọn các ứng viên khác, chúng tôi có hơn 1000 ứng viên được cập nhật mới mỗi ngày.',
                         storeId: card.storeId
                     };
-                    sendNotification(dataUser[card.createdBy], mail, true, true, true)
+                    sendNotification(dataUser[card.createdBy], mail, {
+                        letter: true,
+                        web: true,
+                        messenger: true,
+                        mobile: true
+                    })
                 }
             }
         }
@@ -4192,18 +4476,22 @@ function sendNotiSubcribleToEmployer(userData) {
 
 }
 
+app.get('/sendNotiSubcribleToProfile', function (req, res) {
+    var storeId = req.param('storeId');
+
+    sendNotiSubcribleToProfile(storeId)
+
+    res.send('done')
+})
 
 function sendNotiSubcribleToProfile(storeId) {
     var storeData = dataStore[storeId]
-    console.log(storeData.job)
     if (storeData.storeName && storeData.job && storeData.location) {
         for (var i in dataProfile) {
             var card = dataProfile[i];
             if (card.location && card.job) {
                 var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
-
                 if (dis <= 20) {
-
 
                     var mail = {
                         title: 'Jobo | ' + storeData.storeName + ' tuyển dụng',
@@ -4213,7 +4501,7 @@ function sendNotiSubcribleToProfile(storeId) {
                             image: storeData.avatar || '',
                             body: getStringJob(storeData.job) + ' cách ' + dis + ' km',
                             calltoaction: 'Xem chi tiết',
-                            linktoaction: '/view/store/' + storeData.storeId + '#ref=kt',
+                            linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=kt',
                         }],
                         description1: 'Chào ' + getLastName(card.name),
                         description2: storeData.storeName + ' đang tuyển dụng ' + getStringJob(storeData.job) + ' rất phù hợp với  bạn, xem mô tả và ứng tuyển ngay!',
@@ -4256,7 +4544,12 @@ function sendMailNotiLikeToStore(card) {
             linktoaction: '/view/profile/' + card.userId,
             storeId: card.storeId
         };
-        sendNotification(dataUser[dataStore[card.storeId].createdBy], mail, true, true, true)
+        sendNotification(dataUser[dataStore[card.storeId].createdBy], mail, {
+            letter: true,
+            web: true,
+            messenger: true,
+            mobile: true
+        })
 
     }
 
@@ -4277,9 +4570,9 @@ function sendMailNotiLikeToProfile(card) {
         subtitle: '',
         image: '',
         calltoaction: 'Xem chi tiết',
-        linktoaction: '/view/store/' + card.storeId
+        linktoaction: CONFIG.WEBURL + '/view/store/' + card.storeId
     };
-    sendNotification(dataUser[card.userId], mail, true, true, true)
+    sendNotification(dataUser[card.userId], mail, {letter: true, web: true, messenger: true, mobile: true})
 
 }
 
@@ -4301,7 +4594,12 @@ function sendMailNotiMatchToStore(card) {
         image: '',
         storeId: card.storeId
     }
-    sendNotification(dataUser[dataStore[card.storeId].createdBy], notification, true, true, true)
+    sendNotification(dataUser[dataStore[card.storeId].createdBy], notification, {
+        letter: true,
+        web: true,
+        messenger: true,
+        mobile: true
+    })
 
 }
 
@@ -4314,11 +4612,11 @@ function sendMailNotiMatchToProfile(card) {
         description2: 'Chúc mừng , Thương hiệu ' + card.storeName + ' đã tương hợp với bạn, hãy chuẩn bị thật kĩ trước khi tới gặp nhà tuyển dụng nhé',
         description3: '',
         calltoaction: 'Liên hệ ngay!',
-        linktoaction: '/view/store/' + card.storeId,
+        linktoaction: CONFIG.WEBURL + '/view/store/' + card.storeId,
         description4: '',
         image: ''
     };
-    sendNotification(dataUser[card.userId], notification, true, true, true)
+    sendNotification(dataUser[card.userId], notification, {letter: true, web: true, messenger: true, mobile: true})
 }
 
 
@@ -4546,7 +4844,7 @@ function analyticsRemind() {
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
         var mail = {
             title: dayy + '| Jobo KPI Result ',
-            preview: `Từ ${dayy} đến ${new Date(data.dateEnd)}: Total User: ${data.total}`,
+            body: `Từ ${dayy} đến ${new Date(data.dateEnd)}: Total User: ${data.total}`,
             subtitle: '',
             description1: 'Dear friend,',
             description2: `Từ ${dayy} đến ${new Date(data.dateEnd)}:<br> Total User: ${data.total} <br> <b>Employer:</b><br> - New account: ${data.employer.employer} <br> - New store: ${data.employer.store} <br> - New premium: ${data.employer.premium}<br> <b>Jobseeker:</b><br> - HN: ${data.jobseeker.hn} <br> -SG: ${data.jobseeker.sg} <br> <b>Operation:</b> <br>- Ứng viên thành công: ${data.act.success} <br> - Ứng viên đi phỏng vấn:${data.act.meet} <br> - Lượt ứng tuyển: ${data.act.userLikeStore} <br> - Lượt tuyển: ${data.act.storeLikeUser} <br> - Lượt tương hợp: ${data.act.match} <br> <b>Sale:</b> <br>- Lead :<br>${JSON.stringify(data.lead)}`,
@@ -4558,7 +4856,7 @@ function analyticsRemind() {
 
         for (var i in dataUser) {
             if (dataUser[i].admin == true) {
-                sendNotification(dataUser[i], mail, true, true, true)
+                sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true})
             }
         }
     })
@@ -4810,7 +5108,8 @@ app.get('/PostStore', function (req, res) {
 
 
 function PostStore(storeId, job, where, poster, time) {
-    if(!where){
+
+    if (!where) {
         where = isWhere(storeId)
     }
 
@@ -4833,10 +5132,11 @@ function PostStore(storeId, job, where, poster, time) {
                 data[poster] = 'tried';
                 groupRef.child(groupData[i].groupId).update(data)
                 if (!time) {
-                    time = Date.now()
+                    time = Date.now() + 5 * 1000
                 } else {
                     time = time + 60 * 5 * 1000
                 }
+
                 console.log(new Date(time))
                 var postId = facebookPostRef.push().key;
                 var to = groupData[i].groupId
@@ -4997,9 +5297,8 @@ function Email_happyBirthDayProfile() {
                 linktoaction: CONFIG.WEBURL,
                 image: ''
             };
-            schedule.scheduleJob(profileData.birth, function () {
-                sendNotification(userData, mail, true, true, true)
-            });
+            sendNotification(userData, mail, null, profileData.birth)
+
 
         }
     }
