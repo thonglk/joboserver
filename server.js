@@ -79,7 +79,7 @@ const MongoClient = require('mongodb');
 
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
+var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol, leadCol, emailChannelCol
 
 MongoClient.connect(uri, function (err, db) {
     console.log(err);
@@ -91,6 +91,8 @@ MongoClient.connect(uri, function (err, db) {
     jobCol = md.collection('job');
     notificationCol = md.collection('notification');
     staticCol = md.collection('static');
+    leadCol = md.collection('lead');
+    emailChannelCol = md.collection('emailChannel');
 
     console.log("Connected correctly to server.");
 });
@@ -177,7 +179,6 @@ groupRef.once('value', function (snap) {
 
 
 })
-
 
 
 var mailTransport = nodemailer.createTransport(ses({
@@ -775,53 +776,6 @@ var facebookAccount = {
 }
 
 
-app.get('/PostToFacebook', function (req, res) {
-    PostToFacebook({text: 'hihi', group: '103163799824216'})
-})
-
-function PostToFacebook({image = null, text, link = null, group = null, job = null, where = null, poster = null, time = null}) {
-    var contentId = facebookContentRef.push().key;
-    facebookContentRef.child(contentId).update({image, text, link, job, where, poster, time, contentId})
-
-    if (!time) {
-        time = Date.now() + 5 * 1000
-    }
-
-    for (var i in groupData) {
-        if (
-            (groupData[i].groupId == group || !group) &&
-            (groupData[i].area == where || !where) &&
-            (groupData[i].job && groupData[i].job.match(job) || !job )
-        ) {
-            if (!poster) {
-                if (groupData[i].poster) {
-                    var random = Math.round(Math.random() * (groupData[i].poster.length - 1))
-                    if (groupData[i].poster[random]) {
-                        poster = groupData[i].poster[random]
-                    }
-                } else {
-                    poster = 'thuythuy'
-                }
-            }
-
-            console.log('poster', poster);
-
-            var to = groupData[i].groupId;
-            console.log('to', to)
-
-            var postId = facebookPostRef.push().key;
-            facebookPostRef.child(postId).update({postId, contentId, poster, time, to}, function (res) {
-                console.log('facebookPostRef done', res)
-            });
-
-            schedule.scheduleJob(time, function () {
-                PublishFacebook(to, {text, link}, poster, postId)
-            });
-
-        }
-    }
-}
-
 function sendStoretoPage(storeId) {
     var storeData = dataStore[storeId];
     storeData.jobData = _.where(dataJob, {storeId: storeId});
@@ -991,14 +945,8 @@ function init() {
     //
     // });
 
-    // leadRef.on('value', function (data) {
-    //     dataLead = data.val()
-    //
-    // })
-    //
-    // emailRef.on('value', function (data) {
-    //     dataEmail = data.val()
-    // })
+
+
     var now = new Date().getTime();
     notificationRef.startAt(now).once('value', function (snap) {
         var data = snap.val()
@@ -1019,7 +967,7 @@ function init() {
             var content = data[i]
             if (content && content.time > now) {
                 a++
-                console.log(a)
+                console.log(a);
                 schedule.scheduleJob(content.time, function () {
                     PublishFacebook(content.to, content.content, content.poster, content.postId)
                 })
@@ -1248,7 +1196,7 @@ app.get('/createJDStore', function (req, res) {
 
 function createJDStore(storeId, a) {
     var storeData = dataStore[storeId];
-    if(!storeData) return
+    if (!storeData) return
     storeData.jobData = _.where(dataJob, {storeId: storeId});
 
     var text = '';
@@ -1368,6 +1316,7 @@ function createJDStore(storeId, a) {
 app.get('/check', function (req, res) {
     checkInadequate()
 })
+
 function checkInadequate() {
     jobRef.once('value', function (a) {
         var dataJobs = a.val()
@@ -1383,12 +1332,12 @@ function checkInadequate() {
                 console.log('checkInadequateStoreIdInJob_deadline', i)
                 jobRef.child(i).update({deadline: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
             }
-            if(job.act){
+            if (job.act) {
                 console.log('job.act remove', i)
 
                 jobRef.child(i).child('act').remove()
             }
-            if(job.distance){
+            if (job.distance) {
                 console.log('job.distance remove', i)
 
                 jobRef.child(i).child('distance').remove()
@@ -1400,22 +1349,22 @@ function checkInadequate() {
 
         for (var i in dataStores) {
             var store = dataStores[i]
-            if(store.act){
+            if (store.act) {
                 console.log('store.act remove', i)
 
                 storeRef.child(i).child('act').remove()
             }
-            if(store.distance){
+            if (store.distance) {
                 console.log('store.distance remove', i)
 
                 storeRef.child(i).child('distance').remove()
             }
-            if(store.static){
+            if (store.static) {
                 console.log('store.static remove', i)
 
                 storeRef.child(i).child('static').remove()
             }
-            if(store.presence){
+            if (store.presence) {
                 console.log('store.presence remove', i)
 
                 storeRef.child(i).child('presence').remove()
@@ -1434,22 +1383,22 @@ function checkInadequate() {
                     }
                 )
             }
-            if(profile.act){
+            if (profile.act) {
                 console.log('profile.act remove', i)
 
                 profileRef.child(i).child('act').remove()
             }
-            if(profile.distance){
+            if (profile.distance) {
                 console.log('profile.distance remove', i)
 
                 profileRef.child(i).child('distance').remove()
             }
-            if(profile.static){
+            if (profile.static) {
                 console.log('profile.static remove', i)
 
                 profileRef.child(i).child('static').remove()
             }
-            if(profile.presence){
+            if (profile.presence) {
                 console.log('profile.presence remove', i)
 
                 profileRef.child(i).child('presence').remove()
@@ -3195,10 +3144,10 @@ app.get('/admin/storeEmail', function (req, res) {
     res.send(send)
 })
 
-app.get('/config',function (req,res) {
+app.get('/config', function (req, res) {
     res.send(CONFIG)
 })
-app.get('/lang',function (req,res) {
+app.get('/lang', function (req, res) {
     res.send(Lang)
 })
 
@@ -3526,7 +3475,7 @@ app.get('/initStore', function (req, res) {
             sendStoretoPage(storeId)
         }, 5000)
         setTimeout(function () {
-            PostStore(storeId, null, job)
+            PostStore(storeId, job)
         }, 10000)
         setTimeout(function () {
             sendNotiSubcribleToProfile(storeId)
@@ -4854,13 +4803,16 @@ app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
     var poster = req.param('poster');
     var job = req.param('job');
+    var where = req.param('where');
 
-    PostStore(storeId, poster, job);
+    PostStore(storeId, job, where, poster);
 });
 
 
-function PostStore(storeId, poster, job, time) {
-    var where = isWhere(storeId)
+function PostStore(storeId, job, where, poster, time) {
+    if(!where){
+        where = isWhere(storeId)
+    }
 
     setTimeout(function () {
         for (var i in groupData) {
@@ -4868,7 +4820,7 @@ function PostStore(storeId, poster, job, time) {
             var content = createJDStore(storeId);
             if (content
                 && groupData[i].groupId
-                && (groupData[i].area == where || groupData[i].area == 'vn')
+                && (groupData[i].area == where || !where)
                 && (groupData[i].job && groupData[i].job.match(job) || !job )) {
                 var data = {};
                 if (groupData[i].poster) {
@@ -4883,7 +4835,7 @@ function PostStore(storeId, poster, job, time) {
                 if (!time) {
                     time = Date.now()
                 } else {
-                    time = time + 60* 5 * 1000
+                    time = time + 60 * 5 * 1000
                 }
                 console.log(new Date(time))
                 var postId = facebookPostRef.push().key;
@@ -4909,7 +4861,7 @@ rule3.hour = 15;
 rule3.minute = 0;
 
 schedule.scheduleJob(rule3, function () {
-    PostStore('-Ko888eO-cKhfXzJzSQh', 'myhuyen2');
+    PostStore('-Ko888eO-cKhfXzJzSQh', 'server', 'hcm');
 });
 
 var rule4 = new schedule.RecurrenceRule();
@@ -4917,7 +4869,7 @@ rule4.hour = 10;
 rule4.minute = 26;
 
 schedule.scheduleJob(rule4, function () {
-    PostStore('s28259779165860', 'dong');
+    PostStore('-Kop_Dcf9r_gj94B_D3z', 'server', 'hn');
 });
 
 
