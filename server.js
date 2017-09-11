@@ -75,6 +75,26 @@ var joboPxl = firebase.initializeApp({
 //Mongo//
 
 
+const MongoClient = require('mongodb');
+
+
+var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
+var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
+
+MongoClient.connect(uri, function (err, db) {
+    console.log(err)
+    md = db
+    userCol = md.collection('user');
+    profileCol = md.collection('profile');
+    storeCol = md.collection('store');
+    jobCol = md.collection('job');
+    notificationCol = md.collection('notification');
+    staticCol = md.collection('static');
+
+    console.log("Connected correctly to server.");
+});
+
+
 var adminEmailList = []
 var db = secondary.database();
 
@@ -157,24 +177,6 @@ groupRef.once('value', function (snap) {
 
 })
 
-
-const MongoClient = require('mongodb');
-
-
-var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
-
-MongoClient.connect(uri, function (err, db) {
-    md = db
-    userCol = md.collection('user');
-    profileCol = md.collection('profile');
-    storeCol = md.collection('store');
-    jobCol = md.collection('job');
-    notificationCol = md.collection('notification');
-    staticCol = md.collection('static');
-
-    console.log("Connected correctly to server.");
-});
 
 
 var mailTransport = nodemailer.createTransport(ses({
@@ -1362,7 +1364,9 @@ function createJDStore(storeId, a) {
 
 }
 
-
+app.get('/check', function (req, res) {
+    checkInadequate()
+})
 function checkInadequate() {
     jobRef.once('value', function (a) {
         var dataJobs = a.val()
@@ -1378,6 +1382,43 @@ function checkInadequate() {
                 console.log('checkInadequateStoreIdInJob_deadline', i)
                 jobRef.child(i).update({deadline: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
             }
+            if(job.act){
+                console.log('job.act remove', i)
+
+                jobRef.child(i).child('act').remove()
+            }
+            if(job.distance){
+                console.log('job.distance remove', i)
+
+                jobRef.child(i).child('distance').remove()
+            }
+        }
+    })
+    storeRef.once('value', function (a) {
+        var dataStores = a.val()
+
+        for (var i in dataStores) {
+            var store = dataStores[i]
+            if(store.act){
+                console.log('store.act remove', i)
+
+                storeRef.child(i).child('act').remove()
+            }
+            if(store.distance){
+                console.log('store.distance remove', i)
+
+                storeRef.child(i).child('distance').remove()
+            }
+            if(store.static){
+                console.log('store.static remove', i)
+
+                storeRef.child(i).child('static').remove()
+            }
+            if(store.presence){
+                console.log('store.presence remove', i)
+
+                storeRef.child(i).child('presence').remove()
+            }
         }
     })
     profileRef.once('value', function (a) {
@@ -1391,6 +1432,26 @@ function checkInadequate() {
                         userId: i
                     }
                 )
+            }
+            if(profile.act){
+                console.log('profile.act remove', i)
+
+                profileRef.child(i).child('act').remove()
+            }
+            if(profile.distance){
+                console.log('profile.distance remove', i)
+
+                profileRef.child(i).child('distance').remove()
+            }
+            if(profile.static){
+                console.log('profile.static remove', i)
+
+                profileRef.child(i).child('static').remove()
+            }
+            if(profile.presence){
+                console.log('profile.presence remove', i)
+
+                profileRef.child(i).child('presence').remove()
             }
         }
     })
@@ -1560,9 +1621,7 @@ app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 
 // routes will go here
 
-app.get('/check', function (req, res) {
-    checkInadequate()
-})
+
 schedule.scheduleJob({hour: 12, minute: 30}, function () {
     checkInadequate()
 });
@@ -3137,6 +3196,9 @@ app.get('/admin/storeEmail', function (req, res) {
 
 app.get('/config',function (req,res) {
     res.send(CONFIG)
+})
+app.get('/lang',function (req,res) {
+    res.send(Lang)
 })
 
 /**
