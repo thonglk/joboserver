@@ -289,7 +289,7 @@ const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
   });
 };
 
-sendPXLEmail('thonglk.mac@gmail.com', 'Helloooooo', '<a href="https://joboapp.com/">Test</a>', 'abcd')
+sendPXLEmail('nguyenthienthanh218@gmail.com', 'Helloooooo', '<a href="https://joboapp.com/">Test</a>', 'abcd')
   .then(messageId => console.log('Message sent: %s', messageId))
   .catch(err => console.log(err));
 
@@ -4845,11 +4845,12 @@ function PostStore(storeId, job, where, poster, time) {
 
 app.route('/PostText2Store')
   .post(function (req, res) {
-    var { text, poster, job, where } = req.body;
-    PostTextToStore(text, job, where, poster);
+    var { text, poster, job, where, time } = req.body;
+    PostTextToStore(text, job, where, poster, time);
+    res.json('done');
   });
 
-function PostTextToStore(text, job, where, poster, time) {
+function PostTextToStore(text, job, where, poster, time = null) {
   for (var i in groupData) {
     var content = { text };
     if (content &&
@@ -4872,13 +4873,33 @@ function PostTextToStore(text, job, where, poster, time) {
       var postId = facebookPostRef.push().key;
       var to = groupData[i].groupId
       facebookPostRef.child(postId).update({ postId, poster, content, time, to }, function (res) {
-        console.log('facebookPostRef')
+        console.log('facebookPostRef');
+        schedule.scheduleJob(time, function () {
+          PublishFacebook(to, content, poster, postId)
+        })
       });
-      schedule.scheduleJob(time, function () {
-        PublishFacebook(to, content, poster, postId)
-      })
     }
   }
+}
+
+app.route('/getGroup')
+  .get((req, res) => {
+    res.json(groupData);
+  })
+
+app.route('/getfbPost')
+  .get((req, res) => {
+    getFacebookPost()
+      .then(posts => res.status(200).json(posts))
+      .catch(err => res.status(500).json(err));
+  });
+
+function getFacebookPost() {
+  return new Promise((resolve, reject) => {
+    facebookPostRef.once('value')
+      .then(posts => resolve(posts.val()))
+      .catch(err => reject(err));
+  });
 }
 
 var rule3 = new schedule.RecurrenceRule();
@@ -4906,7 +4927,7 @@ function PostListJob(ref, where, poster) {
       '🎖️ Không cần kinh nghiệm\n' +
       '🎖️ Được hướng dẫn tận tình\n' +
       '🎖️ Không cần CV\n' +
-      '🎖️ Lương thưởng x1.2 x1.3 nếu gắn bó lâu dài \n' + createListPremiumJob(where) + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận 1';
+      '🎖️ Lương thưởng x1.2 x1.3 nếu gắn bó lâu dài \n' + createListPremiumJob(where) + ' \n------------------ \n Jobo là ứng dụng tìm việc parttime và thời vụ lương cao \n 🏆 Giải nhì cuộc thi Khởi nghiệp của đại sứ Mỹ \n ️🏆Jobo trên VTV1 Quốc gia khởi nghiệp: https://goo.gl/FVg9AD\n ️🏆 Jobo trên VTV Cà phê khởi nghiệp: https://goo.gl/9CjSco\n ️🔹VP Hà Nội: Toong Coworking space, 25T2 Hoàng Đạo Thuý \n 🔹VP Sài Gòn: 162 Pasteur, Quận T1';
 
     if (Object.keys(shortLinkData).length > 1) {
 
