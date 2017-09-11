@@ -82,8 +82,9 @@ var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.
 var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol;
 
 MongoClient.connect(uri, function (err, db) {
-    console.log(err)
-    md = db
+    console.log(err);
+
+    md = db;
     userCol = md.collection('user');
     profileCol = md.collection('profile');
     storeCol = md.collection('store');
