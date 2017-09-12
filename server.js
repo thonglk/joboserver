@@ -1188,6 +1188,7 @@ function createListPremiumJob(where) {
 app.get('/createListGoogleJob', function (req, res) {
     res.send(createListGoogleJob())
 })
+
 function createListGoogleJob(where) {
     var jobHN = "";
     var jobHCM = "";
@@ -1215,8 +1216,6 @@ function createListGoogleJob(where) {
         return jobHN + jobHCM
     }
 }
-
-
 
 
 function shortenURL(longURL, key) {
@@ -5154,6 +5153,62 @@ function PostStore(storeId, job, where, poster, time) {
     }, 5000)
 
 }
+
+
+app.route('/PostText2Store')
+    .post(function (req, res) {
+        var {text, poster, job, where, time} = req.body;
+        PostTextToStore(text, job, where, poster, time);
+        res.json('done');
+    });
+
+function PostTextToStore(text, job, where, poster, time = null) {
+    for (var i in groupData) {
+        var content = {text};
+        if (content &&
+            groupData[i].groupId &&
+            (groupData[i].area == where || !where) &&
+            (groupData[i].job && groupData[i].job.match(job) || !job)) {
+            var data = {};
+            if (groupData[i].poster) {
+                var random = Math.round(Math.random() * (groupData[i].poster.length - 1))
+                poster = groupData[i].poster[random]
+            } else {
+                poster = 'thuythuy'
+            }
+            console.log(poster)
+            data[poster] = 'tried';
+            groupRef.child(groupData[i].groupId).update(data)
+            time = time + 60 * 5 * 1000 || Date.now() + 15000;
+
+            console.log(new Date(time))
+            var postId = facebookPostRef.push().key;
+            var to = groupData[i].groupId
+            facebookPostRef.child(postId).update({postId, poster, content, time, to}, function (res) {
+                console.log('facebookPostRef');
+                schedule.scheduleJob(time, function () {
+                    PublishFacebook(to, content, poster, postId)
+                })
+            });
+        }
+    }
+}
+
+app.get('/getfbPost', function (req, res) {
+    let {p: page, q: query} = req.query
+    facebookPostRef.once('value')
+        .then(function (snap) {
+            var data  = snap.val()
+            var sorted = _.sortBy(data,function (card) {
+                return -card.time
+            })
+            var send = getPaginatedItems(sorted,page)
+            res.send(send)
+
+        })
+        .catch(err => reject(err));
+});
+
 
 
 var rule3 = new schedule.RecurrenceRule();
