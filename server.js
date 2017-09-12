@@ -955,7 +955,7 @@ function init() {
 
   facebookPostRef.once('value', function (snap) {
     var data = snap.val()
-    console.log('Facebook content: ', data);
+    // console.log('Facebook content: ', data);
     var a = 0
     for (var i in data) {
 
@@ -964,7 +964,7 @@ function init() {
         a++
         console.log(a);
         schedule.scheduleJob(content.time, function () {
-          console.log('Publish Facebook', content);
+          // console.log('Publish Facebook', content);
           PublishFacebook(content.to, content.content, content.poster, content.postId)
         })
       }
