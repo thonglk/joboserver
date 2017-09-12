@@ -8,7 +8,7 @@ class PersistenceLayerBase {
         })
     }
 
-    logPxl(pxl, metadata) {
+    logPxl(pxl) {
         return new Promise((resolve, reject) => {
             throw new Error('Mising implementation for PersistenceLayerBase.logPxl(pxl)')
         })

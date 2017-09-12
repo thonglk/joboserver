@@ -1,4 +1,4 @@
 module.exports = {
-  host: 'http://jobohihi.herokuapp.com',
+  host: 'https://jobohihi.herokuapp.com',
   firebase: 'https://jobo-pxl.firebaseio.com',
 }

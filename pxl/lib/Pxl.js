@@ -11,7 +11,7 @@ let PersistenceLayerBase = require('./PersistenceLayerBase.js')
 
 class Pxl {
 
-    constructor({ persistenceLayer, queryParam = 'pxl', queryUser = 'user', logPxlFailed = function () {} } = {}) {
+    constructor({ persistenceLayer, queryParam = 'pxl', logPxlFailed = function () {} } = {}) {
 
         if (persistenceLayer instanceof PersistenceLayerBase === false || persistenceLayer.constructor === PersistenceLayerBase) {
             throw new TypeError('options.persistenceLayer must extend Pxl.PersistenceLayerBase')
@@ -21,10 +21,6 @@ class Pxl {
             throw new TypeError('options.queryParam must be non-empty string')
         }
 
-        if (!isString(queryUser) || queryUser.length === 0) {
-            throw new TypeError('options.queryUser must be non-empty string')
-        }
-
         if (!isFunction(logPxlFailed)) {
             throw new TypeError('options.logPxlFailed must be a function')
         }
@@ -32,7 +28,6 @@ class Pxl {
         this.logPxlFailed = logPxlFailed
         this.persistenceLayer = persistenceLayer
         this.queryParam = queryParam
-        this.queryUser = queryUser
 
         this.trackPxl = this.trackPxl.bind(this)
         this.redirect = this.redirect.bind(this)
@@ -54,14 +49,14 @@ class Pxl {
 
     }
 
-    logPxl(pxl, metadata) {
+    logPxl(pxl) {
 
-        return this.persistenceLayer.logPxl(pxl, metadata)
+        return this.persistenceLayer.logPxl(pxl)
             .then((updatedPxl) => {
 
                 if (isObject(updatedPxl) && isString(updatedPxl.ref)) {
 
-                    return this.persistenceLayer.logPxl(updatedPxl.ref, metadata) // Calling this.logPxl(pxl) recursively would be too complex because chained refs may contain circles
+                    return this.persistenceLayer.logPxl(updatedPxl.ref) // Calling this.logPxl(pxl) recursively would be too complex because chained refs may contain circles
                         .then(() => {
                             return updatedPxl
                         })
@@ -75,8 +70,10 @@ class Pxl {
     }
 
     trackPxl(req, res, next) {
-        if (req.query && isString(req.query[this.queryParam]) && req.query[this.queryParam].length > 0 && isString(req.query[this.queryUser]) && req.query[this.queryUser].length > 0) {
-            this.logPxl(req.query[this.queryParam], req.query[this.queryUser])
+
+        if (req.query && isString(req.query[this.queryParam]) && req.query[this.queryParam].length > 0) {
+
+            this.logPxl(req.query[this.queryParam])
                 .catch((err) => {
                     this.logPxlFailed(err, req.query[this.queryParam], req.url)
                 })

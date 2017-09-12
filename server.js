@@ -288,7 +288,7 @@ const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
         pxlForEmails.addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
             notiId: notiId,
         }).then(html => {
-            return sendEmail(addressTo, mail, emailMarkup, notiId);
+            return sendEmail(addressTo, mail, html, notiId);
         })
             .then(messageId => resolve(messageId))
             .catch(err => reject(err));
@@ -722,38 +722,46 @@ function sendEmailTemplate(email, mail, notiId) {
 }
 
 function sendNotification(userData, mail, channel, time) {
-    if (!userData) return;
-    if (!channel) {
-        channel = {
-            web: true,
-            letter: true,
-            mobile: true,
-            messenger: true
+    return new Promise(function (resolve, reject) {
+        if (!userData) return;
+        if (!channel) {
+            channel = {
+                web: true,
+                letter: true,
+                mobile: true,
+                messenger: true
+            }
         }
-    }
-    var notiId = notificationRef.push().key;
-    var notification = {
-        userData: userData,
-        mail: mail,
-        notiId: notiId,
-        time: time || Date.now(),
-        createdAt: Date.now(),
-        channel: channel
-    }
+        var notiId = notificationRef.push().key;
+        var notification = {
+            userData: userData,
+            mail: mail,
+            notiId: notiId,
+            time: time || Date.now(),
+            createdAt: Date.now(),
+            channel: channel
+        }
 
-    notificationRef.child(notiId).update(notification);
+        notificationRef.child(notiId).update(notification).then(function (err, result) {
+            if (err) {
+                console.log(err);
+                reject(err);
+            } else {
 
+                if (!time) {
+                    startSend(userData, mail, channel, notiId)
+                } else {
+                    console.log('scheduleJob Noti', notiId)
+                    schedule.scheduleJob(time, function () {
+                        startSend(userData, mail, channel, notiId)
+                    })
 
-    if (!time) {
-        startSend(userData, mail, channel, notiId)
-    } else {
-        console.log('scheduleJob Noti', notiId)
+                }
+                resolve(notiId);
+            }
+        });
 
-        schedule.scheduleJob(time, function () {
-            startSend(userData, mail, channel, notiId)
-        })
-
-    }
+    });
 
 }
 
@@ -1293,28 +1301,20 @@ function createJDStore(storeId, a) {
     var today = new Date().getTime()
 
     if (a == 0) {
-        text = text + storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
-        if (storeData.address) {
-            text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
-        }
-
-        if (storeData.description) {
-            text = text + storeData.description + '\n \n'
-        }
-
-        text = text + '► Vị trí cần tuyển \n'
-
+        text = `${storeData.storeName} tuyển dụng tại ${shortAddress(storeData.address)}
+📢  📢 Bạn năng động và ham học hỏi? Hãy tham gia vào chuỗi ${storeData.storeName} để có những trải nghiệm thú vị, kinh nghiệm mới và cơ hội được đào tạo nhiều kỹ năng chuyên nghiệp.
+👉 ${storeData.storeName} đang cần tuyển nhân viên cho chi nhánh mới với mức lương rất hấp dẫn, hãy nhanh chóng ứng tuyển ngay các vị trí sau:`
         for (var i in storeData.jobData) {
-
             var Job = storeData.jobData[i]
             if (Job.deadline > today) {
-                var jobId = Job.storeId + ':' + Job.job
-                text = text + createJDJob(jobId)
+                text = text + `${Job.unit} ${Lang[Job.job]} `
             }
         }
 
-        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type0'
-        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 0166 7951 678 (My)`
+        text = text + `
+        👉 Ưu tiên ứng viên qua hoặc nộp hồ sơ online qua ${link}
+        👉 Mọi thắc mắc vui lòng liên hệ số điện thoại: 0166 7951 678 (Thảo)để được giải đáp nhé!`
+
         if (storeData.photo) {
             storeData.photo.push(storeData.avatar)
         } else {
@@ -1328,6 +1328,7 @@ function createJDStore(storeId, a) {
             link: link,
             image: storeData.photo[randomphoto]
         }
+
     } else if (a == 1) {
 
         var random = Math.round(Math.random() * storeData.jobData.length)
@@ -1366,22 +1367,28 @@ function createJDStore(storeId, a) {
         }
 
     } else {
-        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type2'
+        text = text + storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
+        if (storeData.address) {
+            text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
+        }
 
-        text = `${storeData.storeName} tuyển dụng tại ${shortAddress(storeData.address)}
-📢  📢 Bạn năng động và ham học hỏi? Hãy tham gia vào chuỗi ${storeData.storeName} để có những trải nghiệm thú vị, kinh nghiệm mới và cơ hội được đào tạo nhiều kỹ năng chuyên nghiệp.
-👉 ${storeData.storeName} đang cần tuyển nhân viên cho chi nhánh mới với mức lương rất hấp dẫn, hãy nhanh chóng ứng tuyển ngay các vị trí sau:`
+        if (storeData.description) {
+            text = text + storeData.description + '\n \n'
+        }
+
+        text = text + '► Vị trí cần tuyển \n'
+
         for (var i in storeData.jobData) {
+
             var Job = storeData.jobData[i]
             if (Job.deadline > today) {
-                text = text + `${Job.unit} ${Lang[Job.job]} `
+                var jobId = Job.storeId + ':' + Job.job
+                text = text + createJDJob(jobId)
             }
         }
 
-        text = text + `
-        👉 Ưu tiên ứng viên qua hoặc nộp hồ sơ online qua ${link}
-        👉 Mọi thắc mắc vui lòng liên hệ số điện thoại: 0166 7951 678 (Thảo)để được giải đáp nhé!`
-
+        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type0'
+        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 0166 7951 678 (My)`
         if (storeData.photo) {
             storeData.photo.push(storeData.avatar)
         } else {
@@ -1778,28 +1785,25 @@ app.get('/sendEmailMarketing', function (req, res) {
     if (param.dataUser == true) {
         sendingList = Object.assign(sendingList, dataUser)
     }
-
+    var a = 0
     for (var i in sendingList) {
         var data = sendingList[i]
         if ((data.type == param.type || !param.type)
             && (data.email == param.email || !param.email)
         ) {
-
+            a++
             if (!time) {
                 time = Date.now() + 2000
             } else {
                 time = time + 100
             }
-            sendNotification(data, mail, null, time)
+            sendNotification(data, mail, null, time).then(function (data) {
+
+            })
         }
     }
 
-    return new Promise(function (resolve, reject) {
-        resolve(arrayEmail)
-    }).then(function (arrayEmail) {
-        var k = 0;                     //  set your counter to 1
-        res.send('sent' + arrayEmail.length)
-    })
+    res.send('sent' + a)
 
 
 })
@@ -5128,15 +5132,14 @@ function PostStore(storeId, job, where, poster, time) {
                     poster = 'thuythuy'
                 }
                 console.log(poster)
-                data[poster] = 'tried';
-                groupRef.child(groupData[i].groupId).update(data)
+                // data[poster] = 'tried';
+                // groupRef.child(groupData[i].groupId).update(data)
                 if (!time) {
-                    time = Date.now() + 5 * 1000
+                    time = Date.now() + 4 * 1000
                 } else {
-                    time = time + 60 * 5 * 1000
+                    time = time + 1000
                 }
 
-                console.log(new Date(time))
                 var postId = facebookPostRef.push().key;
                 var to = groupData[i].groupId
                 facebookPostRef.child(postId).update({postId, storeId, poster, content, time, to}, function (res) {
@@ -5198,17 +5201,16 @@ app.get('/getfbPost', function (req, res) {
     let {p: page, q: query} = req.query
     facebookPostRef.once('value')
         .then(function (snap) {
-            var data  = snap.val()
-            var sorted = _.sortBy(data,function (card) {
+            var data = snap.val()
+            var sorted = _.sortBy(data, function (card) {
                 return -card.time
             })
-            var send = getPaginatedItems(sorted,page)
+            var send = getPaginatedItems(sorted, page)
             res.send(send)
 
         })
         .catch(err => reject(err));
 });
-
 
 
 var rule3 = new schedule.RecurrenceRule();

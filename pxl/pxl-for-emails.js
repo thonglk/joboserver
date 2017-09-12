@@ -4,6 +4,7 @@ let _ = require('lodash')
 let BPromise = require('bluebird')
 let stringReplaceAsync = require('string-replace-async')
 
+
 function getMetadataForOpenTracking(metadata) {
     return _.assign({ type: 'open' }, metadata)
 }
@@ -16,9 +17,9 @@ function getMetadataForClickTracking(metadata, referToOpenTrackingPxl, openTrack
     return fullMetadata
 }
 
-function addPxlToLink(link, pxlParam, pxlCode, pxlUser, userCode) {
+function addPxlToLink(link, pxlParam, pxlCode) {
     let [ urlAndQuery, hash = '' ] = link.split('#')
-    return `${ urlAndQuery }${ urlAndQuery.includes('?') ? '&' : '?' }${ pxlParam }=${ pxlCode }${ hash === '' ? '' : '#' }${ hash }&${ pxlUser }=${ userCode }`
+    return `${ urlAndQuery }${ urlAndQuery.includes('?') ? '&' : '?' }${ pxlParam }=${ pxlCode }${ hash === '' ? '' : '#' }${ hash }`
 }
 
 
@@ -37,8 +38,8 @@ class PxlForEmails {
                     }
                 },
                 applyToFirstCandidateOnly: true,
-                apply: (link, pxl, user) => {
-                    return addPxlToLink(link, this.options.pxl.queryParam, pxl, this.options.pxl.queryUser, user)
+                apply: (link, pxl) => {
+                    return addPxlToLink(link, this.options.pxl.queryParam, pxl)
                 }
             },
             clickTracking: {
@@ -50,8 +51,8 @@ class PxlForEmails {
                         shorten: true
                     }
                 },
-                apply: (link, pxl, user) => {
-                    return addPxlToLink(link, this.options.pxl.queryParam, pxl, this.options.pxl.queryUser, user)
+                apply: (link, pxl) => {
+                    return addPxlToLink(link, this.options.pxl.queryParam, pxl)
                 }
             }
         })
@@ -76,9 +77,9 @@ class PxlForEmails {
     }
 
     addOpenTracking(htmlEmail, metadata, _internal = false) {
+
         let numCandidate = 0
-        let openPxl = null;
-        let user = metadata.to;
+        let openPxl = null
         let shortenedLinks = {}
 
         return BPromise.try(() => {
@@ -89,6 +90,7 @@ class PxlForEmails {
                 htmlEmail,
                 this.options.openTracking.regexLinks,
                 BPromise.coroutine(function *(match, p1, link, p3) {
+
                     if (this.options.openTracking.applyToFirstCandidateOnly && numCandidate > 0) {
                         return match
                     }
@@ -105,7 +107,7 @@ class PxlForEmails {
                         }
 
                         let createdPxl = yield this.options.pxl.createPxl(fullMetadata)
-                        openPxl = createdPxl.key
+                        openPxl = createdPxl.pxl
 
                     }
 
@@ -124,9 +126,10 @@ class PxlForEmails {
 
                     }
 
-                    let newLink = `${ p1 }${ this.options.openTracking.apply(linkToUse, openPxl, user) }${ p3 }` // eslint-disable-line prefer-reflect
+                    let newLink = `${ p1 }${ this.options.openTracking.apply(linkToUse, openPxl) }${ p3 }` // eslint-disable-line prefer-reflect
 
                     numCandidate += 1
+
                     return newLink
 
                 }).bind(this)
@@ -166,7 +169,7 @@ class PxlForEmails {
                     if (referToOpenTrackingPxl && !openTrackingPxl) {
 
                         let createdOpenPxl = yield this.options.pxl.createPxl(getMetadataForOpenTracking(metadata))
-                        openTrackingPxl = createdOpenPxl.key
+                        openTrackingPxl = createdOpenPxl.pxl
 
                         fullMetadata = getMetadataForClickTracking(metadata, referToOpenTrackingPxl, openTrackingPxl)
 
@@ -180,8 +183,7 @@ class PxlForEmails {
                     }
 
                     let createdPxl = yield this.options.pxl.createPxl(metadataToUse)
-                    let clickPxl = createdPxl.key
-                    let clickUser = createdPxl.to
+                    let clickPxl = createdPxl.pxl
 
                     if (_.isUndefined(applyInstruction.shorten) || applyInstruction.shorten) {
 
@@ -196,7 +198,7 @@ class PxlForEmails {
 
                     }
 
-                    return `${ p1 }${ this.options.clickTracking.apply(linkToUse, clickPxl, clickUser) }${ p3 }` // eslint-disable-line prefer-reflect
+                    return `${ p1 }${ this.options.clickTracking.apply(linkToUse, clickPxl) }${ p3 }` // eslint-disable-line prefer-reflect
 
                 }).bind(this)
             )
