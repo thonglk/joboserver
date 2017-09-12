@@ -3506,7 +3506,7 @@ function sendMessenger(messengerId, noti, key) {
         axios.post(url, param)
             .then(function (response) {
                 console.log('sendMessenger', key)
-                return notificationRef.child(key + '/messenger_sent').update(Date.now())
+                return notificationRef.child(key).update({messenger_sent: Date.now()})
             })
             .then(() => resolve(key))
             .catch(function (error) {
@@ -3521,7 +3521,7 @@ function sendNotificationToGivenUser(registrationToken, noti, type, key) {
         var payload = {
             notification: {
                 title: noti.title,
-                body: noti.body
+                body: noti.body || ''
             },
             data: {
                 linktoaction: noti.linktoaction || ''
