@@ -964,6 +964,29 @@ function init() {
         dataJob = snap.val()
 
     });
+    emailRef.once('value', function (snap) {
+        dataEmail = snap.val()
+        var array = _.toArray(dataEmail)
+        console.log('array', array.length)
+        var a = 0
+
+        function loop() {
+            var email = array[a]
+            emailChannelCol.insert(email).then(function (res) {
+                a++
+                if (a < array.length) {
+                    loop()
+                } else {
+                    console.log('done', a)
+                    sendPXLEmail('thonglk.mac@gmail.com', 'Doneeeeee', '<a href="https://joboapp.com/">'+a+'</a>', 'abcd')
+                        .then(messageId => console.log('Message sent: %s', messageId))
+                        .catch(err => console.log(err));
+
+                }
+            })
+        }
+        loop()
+    })
 
     storeRef.on('value', function (snap) {
         dataStore = snap.val();
@@ -1768,6 +1791,15 @@ app.get('/api/email', (req, res) => {
     })
 });
 
+function getMongoDB(collection, pipeline = []) {
+    return new Promise((resolve, reject) => {
+        if (!collection) reject('MongoDB Collection is required!');
+        collection.aggregate(pipeline, (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+        })
+    });
+}
 
 app.get('/sendEmailMarketing', function (req, res) {
     var mailStr = req.param('mail');
@@ -1775,35 +1807,57 @@ app.get('/sendEmailMarketing', function (req, res) {
     var query = req.param('q');
     var param = JSON.parse(query);
     var time = param.time;
-    var sendingList = {}
-    if (param.dataEmail == true) {
-        sendingList = dataEmail
-    }
-    if (param.dataLead == true) {
-        sendingList = Object.assign(sendingList, dataLead)
-    }
-    if (param.dataUser == true) {
-        sendingList = Object.assign(sendingList, dataUser)
-    }
-    var a = 0
-    for (var i in sendingList) {
-        var data = sendingList[i]
-        if ((data.type == param.type || !param.type)
-            && (data.email == param.email || !param.email)
-        ) {
-            a++
-            if (!time) {
-                time = Date.now() + 2000
-            } else {
-                time = time + 100
+    var sendingList = {};
+
+    const promiseDEmail = new Promise((resolve, reject) => {
+        if (param.dataEmail) {
+            getMongoDB(emailChannelCol)
+                .then(dataEmail => resolve(dataEmail))
+                .catch(err => reject(err));
+        } else resolve({});
+    });
+
+    const promiseDLead = new Promise((resolve, reject) => {
+        if (param.dataLead) {
+            getMongoDB(leadCol)
+                .then(dataLead => resolve(dataLead))
+                .catch(err => reject(err));
+        } else resolve({});
+    });
+
+    const promiseUser = new Promise((resolve, reject) => {
+        if (param.dataUser) {
+            resolve(dataUser);
+        } else resolve({});
+    });
+
+    Promise.all([
+        promiseDEmail,
+        promiseDLead,
+        promiseUser
+    ])
+        .then(data => {
+
+            sendingList = Object.assign(data[0], data[1], data[2]);
+            var a = 0
+            for (var i in sendingList) {
+                var data = sendingList[i]
+                if ((data.type == param.type || !param.type) &&
+                    (data.email == param.email || !param.email)
+                ) {
+                    a++
+                    if (!time) {
+                        time = Date.now() + 2000
+                    } else {
+                        time = time + 100
+                    }
+                    sendNotification(data, mail, null, time)
+                }
             }
-            sendNotification(data, mail, null, time).then(function (data) {
 
-            })
-        }
-    }
-
-    res.send('sent' + a)
+            res.send('sent' + a + 'in' + Object.keys(sendingList).length)
+        })
+        .catch(err => res.status(500).json(err));
 
 
 })
