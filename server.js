@@ -127,7 +127,8 @@ var facebookContentRef = db.ref('facebookContent')
 var facebookPostRef = db.ref('facebookPost');
 
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
-    keyListData, datagoogleJob;
+    keyListData, datagoogleJob, facebookAccount
+
 
 var groupRef = db.ref('groupData');
 
@@ -728,7 +729,15 @@ function sendEmailTemplate(email, mail, notiId) {
 }
 
 app.get('/sendNotification', function (req, res) {
-    sendNotification(dataUser['thonglk'], {title: 'thông'}).then(notiId => res.json(notiId))
+    var yes = req.param('yes')
+    var time = null;
+    if(yes) time = Date.now() + 5 * 10000
+
+
+    sendNotification(dataUser['thonglk'], {
+        title: 'thông',
+        body: 'hihi'
+    }, null,time).then(notiId => res.status(200).json(notiId)).catch(err => res.status(500).json(err))
 
 })
 
@@ -766,6 +775,7 @@ function sendNotification(userData, mail, channel, time) {
                         startSend(userData, mail, channel, notiId)
                     })
                 }
+                return startSendPromise;
             })
             .then(notiId => resolve(notiId))
             .catch(err => reject(err));
@@ -778,28 +788,40 @@ function startSend(userData, mail, channel, notiId) {
 
         const sendEmailTempPromise = new Promise((resolve, reject) => {
             if (userData.email && userData.wrongEmail != true && channel.letter) {
-                sendEmailTemplate(userData.email, mail, notiId).then(notiId => resolve('sendEmailTemplate' + notiId)).catch(err => reject(err));
-            } else resolve(null);
+                sendEmailTemplate(userData.email, mail, notiId).then(notiId => resolve({
+                    notiId,
+                    letter: true
+                })).catch(err => reject(err));
+            } else resolve({notiId, letter: false});
         });
 
         const sendNotificationToGivenUserWeb = new Promise((resolve, reject) => {
             if (userData.webToken && channel.web) {
-                sendNotificationToGivenUser(userData.webToken, mail, 'web', notiId).then(notiId => resolve('sendNotificationToGivenUser Web' + notiId)).catch(err => reject(err));
-            } else resolve(null);
+                sendNotificationToGivenUser(userData.webToken, mail, 'web', notiId).then(notiId => resolve({
+                    notiId,
+                    web: true
+                })).catch(err => reject(err));
+            } else resolve({notiId, web: false});
 
         });
 
         const sendNotificationToGivenUserApp = new Promise((resolve, reject) => {
             if (userData.mobileToken && channel.mobile) {
-                sendNotificationToGivenUser(userData.mobileToken, mail, 'app', notiId).then(notiId => resolve('sendNotificationToGivenUser App' + notiId)).catch(err => reject(err));
-            } else resolve(null);
+                sendNotificationToGivenUser(userData.mobileToken, mail, 'app', notiId).then(notiId => resolve({
+                    notiId,
+                    mobile: true
+                })).catch(err => reject(err));
+            } else resolve({notiId, mobile: false});
 
         });
 
         const sendMessengerPromise = new Promise((resolve, reject) => {
             if (userData.messengerId && channel.messenger) {
-                sendMessenger(userData.messengerId, mail, notiId).then(notiId => resolve('sendMessenger' + notiId)).catch(err => reject(err));
-            } else resolve(null);
+                sendMessenger(userData.messengerId, mail, notiId).then(notiId => resolve({
+                    notiId,
+                    messenger: true
+                })).catch(err => reject(err));
+            } else resolve({notiId, messenger: false});
         });
 
         Promise.all([
@@ -808,7 +830,7 @@ function startSend(userData, mail, channel, notiId) {
             sendNotificationToGivenUserApp,
             sendMessengerPromise
         ])
-            .then(notiId => sResolve(notiId))
+            .then(array => sResolve(array))
             .catch(err => sReject(err));
     });
 }
@@ -820,21 +842,7 @@ var publishChannel = {
     }
 };
 
-var facebookAccount = {
-    thuythuy: 'EAAEMfZASjMhgBAOclOeUBjP8fZAKUkjev4VzkbBGGCPTCoQexAKpe8nnGs2EAXcPbipcS8RN8bL0eE9CsAZCCL4ujTEgxKs5oAyznqE2IY7wr8OZCptYaJxF3ymOpIQZA1pHi8mEbU4r2nDVTDgEoOBkBztcDT8kZD',
-    thong: 'EAAEMfZASjMhgBAD60T6ytMYX2ZBdbZCkgxoZA2XpXLKattHNquxWgPjGqlCMWDX3CE28rx6NRuDbxhVITTUM6AqQW9UcZA3LrMvnsIAWjwl4a1BZAOQjbBagcbyTSyIB8fjgzZBA05ZAl7Ih8ElCGe0jZCf8ZA0i7IxQOCfAYZBe0pmGsjr1wtqc4Hm',
-    thao2: 'EAAEMfZASjMhgBAKZBYPtpKzBtdnmeGzDv3RR1VN0Hqa5BZAhRMpHLjcEfjSN0MA1m4aUVi3zkT68lX4gWdN7RHl6dMVWz3DVIx9xAFFzQjLy84eKmFkPRL1QyZA4WvXfCHNXDBCnnGb63FoPXtNGMbLv74XLktkZD',
-    toi: 'EAAEMfZASjMhgBAKbZBRnVyD2HBurOAlVCOTLWweBA5zLqa3fCexZCQFsIPZAZC9gZAZACWWR2Na8Oz4IGiXwycQ965e9QMFnbipFAlHSaGbZCXGVQmgZAlqFfVunfikRi8Yhx7eOyhHEoIZCqufqNJTr2q5RwrE9kZBb5MZD',
-    thythy: 'EAAEMfZASjMhgBADcRIvfJo0Dd3CPpwpvQ6ZBJL23d0ZCoJ2VEvTgxLwId7OJs9ZA0FNkKlZAKfsU8AvDQTYntYAzZAFnamq8OuzVvSOvflRD8C0X11ZAmRsF0HKwiSSEnNxCWak5pPTghw0sDDO9pP438fhpe2ZCBrgZD',
-    khanh: 'EAAEMfZASjMhgBADZA8LfYxe8NnnZCcrdwuaAaZBtZBu7yfEPZAMiGFl6QR9UXASc33kDm7BcFvPCbzvyQg4OoLe9fCZBW4uskKTNIToZC1BegoOuCrFS09dTmec2G9BrmZBl5tP2AfQKcRabs5dnpxSHHXxPSXfosa00oDjPtaETo7gZDZD',
-    dieulinh: 'EAAEMfZASjMhgBAFwhTXIVkqpR0mEECEywxegp8ZAJBTvvoZAcaA1jQZCTg8fGiymt1ghhJmhlbhFtLObhK9qBgjRnHIyFLQS1eD7SadwkNncUldvBnRWZARvn8eiXVEOEnD1PzpXgXaKkZCWfkeWkwXglbUqOGAvsZD',
-    maitran: 'EAAEMfZASjMhgBAA2pqgWiMXiOOWLZAK8zQhfW8oTjRk3JU9HpSY7bp4SZB6G3nxU3toFLovy3WeUSuegG3NT2PPNxMJngCbIxInWDAfbu50LqGiUMMpkRhqg5o2xa6rFrfzGXp62Buiff0Blv0ZACLnZCYMvuPIEZD',
-    dong: 'EAAEMfZASjMhgBACOKlVYotjjofqacqTPlnZBG1jeYp6ZCRtui6UhJuxl1uMLn7H1wS0ZBFHSNwI3Guvn8JYpF4edb6UHQpHTK1aOLv0MUpxZBSljadiOYDyAORXeonLxHAHKhG3EZAHbUS0RyMbBZC2UaHhMVPIIGUZD',
-    mailinh: 'EAAEMfZASjMhgBAIISEn1Yn1DGN4pSjjps3Mz6aJXA7nZB2YoIZAaWs14PjhZCxtpDWgxsQXZAeEtpsDsSvykG5GglPriUSZBdDxjdDAi0csh82MVKcH6ZBGAy02zJGLhU1dZBk7Dl3FpDGVMsKWCKcRREbdlesdGEyoZD',
-    myhuyen2: 'EAAEMfZASjMhgBABnevkeEJ5RXMhYA96qhX2Rd1MfZAG3zX0l7e1M0R65TZAHWFytHUcg7WgAsG3L805ZAY3Vf2RQLR0PPj2qT1vRL6pCst4nnzEsAtA7gcASmmAyf0CMAGDJenwkrlsdZAokGlvrDqB0fDoqa6d5EyBr9FZAaYsAZDZD',
-    thao: 'EAAEMfZASjMhgBAIWepEFMrjHchnbap0BmIU9w1LyE8XUj2szruCm9PZCG3xlS2VTVmdheu7ABVUKHtCvWRFtaAZC6Onibuntj1vZB5M9oOQWgeVubGa6mz4nGX2RHt4bmspmd1qmZAUDhA5hZAVZAoIejLH48ZCvZBfQZD'
 
-}
 
 app.get('/sendStoretoPage', function (req, res) {
     var storeId = req.param('storeId')
@@ -851,9 +859,9 @@ function sendStoretoPage(storeId) {
 
             storeData.userInfo = dataUser[storeData.createdBy]
             if (storeData.avatar) {
-                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 0), publishChannel.Jobo.token)
+                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2), publishChannel.Jobo.token)
             } else {
-                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 0), publishChannel.Jobo.token)
+                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2), publishChannel.Jobo.token)
             }
         }
 
@@ -957,6 +965,7 @@ function init() {
     console.log('init')
     configRef.on('value', function (snap) {
         CONFIG = snap.val()
+        facebookAccount = CONFIG.facebookAccount
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
@@ -1335,7 +1344,9 @@ function createJDJob(jobId) {
 
 app.get('/createJDStore', function (req, res) {
     var storeId = req.param('storeId')
-    res.send(createJDStore(storeId))
+    var a = req.param('a')
+
+    res.send(createJDStore(storeId,a))
 })
 
 function createJDStore(storeId, a) {
