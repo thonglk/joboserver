@@ -1405,7 +1405,7 @@ function createJDStore(storeId, a, jobId) {
     }
     console.log('a', a);
     if (jobId) {
-        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '&job=' + jobId + '#ref=type' + a
+        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?job=' + jobId + '#ref=type' + a
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type' + a
     }
@@ -1440,7 +1440,7 @@ function createJDStore(storeId, a, jobId) {
 
     } else if (a == 2) {
 
-        text = text + storeData.storeName + ' tuyển dụng ' + job.jobName + '\n \n'
+        text = text + storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
         if (storeData.address) {
             text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
         }
