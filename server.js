@@ -1078,9 +1078,7 @@ function init() {
     //     } else {
     //         facebookPostRef.child(content.postId).remove()
     //     }
-    //     schedule.scheduleJob(content.time, function () {
-    //         PublishFacebook(content.to, content.content, content.poster, content.postId)
-    //     })
+    //
     // })
 
 
@@ -1250,6 +1248,11 @@ function createListPremiumJob(where) {
     }
 }
 
+app.get('/createListPremiumJobArray', function (req, res) {
+    var where = req.param('where')
+    res.send(createListPremiumJobArray())
+})
+
 function createListPremiumJobArray() {
     var jobHN = [];
     var jobs = _.sortBy(dataJob, function (card) {
@@ -1263,7 +1266,7 @@ function createListPremiumJobArray() {
             && dataStore[job.storeId]
             && job.deadline > Date.now()
         ) {
-            var jobString = {storeId:job.storeId, jobId:job.jobId}
+            var jobString = {storeId: job.storeId, jobId: job.jobId}
             jobHN.push(jobString)
         }
     }
@@ -1274,19 +1277,25 @@ app.get('/createListGoogleJob', function (req, res) {
     res.send(createListGoogleJob())
 })
 app.get('/scheduleJobPusEveryday', function (req, res) {
-    res.send(scheduleJobPusEveryday())
+    res.send(scheduleJobPushEveryday())
 })
-schedule.scheduleJob({hour: 7,minute:0},function () {
-    scheduleJobPusEveryday()
+schedule.scheduleJob({hour: 7, minute: 0}, function () {
+    scheduleJobPushEveryday()
 })
-function scheduleJobPusEveryday() {
+
+function scheduleJobPushEveryday() {
     var jobArr = createListPremiumJobArray()
     var time = Date.now() + 5000
-    for(var i in jobArr){
-        var job = jobArr[i]
-        var sche = time + i* 60*60 *1000
-        console.log(new Date(sche).getHours())
-        PostStore(job.storeId, job.jobId, null, null, null, sche)
+    var a = 0
+    for (var i in jobArr) {
+        if (i > 6) {
+            a++
+            var job = jobArr[i]
+            var sche = time + a * 60 * 60 * 1000
+            console.log(new Date(sche).getHours())
+            PostStore(job.storeId, job.jobId, null, null, null, sche)
+        }
+
     }
 }
 
@@ -1402,9 +1411,7 @@ function createJDStore(storeId, a, jobId) {
 
 
     var text = '';
-    if(job == 'server'){
 
-    } else if(job == 'business')
     if (!a) {
         a = Math.round(Math.random() * 5);
     }
@@ -4664,6 +4671,22 @@ app.get('/sendNotiSubcribleToProfile', function (req, res) {
 })
 
 function sendNotiSubcribleToProfile(storeId) {
+
+
+    if (jobId) {
+        var Job = dataJob[jobId]
+        var job = Job.job
+    } else {
+        var jobData = _.filter(dataJob, function (card) {
+            if (card.storeId == storeId && card.deadline > Date.now()) return true
+            else return false
+        })
+        if (jobData[0]) {
+            Job = jobData[0]
+            job = Job.job
+        }
+    }
+
     var storeData = dataStore[storeId]
     if (storeData.storeName && storeData.job && storeData.location) {
         for (var i in dataProfile) {
@@ -4671,72 +4694,50 @@ function sendNotiSubcribleToProfile(storeId) {
             if (card.location && card.job) {
                 var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
                 if (dis <= 20) {
-                    var a = Math.round(Math.random() * 2)
-                    var mail
+                    var a = _.random(0, 2)
+                    var text = ''
+                    var title = ''
                     if (a == 0) {
-                        mail = {
-                            title: 'Jobo | ' + storeData.storeName + ' tuyển dụng',
-                            body: storeData.storeName + ' đang tuyển dụng ' + getStringJob(storeData.job) + ' rất phù hợp với  bạn, xem mô tả và ứng tuyển ngay!',
-                            data: [{
-                                title: storeData.storeName,
-                                image: storeData.avatar || '',
-                                body: getStringJob(storeData.job) + ' cách ' + dis + ' km',
-                                calltoaction: 'Xem chi tiết',
-                                linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=kt',
-                            }],
-                            description1: 'Chào ' + getLastName(card.name),
-                            description2: storeData.storeName + ' đang tuyển dụng ' + getStringJob(storeData.job) + ' rất phù hợp với  bạn, xem mô tả và ứng tuyển ngay!',
-                            description4: 'Nếu bạn không thích công việc này, hãy cho chúng tôi biết để chúng tôi giới thiệu những công việc phù hợp hơn.',
-                            outtro: true
-                        };
-                    } else {
-                        var title = storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
-                        var text = ''
-                        if (storeData.address) {
-                            text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
-                        }
-
-                        if (storeData.description) {
-                            text = text + storeData.description + '\n \n'
-                        }
-
+                        title = storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
+                        text = text + 'Có công việc này khá phù hợp với bạn nè \n'
+                        text = text + createJDJob(Job.jobId)
+                    } else if (a == 1) {
+                        title = storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
                         text = text + '► Vị trí cần tuyển \n'
+                        text = text + createJDJob(Job.jobId)
 
-                        for (var i in storeData.jobData) {
-
-                            var Job = storeData.jobData[i]
-                            if (Job.deadline > Date.now()) {
-                                var jobId = Job.storeId + ':' + Job.job
-                                text = text + createJDJob(jobId)
-                            }
-                        }
-
-                        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type0'
-                        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT ${CONFIG.contact[isWhere(storeData.storeId)].phone}`;
-                        if (storeData.photo) {
-                            storeData.photo.push(storeData.avatar)
-                        } else {
-                            storeData.photo = [storeData.avatar]
-                        }
-
-                        var randomphoto = Math.round(Math.random() * (storeData.photo.length - 1));
+                    } else {
+                        title = storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
+                        text = text + `Hiện tại trên Jobo đang có vị trí ${Job.jobName} - ${storeData.storeName} đang cần tuyển gấp và khá phù hợp với bạn, bạn thử xem yêu cầu chi tiết và ứng tuyển để đi phỏng vấn nhé!`
 
 
-                        mail = {
-                            title: title,
-                            body: storeData.storeName + ' đang tuyển dụng ' + getStringJob(storeData.job) + ' rất phù hợp với  bạn, xem mô tả và ứng tuyển ngay!',
-                            data: [{
-                                title: storeData.storeName,
-                                image: storeData.photo[randomphoto] || '',
-                                body: getStringJob(storeData.job) + ' cách ' + dis + ' km',
-                                calltoaction: 'Xem chi tiết',
-                                linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=kt',
-                            }],
-                            description1: 'Chào ' + getLastName(card.name),
-                            description2: text,
-                            outtro: true
-                        };
                     }
+                    if (storeData.photo) {
+                        storeData.photo.push(storeData.avatar)
+                    } else {
+                        storeData.photo = [storeData.avatar]
+                    }
+
+                    var randomphoto = _.random(0,storeData.photo.length)
+
+                    var mail = {
+                        title: title,
+                        body: text,
+                        data: [{
+                            title: storeData.storeName,
+                            image: storeData.photo[randomphoto] || '',
+                            body: getStringJob(storeData.job) + ' cách ' + dis + ' km',
+                            calltoaction: 'Xem chi tiết',
+                            linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=kt'+ a,
+                        }],
+                        description1: 'Dear ' + getLastName(card.name),
+                        description2: text,
+                        description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone} hoặc tới trực tiếp ${CONFIG.contact[isWhere(storeId)].address} để trao đổi cụ thể hơn nếu bạn muốn đi làm ngay nha \n
+                        Happy working! \n
+                        Thảo - Jobo`,
+
+                        outtro: true
+                    };
 
                     sendNotification(dataUser[card.userId], mail, {
                         letter: true,
@@ -5386,7 +5387,7 @@ function PostStore(storeId, jobId, job, where, poster, time) {
             if (!time) {
                 time = Date.now() + 4 * 1000
             } else {
-                time = time + 5 * 60 * 1000
+                time = time + 11 * 60 * 1000
             }
 
             var postId = facebookPostRef.push().key;
