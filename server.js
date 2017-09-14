@@ -1209,7 +1209,7 @@ function getShortPremiumJob(ref) {
 
 app.get('/createListPremiumJob', function (req, res) {
     var where = req.param('where')
-    res.send(createListPremiumJobArray())
+    res.send(createListPremiumJob())
 })
 
 function createListPremiumJob(where) {
@@ -1273,6 +1273,9 @@ app.get('/createListGoogleJob', function (req, res) {
 })
 app.get('/scheduleJobPusEveryday', function (req, res) {
     res.send(scheduleJobPusEveryday())
+})
+schedule.scheduleJob({hour: 7,minute:0},function () {
+    scheduleJobPusEveryday()
 })
 function scheduleJobPusEveryday() {
     var jobArr = createListPremiumJobArray()
@@ -1437,7 +1440,7 @@ function createJDStore(storeId, a, jobId) {
 
     } else if (a == 2) {
 
-        text = text + storeData.storeName + ' tuyển dụng ' + getStringJob(storeData.job) + '\n \n'
+        text = text + storeData.storeName + ' tuyển dụng ' + job.jobName + '\n \n'
         if (storeData.address) {
             text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
         }
@@ -1452,7 +1455,7 @@ function createJDStore(storeId, a, jobId) {
             text = text + createJDJob(jobData[i].jobId)
         }
 
-        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 0166 7951 678 (My)`
+        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp ${CONFIG.contact[isWhere(storeId)].phone}`
 
     } else if (a == 3) {
         text = `${Job.storeName} tại ${shortAddress(storeData.address)} hiện đang "nhắn tìm đồng đội"
