@@ -1072,13 +1072,15 @@ function init() {
     })
     // facebookPostRef.on('child_added', function (snap) {
     //     var content = snap.val()
-    //     if (content && content.time > startTime && content.time < endTime) {
-    //         console.log('facebook', b++);
+    //     console.log('facebook', b++);
+    //     if(content.sent || content.sent_error){
     //
-    //         schedule.scheduleJob(content.time, function () {
-    //             PublishFacebook(content.to, content.content, content.poster, content.postId)
-    //         })
+    //     } else {
+    //         facebookPostRef.child(content.postId).remove()
     //     }
+    //     schedule.scheduleJob(content.time, function () {
+    //         PublishFacebook(content.to, content.content, content.poster, content.postId)
+    //     })
     // })
 
 
@@ -1400,6 +1402,9 @@ function createJDStore(storeId, a, jobId) {
 
 
     var text = '';
+    if(job == 'server'){
+
+    } else if(job == 'business')
     if (!a) {
         a = Math.round(Math.random() * 5);
     }
@@ -5390,12 +5395,9 @@ function PostStore(storeId, jobId, job, where, poster, time) {
 
             facebookPostRef.child(postId).update({postId, storeId, jobId, poster, content, time, to})
 
-
         }
 
     }
-
-
 }
 
 
@@ -5454,13 +5456,13 @@ app.get('/getfbPost', function (req, res) {
 });
 
 
-schedule.scheduleJob({hour: 9}, function () {
-    PostStore('-Ko888eO-cKhfXzJzSQh');
-});
-
-schedule.scheduleJob({hour: 10}, function () {
-    PostStore('-Kop_Dcf9r_gj94B_D3z')
-});
+// schedule.scheduleJob({hour: 9}, function () {
+//     PostStore('-Ko888eO-cKhfXzJzSQh');
+// });
+//
+// schedule.scheduleJob({hour: 10}, function () {
+//     PostStore('-Kop_Dcf9r_gj94B_D3z')
+// });
 
 
 function Notification_FirstRoundInterview() {
