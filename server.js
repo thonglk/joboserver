@@ -181,8 +181,8 @@ groupRef.once('value', function (snap) {
 
 });
 var facebookUser = {
-    hn: ['dieulinh', 'khanh', 'mailinh', 'maitran', 'thong', 'thuythuy'],
-    hcm: ['huynhthaotg', 'mmyn42', 'thao2', 'thong', 'thuythuy', 'thythy']
+    hn: ['dieulinh', 'khanh', 'mailinh', 'maitran', 'thuythuy'],
+    hcm: ['huynhthaotg', 'mmyn42', 'thao2', 'thuythuy', 'thythy']
 }
 
 
@@ -200,6 +200,7 @@ app.use(function (req, res, next) {
     res.contentType('application/json');
     next();
 });
+
 
 var pxlConfig = require('./pxl/pxl-config');
 
@@ -275,13 +276,13 @@ var sendEmail = (addressTo, mail, emailMarkup, notiId) => {
                 reject(error);
             }
 
-            console.log('New email sent', addressTo)
+            console.log('Email sent:', notiId + addressTo)
 
             // console.log('Message sent: %s', info.messageId);
             if (notiId) {
                 notificationRef.child(notiId).update({mail_sent: Date.now()})
             }
-            resolve(info.messageId);
+            resolve(notiId);
 
 
         });
@@ -295,7 +296,7 @@ const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
         }).then(html => {
             return sendEmail(addressTo, mail, html, notiId);
         })
-            .then(messageId => resolve(messageId))
+            .then(notiId => resolve(notiId))
             .catch(err => reject(err));
     });
 };
@@ -574,7 +575,7 @@ function sendEmailTemplate(email, mail, notiId) {
             '                            <td style="vertical-align:undefined;width:600px;">\n' +
             '                    <![endif]-->\n' +
             '                    <p style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;"></p>\n' +
-            '                    <!--[if mso | IE]><table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;" width="600"><tr><td style="height:0;line-height:0;"> </td></tr></table><![endif]-->\n' +
+            '                    <!--[if mso | IE]><table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;" width="600"><tr><td style="height:0;line-height:0;"> </td></tr></table><![endif]-->\n' +
             '                    <!--[if mso | IE]>\n' +
             '                    </td><td style="vertical-align:undefined;width:50px;">\n' +
             '                    <![endif]-->\n' +
@@ -655,7 +656,6 @@ function sendEmailTemplate(email, mail, notiId) {
             for (var i in mail.data) {
 
                 var card = mail.data[i]
-                console.log(card)
                 htmlMail = htmlMail + '<td style="vertical-align:top;width:300px;">\n' +
                     '                    <![endif]-->\n' +
                     '                    <div class="mj-column-per-50 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;">\n' +
@@ -722,7 +722,7 @@ function sendEmailTemplate(email, mail, notiId) {
 
         htmlMail = htmlMail + footer
         sendPXLEmail(email, mail, htmlMail, notiId)
-            .then(() => resolve(notiId))
+            .then(notiId => resolve(notiId))
             .catch(err => reject(err));
     });
 }
@@ -730,55 +730,39 @@ function sendEmailTemplate(email, mail, notiId) {
 app.get('/sendNotification', function (req, res) {
     var yes = req.param('yes')
     var time = null;
-    if (yes) time = Date.now() + 5 * 10000
+    if (yes) time = Date.now() + 5 * 1000
 
 
     sendNotification(dataUser['thonglk'], {
         title: 'thông',
         body: 'hihi'
-    }, null, time).then(notiId => res.status(200).json(notiId)).catch(err => res.status(500).json(err))
-
+    }, null, time)
+    res.send('done')
 })
 
 function sendNotification(userData, mail, channel, time) {
-    return new Promise(function (resolve, reject) {
-        if (!userData) return;
-        if (!channel) {
-            channel = {
-                web: true,
-                letter: true,
-                mobile: true,
-                messenger: true
-            }
+    if (!userData) return;
+    if (!channel) {
+        channel = {
+            web: true,
+            letter: true,
+            mobile: true,
+            messenger: true
         }
-        var notiId = notificationRef.push().key;
-        var notification = {
-            userData: userData,
-            mail: mail,
-            notiId: notiId,
-            time: time || Date.now(),
-            createdAt: Date.now(),
-            channel: channel
-        }
+    }
+    var notiId = notificationRef.push().key;
+    var notification = {
+        userData: userData,
+        mail: mail,
+        notiId: notiId,
+        time: time || Date.now(),
+        createdAt: Date.now(),
+        channel: channel
+    }
 
-        notificationRef.child(notiId)
-            .update(notification)
-            .then(result => {
-                let startSendPromise = null;
-                if (!time) {
-                    startSendPromise = startSend(userData, mail, channel, notiId)
-                } else {
-                    console.log('scheduleJob Noti', notiId)
-                    startSendPromise = Promise.resolve({notiId, scheduled: true})
-                    schedule.scheduleJob(time, function () {
-                        startSend(userData, mail, channel, notiId)
-                    })
-                }
-                return startSendPromise;
-            })
-            .then(notiId => resolve(notiId))
-            .catch(err => reject(err));
-    });
+    notificationRef.child(notiId)
+        .update(notification)
+
 }
 
 function startSend(userData, mail, channel, notiId) {
@@ -787,10 +771,12 @@ function startSend(userData, mail, channel, notiId) {
 
         const sendEmailTempPromise = new Promise((resolve, reject) => {
             if (userData.email && userData.wrongEmail != true && channel.letter) {
-                sendEmailTemplate(userData.email, mail, notiId).then(notiId => resolve({
-                    notiId,
-                    letter: true
-                })).catch(err => reject(err));
+                sendEmailTemplate(userData.email, mail, notiId)
+                    .then(notiId => resolve({
+                        notiId,
+                        letter: true
+                    }))
+                    .catch(err => resolve({notiId, letter: false}));
             } else resolve({notiId, letter: false});
         });
 
@@ -799,7 +785,7 @@ function startSend(userData, mail, channel, notiId) {
                 sendNotificationToGivenUser(userData.webToken, mail, 'web', notiId).then(notiId => resolve({
                     notiId,
                     web: true
-                })).catch(err => reject(err));
+                })).catch(err => resolve({notiId, web: false}));
             } else resolve({notiId, web: false});
 
         });
@@ -809,7 +795,7 @@ function startSend(userData, mail, channel, notiId) {
                 sendNotificationToGivenUser(userData.mobileToken, mail, 'app', notiId).then(notiId => resolve({
                     notiId,
                     mobile: true
-                })).catch(err => reject(err));
+                })).catch(err => resolve({notiId, mobile: false}));
             } else resolve({notiId, mobile: false});
 
         });
@@ -981,6 +967,7 @@ function init() {
     });
 
     userRef.on('value', function (snap) {
+        console.log('Data User');
         dataUser = snap.val();
 
     });
@@ -992,16 +979,19 @@ function init() {
     })
 
     leadRef.on('value', function (snap) {
+        console.log('Data Lead');
         dataLead = snap.val()
     })
 
     profileRef.on('value', function (snap) {
+        console.log('Data Profile');
         dataProfile = snap.val()
 
     });
 
 
     jobRef.on('value', function (snap) {
+        console.log('Data Job');
         dataJob = snap.val()
 
     });
@@ -1030,6 +1020,7 @@ function init() {
     // })
 
     storeRef.on('value', function (snap) {
+        console.log('Data store');
         dataStore = snap.val();
     });
 
@@ -1058,16 +1049,19 @@ function init() {
     var endTime = now + 86400 * 1000;
     var a = 0, b = 0;
 
-    notificationRef.on('child_added', function (snap) {
-        var noti = snap.val()
-        if (noti && noti.time > startTime && noti.time < endTime) {
-            console.log('noti', a++);
-            schedule.scheduleJob(noti.time, function () {
-                startSend(noti.userData, noti.mail, noti.channel, noti.notiId)
-            })
-        }
-    })
-
+    // notificationRef.on('child_added', function (snap) {
+    //     var noti = snap.val()
+    //     if (noti && noti.time > startTime && noti.time < endTime) {
+    //         console.log('noti', a++);
+    //         schedule.scheduleJob(noti.time, function () {
+    //             console.log('start', noti.time)
+    //
+    //             startSend(noti.userData, noti.mail, noti.channel, noti.notiId).then(function (array) {
+    //                 console.log('array', array)
+    //             })
+    //         })
+    //     }
+    // })
 
 
     db.ref('keyList').on('value', function (a) {
@@ -1199,7 +1193,7 @@ function getShortPremiumJob(ref) {
 
 app.get('/createListPremiumJob', function (req, res) {
     var where = req.param('where')
-    res.send(createListPremiumJob())
+    res.send(createListPremiumJob(where))
 })
 
 function createListPremiumJob(where) {
@@ -3616,10 +3610,11 @@ function sendMessenger(messengerId, noti, key) {
         }
         axios.post(url, param)
             .then(function (response) {
-                console.log('sendMessenger', key)
-                return notificationRef.child(key).update({messenger_sent: Date.now()})
+                console.log('messenger sent:' + key)
+                notificationRef.child(key).update({messenger_sent: Date.now()});
+                resolve(key);
             })
-            .then(() => resolve(key))
+            // .then(() => resolve(key))
             .catch(function (error) {
                 console.log(error);
             });
@@ -3652,7 +3647,7 @@ function sendNotificationToGivenUser(registrationToken, noti, type, key) {
                 if (response.successCount == 1 && type && key) {
                     var data = {}
                     data[type + '_sent'] = Date.now()
-                    console.log("secondary sent message:", data);
+                    console.log(type + ' sent', key);
                     return notificationRef.child(key).update(data);
                 }
             })
@@ -4659,8 +4654,8 @@ app.get('/sendNotiSubcribleToProfile', function (req, res) {
     res.send('done')
 })
 
-function sendNotiSubcribleToProfile(storeId,jobId) {
-
+function sendNotiSubcribleToProfile(storeId, jobId) {
+    var time = Date.now()
 
     if (jobId) {
         var Job = dataJob[jobId]
@@ -4684,8 +4679,8 @@ function sendNotiSubcribleToProfile(storeId,jobId) {
                 var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
                 if (dis <= 20) {
                     var a = _.random(0, 2)
-                    var text = ''
-                    var title = ''
+                    var text = '';
+                    var title = '';
                     if (a == 0) {
                         title = storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
                         text = text + 'Có công việc này khá phù hợp với bạn nè \n'
@@ -4707,7 +4702,7 @@ function sendNotiSubcribleToProfile(storeId,jobId) {
                         storeData.photo = [storeData.avatar]
                     }
 
-                    var randomphoto = _.random(0,storeData.photo.length-1)
+                    var randomphoto = _.random(0, storeData.photo.length - 1)
 
                     var mail = {
                         title: title,
@@ -4717,7 +4712,7 @@ function sendNotiSubcribleToProfile(storeId,jobId) {
                             image: storeData.photo[randomphoto] || '',
                             body: getStringJob(storeData.job) + ' cách ' + dis + ' km',
                             calltoaction: 'Xem chi tiết',
-                            linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=kt'+ a,
+                            linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=kt' + a,
                         }],
                         description1: 'Dear ' + getLastName(card.name),
                         description2: text,
@@ -4726,8 +4721,8 @@ function sendNotiSubcribleToProfile(storeId,jobId) {
                         Thảo - Jobo`,
                         outtro: true
                     };
-
-                    sendNotification(dataUser[card.userId], mail)
+                    time = time + 1000
+                    sendNotification(dataUser[card.userId], mail, null, time)
                 }
 
             }
@@ -5331,67 +5326,80 @@ app.get('/PostStore', function (req, res) {
     var jobId = req.param('jobId');
     var where = req.param('where');
 
-    PostStore(storeId, jobId, job, where, poster);
-    res.send(storeId)
+    // PostStore(storeId, jobId, job, where, poster);
+    // res.send(storeId)
+    PostStore(storeId, jobId, job, where, poster)
+        .then(result => res.status(200).json(result))
+        .catch(err => res.status(500).json(err));
 });
 
 
 function PostStore(storeId, jobId, job, where, poster, time) {
-
-    if (!where) {
-        where = isWhere(storeId)
-    }
-    if (jobId) {
-        var Job = dataJob[jobId]
-        job = Job.job
-    } else {
-        var jobData = _.filter(dataJob, function (card) {
-            if (card.storeId == storeId && card.deadline > Date.now()) return true
-            else return false
-        })
-        if (jobData[0]) {
-            Job = jobData[0]
-            job = Job.job
+    return new Promise((resolve, reject) => {
+        if (!where) {
+            where = isWhere(storeId)
         }
-    }
+        if (jobId) {
+            var Job = dataJob[jobId]
+            job = Job.job
+        } else {
+            var jobData = _.filter(dataJob, function (card) {
+                if (card.storeId == storeId && card.deadline > Date.now()) return true
+                else return false
+            })
+            if (jobData[0]) {
+                Job = jobData[0]
+                job = Job.job
+            }
+        }
 
-    for (var i in groupData) {
+        for (var i in groupData) {
 
-        var content = createJDStore(storeId, null, jobId);
-        if (content
-            && groupData[i].groupId
-            && (groupData[i].area == where || !where)
-            && (groupData[i].job && groupData[i].job.match(job) || !job )) {
-            poster = _.sample(facebookUser[where])
-            console.log(poster);
-            // data[poster] = 'tried';
-            // groupRef.child(groupData[i].groupId).update(data)
-            if (!time) {
-                time = Date.now() + 4 * 1000
-            } else {
-                time = time + 11 * 60 * 1000
+            var content = createJDStore(storeId, null, jobId);
+            if (content
+                && groupData[i].groupId
+                && (groupData[i].area == where || !where)
+                && (groupData[i].job && groupData[i].job.match(job) || !job )) {
+                poster = _.sample(facebookUser[where])
+                console.log(poster);
+                // data[poster] = 'tried';
+                // groupRef.child(groupData[i].groupId).update(data)
+                if (!time) {
+                    time = Date.now() + 4 * 1000
+                } else {
+                    time = time + 11 * 60 * 1000
+                }
+
+                var postId = facebookPostRef.push().key;
+                var to = groupData[i].groupId
+
+
+                // facebookPostRef.child(postId).update({postId, storeId, jobId, poster, content, time, to})
+
+                axios.post('https://joboana.herokuapp.com/newPost', {storeId, jobId, poster, content, time, to})
+                    .then(result => resolve(result))
+                    .catch(err => reject(err));
             }
 
-            var postId = facebookPostRef.push().key;
-            var to = groupData[i].groupId
-
-
-            facebookPostRef.child(postId).update({postId, storeId, jobId, poster, content, time, to})
-
         }
-
-    }
+    });
 }
 
 
 app.route('/PostText2Store')
     .post(function (req, res) {
         var {text, poster, job, where, time} = req.body;
-        PostTextToStore(text, job, where, poster, time);
-        res.json('done');
+        // PostTextToStore(text, job, where, poster, time);
+        // res.json('done');
+        PostTextToStore(text, job, where, poster, time)
+            .then(result => res.status(200).json(result))
+            .catch(err => res.status(500).json(err));
     });
 
 function PostTextToStore(text, job, where, poster, time = null) {
+    return new Promise((resolve, reject) => {
+
+    });
     for (var i in groupData) {
         var content = {text};
         if (content &&
@@ -5411,33 +5419,14 @@ function PostTextToStore(text, job, where, poster, time = null) {
             time = time + 60 * 5 * 1000 || Date.now() + 15000;
 
             console.log(new Date(time))
-            var postId = facebookPostRef.push().key;
+            // var postId = facebookPostRef.push().key;
             var to = groupData[i].groupId
-            facebookPostRef.child(postId).update({postId, poster, content, time, to}, function (res) {
-                console.log('facebookPostRef');
-                schedule.scheduleJob(time, function () {
-                    PublishFacebook(to, content, poster, postId)
-                })
-            });
+            axios.post('https://joboana.herokuapp.com/newPost', {poster, content, time, to})
+                .then(result => resolve(result))
+                .catch(err => reject(err));
         }
     }
 }
-
-app.get('/getfbPost', function (req, res) {
-    let {p: page, q: query} = req.query
-    facebookPostRef.once('value')
-        .then(function (snap) {
-            var data = snap.val()
-            var sorted = _.sortBy(data, function (card) {
-                return -card.time
-            })
-            var send = getPaginatedItems(sorted, page)
-            res.send(send)
-
-        })
-        .catch(err => reject(err));
-});
-
 
 // schedule.scheduleJob({hour: 9}, function () {
 //     PostStore('-Ko888eO-cKhfXzJzSQh');
@@ -5499,7 +5488,6 @@ function Email_happyBirthDayProfile() {
         }
     }
 }
-
 
 
 app.get('/sendList', function (req, res) {
