@@ -4414,13 +4414,14 @@ function startList() {
 
 function sendVerifyEmail(email, userId, name) {
     var mail = {
-        title: 'Jobo | Xác thực Email',
-        body: 'Hãy hoàn thành đầy đủ thông tin hồ sơ cá nhân',
-        description1: 'Chào ' + getLastName(dataUser[userId].name),
-        description2: 'Bạn đã tạo hồ sơ thành công trên Jobo, tiếp theo bạn cần đảm bảo đã hoàn thành đầy đủ thông tin hồ sơ',
-        description3: 'Sau khi hoàn thành xong, hãy gọi điện cho chúng tôi để đặt lịch hẹn với Jobo, chúng tôi sẽ tư vấn, đào tạo và giới thiệu việc làm phù hợp cho bạn',
-        calltoaction: 'Gọi cho chúng tôi',
-        linktoaction: 'tel:0968269860',
+        title: 'Chúc mừng ' + getLastName(dataUser[userId].name) + ' đã tham gia cộng đồng người tìm việc của Jobo',
+        body: 'Hãy hoàn thành đầy đủ thông tin hồ sơ cá nhân, và đặt lịch hẹn với Jobo để tiến hành phỏng vấn chọn nhé',
+        subtitle: '',
+        description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
+        description2: 'Bạn hãy nhấn vào link bên dưới để xác thức email',
+        calltoaction: 'Xác thực',
+        linktoaction: CONFIG.APIURL + '/verifyemail?id=' + userId,
+        description3: 'Link: '+ CONFIG.APIURL + '/verifyemail?id=' + userId,
         image: ''
     };
     sendNotification(dataUser[userId], mail, {letter: true})
