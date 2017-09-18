@@ -104,7 +104,6 @@ var db = secondary.database();
 
 
 var configRef = db.ref('config');
-var actRef = db.ref('act');
 var emailRef = db.ref('emailChannel');
 
 var staticRef = db.ref('static');
@@ -112,12 +111,14 @@ var userRef = db.ref('user');
 var profileRef = db.ref('profile');
 var storeRef = db.ref('store');
 var jobRef = db.ref('job');
-var leadRef = db.ref('lead')
-var googleJobRef = secondary.database().ref('googleJob');
+var leadRef = db.ref('lead');
+var googleJobRef = db.ref('googleJob');
 
-var notificationRef = db.ref('notification')
 var likeActivityRef = db.ref('activity/like');
-var logRef = db.ref('log')
+
+var logRef = joboPxl.database().ref('log');
+var actRef = joboPxl.database().ref('act');
+var notificationRef = joboPxl.database().ref('notis')
 
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
@@ -246,9 +247,23 @@ var pxlForEmails = new JoboPxlForEmails({
     }
 });
 
+
+const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
+    return new Promise((resolve, reject) => {
+        pxlForEmails.addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
+            notiId: notiId,
+        }).then(html => {
+            return sendEmail(addressTo, mail, html, notiId);
+        })
+            .then(notiId => resolve(notiId))
+            .catch(err => reject(err));
+    });
+};
+
 var sendEmail = (addressTo, mail, emailMarkup, notiId) => {
     return new Promise((resolve, reject) => {
         // setup email data with unicode symbols
+
 
         let mailOptions = {
             from: {
@@ -288,18 +303,6 @@ var sendEmail = (addressTo, mail, emailMarkup, notiId) => {
         });
     });
 }
-
-const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
-    return new Promise((resolve, reject) => {
-        pxlForEmails.addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
-            notiId: notiId,
-        }).then(html => {
-            return sendEmail(addressTo, mail, html, notiId);
-        })
-            .then(notiId => resolve(notiId))
-            .catch(err => reject(err));
-    });
-};
 
 function sendEmailTemplate(email, mail, notiId) {
     return new Promise((resolve, reject) => {
@@ -721,56 +724,18 @@ function sendEmailTemplate(email, mail, notiId) {
         }
 
         htmlMail = htmlMail + footer
-        sendPXLEmail(email, mail, htmlMail, notiId)
+        sendEmail(email, mail, htmlMail, notiId)
             .then(notiId => resolve(notiId))
             .catch(err => reject(err));
     });
 }
 
-app.get('/sendNotification', function (req, res) {
-    var yes = req.param('yes')
-    var time = null;
-    if (yes) time = Date.now() + 5 * 1000
-
-
-    sendNotification(dataUser['thonglk'], {
-        title: 'thông',
-        body: 'hihi'
-    }, null, time)
-    res.send('done')
-})
-
-function sendNotification(userData, mail, channel, time) {
-    if (!userData) return;
-    if (!channel) {
-        channel = {
-            web: true,
-            letter: true,
-            mobile: true,
-            messenger: true
-        }
-    }
-    var notiId = notificationRef.push().key;
-    var notification = {
-        userData: userData,
-        mail: mail,
-        notiId: notiId,
-        time: time || Date.now(),
-        createdAt: Date.now(),
-        channel: channel
-    }
-
-    notificationRef.child(notiId)
-        .update(notification)
-
-}
-
 function startSend(userData, mail, channel, notiId) {
     return new Promise((sResolve, sReject) => {
-        console.log('startSend', notiId);
+        console.log('startSend', notiId, mail.title);
 
         const sendEmailTempPromise = new Promise((resolve, reject) => {
-            if (userData.email && userData.wrongEmail != true && channel.letter) {
+            if (userData.email && userData.wrongEmail != true && channel.letter && userData.email.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
                 sendEmailTemplate(userData.email, mail, notiId)
                     .then(notiId => resolve({
                         notiId,
@@ -819,6 +784,48 @@ function startSend(userData, mail, channel, notiId) {
             .catch(err => sReject(err));
     });
 }
+
+app.get('/sendNotification', function (req, res) {
+    var yes = req.param('yes')
+    var time = null;
+    if (yes) time = Date.now() + 5 * 1000
+
+
+    sendNotification(dataUser['thonglk'], {
+        title: 'thông',
+        body: 'hihi'
+    }, null, time)
+    res.send('done')
+})
+
+function sendNotification(userData, mail, channel, time) {
+    if (!userData) return;
+    if (!channel) {
+        channel = {
+            web: true,
+            letter: true,
+            mobile: true,
+            messenger: true
+        }
+    }
+    if (!time) {
+        time = Date.now()
+    }
+    var notiId = notificationRef.push().key;
+    var notification = {
+        userData: userData,
+        mail: mail,
+        notiId: notiId,
+        time: time,
+        createdAt: Date.now(),
+        channel: channel
+    }
+
+    notificationRef.child(notiId)
+        .update(notification)
+
+}
+
 
 var publishChannel = {
     Jobo: {
@@ -1043,12 +1050,11 @@ function init() {
     //
     // });
 
-
-    var now = Date.now();
-    var startTime = now;
-    var endTime = now + 86400 * 1000;
-    var a = 0, b = 0;
-
+    //
+    // var startTime = Date.now();
+    // var endTime = startTime + 86400 * 1000;
+    // var a = 0, b = 0;
+    //
     // notificationRef.on('child_added', function (snap) {
     //     var noti = snap.val()
     //     if (noti && noti.time > startTime && noti.time < endTime) {
@@ -1250,7 +1256,12 @@ function createListPremiumJobArray() {
             && dataStore[job.storeId]
             && job.deadline > Date.now()
         ) {
-            var jobString = {storeId: job.storeId, jobId: job.jobId}
+            var jobString = {
+                storeId: job.storeId,
+                jobId: job.jobId,
+                jobName: job.jobName,
+                storeName: dataStore[job.storeId].storeName
+            }
             jobHN.push(jobString)
         }
     }
@@ -1260,7 +1271,7 @@ function createListPremiumJobArray() {
 app.get('/createListGoogleJob', function (req, res) {
     res.send(createListGoogleJob())
 })
-app.get('/scheduleJobPusEveryday', function (req, res) {
+app.get('/scheduleJobPushEveryday', function (req, res) {
     res.send(scheduleJobPushEveryday())
 })
 schedule.scheduleJob({hour: 7, minute: 0}, function () {
@@ -1272,13 +1283,11 @@ function scheduleJobPushEveryday() {
     var time = Date.now() + 5000
     var a = 0
     for (var i in jobArr) {
-        if (i > 6) {
-            a++
-            var job = jobArr[i]
-            var sche = time + a * 60 * 60 * 1000
-            console.log(new Date(sche).getHours())
-            PostStore(job.storeId, job.jobId, null, null, null, sche)
-        }
+        var job = jobArr[i]
+        var sche = time + a * 60 * 60 * 1000
+        a++
+        console.log(new Date(sche).getHours())
+        PostStore(job.storeId, job.jobId, null, null, null, null, sche)
 
     }
 }
@@ -1372,147 +1381,90 @@ function createJDJob(jobId) {
 app.get('/createJDStore', function (req, res) {
     var storeId = req.param('storeId')
     var jobId = req.param('jobId')
-
     var a = req.param('a')
-
-    res.send(createJDStore(storeId, a, jobId))
+    createJDStore(storeId, a, jobId)
+        .then(text => res.status(200).json(text))
+        .catch(err => res.status(500).json(err));
 })
 
-function createJDStore(storeId, a, jobId) {
+const {JD} = require('./JDStore');
+
+function createJDStore(storeId, random, jobId) {
+    // return new Promise((resolve, reject) => {
     var storeData = dataStore[storeId];
-    var Job
+    var Job = dataJob[jobId];
+
+    var text = '',
+        working_type = '',
+        salary = '',
+        figure = '',
+        unit = '',
+        experience = '',
+        deadline = '',
+        sex = '',
+        time = '',
+        description = '',
+        job = 'server';
+    const contact = CONFIG.contact[isWhere(storeId)].phone;
+    const address = shortAddress(storeData.address).replace(/\s\s/g, ' ');
+    const storeName = storeData.storeName;
+    const jobName = Job.jobName;
+
+    if (Job.job.match(/server|cashier|barista|bartender|receptionist|prepcook|cook|receptionist_cashier/g)) job = 'server';
+    else if (Job.job.match(/business|administration|manager|marketing_pr|designer/g)) {
+        job = 'business';
+    } else if (Job.job.match(/sale/g)) {
+        job = 'sale';
+    }
+
+    if (random && (Object.keys(JD[job]).length - 1) < random) reject('Out of JD');
+    if (!random) {
+        random = _.random(0, Object.keys(JD[job]).length - 1)
+    }
+
+    var link = '';
+
     if (jobId) {
-        Job = dataJob[jobId]
+        link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?job=' + jobId + '#ref=' + job + random;
     } else {
-        var jobData = _.filter(dataJob, function (card) {
-            if (card.storeId == storeId && card.deadline > Date.now()) return true
-            else return false
-        })
-        if (jobData[0]) {
-            Job = jobData[0]
-        }
+        link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + job + random;
+        storeData.Url = link;
     }
-
-
-    var text = '';
-
-    if (!a) {
-        a = Math.round(Math.random() * 5);
+    if (Job.working_type) working_type = `🏆Hình thức: ${CONFIG.data.working_type[Job.working_type]}\n`;
+    if (Job.salary) salary = `🏆Lương khởi điểm: ${Job.salary} triệu\n`;
+    if (Job.hourly_wages) salary = `🏆Lương: ${Job.hourly_wages} K/H + THƯỞNG HẤP DẪN + TIPS\n`;
+    if (Job.figure) figure = '🏆Cần ngoại hình ưa nhìn cởi mở 😊\n';
+    if (Job.deadline) {
+        const date = new Date(Job.deadline);
+        deadline = `🏆Hạn chót nộp hồ sơ: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
     }
-    console.log('a', a);
-    if (jobId) {
-        var link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?job=' + jobId + '#ref=type' + a
-    } else {
-        link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=type' + a
+    if (Job.experience) experience = `🏆Yêu cầu ứng viên có kinh nghiệm 😊\n`;
+    if (Job.unit) unit = `🏆Số lượng cần tuyển: ${Job.unit} ứng viên\n`;
+    if (Job.sex) {
+        if (Job.sex == 'female') sex = '🏆Yêu cầu giới tính: Nữ\n';
+        else if (Job.sex == 'male') sex = '🏆Yêu cầu giới tính: Nam\n';
     }
-    storeData.Url = link;
-    if (a == 0) {
-        text = `${storeData.storeName} tuyển dụng tại ${shortAddress(storeData.address)}
-📢  📢 Bạn năng động và ham học hỏi? Hãy tham gia vào chuỗi ${storeData.storeName} để có những trải nghiệm thú vị, kinh nghiệm mới và cơ hội được đào tạo nhiều kỹ năng chuyên nghiệp.
-👉 ${storeData.storeName} đang cần tuyển nhân viên cho chi nhánh mới với mức lương rất hấp dẫn, hãy nhanh chóng ứng tuyển ngay các vị trí sau:`
-        for (var i in jobData) {
-            text = text + `${jobData[i].unit} ${jobData[i].jobName} `
-
-        }
-
-        text = text + `
-        👉 Ưu tiên ứng viên qua hoặc nộp hồ sơ online qua ${link}
-        👉 Mọi thắc mắc vui lòng liên hệ số điện thoại: ${CONFIG.contact[isWhere(storeId)].phone} để được giải đáp nhé!`
+    if (Job.working_type != 'fulltime') time = '🏆Thời gian linh động phù hợp với các bạn sinh viên\n';
+    if (Job.description) description = `🏆Mô tả công việc: ${Job.description}\n`;
 
 
-    } else if (a == 1) {
-
-        text = `Hiện tại ${storeData.storeName} ở ${shortAddress(storeData.address)} đang cần tuyển ${Job.unit || ''} bạn làm ${Job.jobName}`;
-
-        if (Job.salary) text = text + ` lương tháng ${Job.salary}tr `
-
-        if (Job.working_type) text = text + `, ưu tiên các bạn muốn làm ${Lang[Job.working_type]},`
-
-        if (Job.figure) text = text + 'cần ngoại hình ưa nhìn cởi mở 😊,'
-
-        text = text + ` bạn nào muốn làm liện hệ với mình hoặc số : ${CONFIG.contact[isWhere(storeId)].phone}, hoặc ứng tuyển qua Jobo tại link ${link}.\n \n
-            Mình đang sử dụng Jobo để tuyển nhân viên, ứng dụng Jobo giúp các bạn trẻ định hướng và tìm các việc phù hợp, cam kết miễn phí, khuyên các bạn tìm việc dùng thử ứng dụng này ` + CONFIG.WEBURL
-
-
-    } else if (a == 2) {
-
-        text = text + storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
-        if (storeData.address) {
-            text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
-        }
-
-        if (storeData.description) {
-            text = text + storeData.description + '\n \n'
-        }
-
-        text = text + '► Vị trí cần tuyển \n'
-
-        for (var i in jobData) {
-            text = text + createJDJob(jobData[i].jobId)
-        }
-
-        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp ${CONFIG.contact[isWhere(storeId)].phone}`
-
-    } else if (a == 3) {
-        text = `${Job.storeName} tại ${shortAddress(storeData.address)} hiện đang "nhắn tìm đồng đội"
-
-JOBO nhận được thông báo khẩn "nhắn tìm đồng đội" từ biệt đội ${storeData.storeName}:
-
-Vị trí: ${Job.jobName}`
-        if (Job.salary) text = text + `Lương: ${Job.jobName} tr`
-        if (Job.working_type) text = text + `Hình thức : ${Lang[Job.working_type]}`
-        text = text + `Bỏ ra 1ph để tìm hiểu thêm thông tin và gia nhập đồng đội ngay hôm nay tại : ${storeData.Url}
-Các bạn chỉ cần hoàn thành hồ sơ tại link trên, chúng mình sẽ liên hệ lại ngay và đi làm luôn!
-Nếu khó khăn cứ cmt ngay dưới hoặc liên hệ ${CONFIG.contact[isWhere(storeId)].phone} nhé!
-
-------------------------------------
-Nếu cơ sở đó không thuận tiện cho bạn đi lại, tham khảo các cơ sở khác tại : ${storeData.Url}
-`;
-    } else if (a == 4) {
-        text = `Có bạn nào quanh khu vực ${shortAddress(storeData.address)} k?, mình cần tuyển GẤP nhân viên ${Job.jobName} tại ${storeData.storeName}\n`
-
-        if (Job.salary) text += `Lương: ${Job.salary} tr\n`;
-        if (Job.working_type) text += `Hình thức: ${Job.working_type}\n`;
-        if (Job.description) text += `${Job.description}\n`;
-
-        text += `Nếu chưa rõ các bạn có thể xem cụ thể tại đây ${storeData.Url} và ứng tuyển theo link đó để mình xem trước thông tin và hẹn lịch đi phỏng vấn và đi làm ngay.\n
-Mình cần tuyển rất gấp , bạn nào có bạn bè cần tìm việc ở ${shortAddress(storeData.address)} thì giới thiệu, tag vào giúp mình với nha. Mình cảm ơn.\n
-Liên hệ ${CONFIG.contact[isWhere(storeId)].phone}.`
-    } else if (a == 5) {
-        text = `Có bạn nào quanh khu vực ${shortAddress(storeData.address)}, mình cần tuyển GẤP nhân viên ${Job.jobName} tại ${storeData.storeName}\n`
-
-        if (Job.salary) text += `   Lương: ${Job.salary}\n`;
-        if (Job.working_type) text += `   Hình thức: ${Job.working_type}\n`;
-        if (Job.description) text += `   Chế độ: ${Job.description}\n`;
-
-        text += `Nếu chưa rõ các bạn có thể xem cụ thể tại đây ${storeData.Url} và ứng tuyển theo link đó để mình xem trước thông tin và hẹn lịch đi phỏng vấn và đi làm ngay.\n
-Mình cần tuyển rất gấp , bạn nào có bạn bè cần tìm việc thì giới thiệu, tag vào giúp mình với nha. Mình cảm ơn.\n
-Liên hệ ${CONFIG.contact[isWhere(storeId)].phone}.`
-
-    } else {
-        text = text + storeData.storeName + ' tuyển dụng ' + Job.jobName + '\n \n'
-        if (storeData.address) {
-            text = text + '🛣 ' + shortAddress(storeData.address) + '\n \n '
-        }
-
-        if (storeData.description) {
-            text = text + storeData.description + '\n \n'
-        }
-
-        text = text + '► Vị trí cần tuyển \n'
-
-        for (var i in storeData.jobData) {
-
-            var Job = storeData.jobData[i]
-            if (Job.deadline > Date.now()) {
-                var jobId = Job.storeId + ':' + Job.job
-                text = text + createJDJob(jobId)
-            }
-        }
-
-        text = text + `Xem thông tin chi tiết tại ${link} hoặc gọi trực tiếp SĐT 0166 7951 678 (My)`
-
-    }
+    text = JD[job][random]({
+        storeName,
+        address,
+        jobName,
+        salary,
+        working_type,
+        time,
+        jobUrl: link,
+        storeUrl: storeData.Url,
+        figure,
+        unit,
+        experience,
+        sex,
+        deadline,
+        description,
+        contact
+    });
 
     if (storeData.photo) {
         storeData.photo.push(storeData.avatar)
@@ -1520,15 +1472,12 @@ Liên hệ ${CONFIG.contact[isWhere(storeId)].phone}.`
         storeData.photo = [storeData.avatar]
     }
 
-
-    var randomphoto = Math.round(Math.random() * (storeData.photo.length - 1));
-
+    var randomphoto = _.random(0, storeData.photo.length - 1)
     return {
         text: text,
         link: link,
         image: storeData.photo[randomphoto]
-    }
-
+    };
 }
 
 app.get('/check', function (req, res) {
@@ -2741,13 +2690,19 @@ app.get('/update/user', function (req, res) {
     if (userId) {
 
         if (userDataStr) {
-            var userData = JSON.parse(userDataStr)
+            var userData = JSON.parse(userDataStr);
             userRef.child(userId).update(userData)
 
         }
         if (profileDataStr) {
             var profileData = JSON.parse(profileDataStr)
+
+            if (dataProfile[profileData.userId]) {
+                profileData.updatedAt = Date.now()
+            }
+
             profileRef.child(userId).update(profileData)
+
 
         }
 
@@ -2787,10 +2742,16 @@ app.get('/update/job', function (req, res) {
 
         for (var i in jobData) {
             var job = jobData[i]
+
             if (job.job) {
                 if (!job.jobId) {
                     job.jobId = 'j' + Math.round(10000 * Math.random());
                 }
+
+                if (dataJob[job.jobId]) {
+                    job.updatedAt = Date.now()
+                }
+
                 if (!job.jobName) {
                     job.jobName = Lang[job.job]
                 }
@@ -3052,7 +3013,7 @@ function createKey(fullname) {
         var keyname = latinese(fullname)
         if (keyListData[keyname]) {
 
-            var newname = keyname + Math.round(1000 * Math.random())
+            var newname = keyname + _.random(0, 100)
             var obj = {}
             obj[newname] = true
             db.ref('keyList').update(obj, function (suc) {
@@ -3069,7 +3030,7 @@ function createKey(fullname) {
 
         }
     } else {
-        return Math.round(100000 * Math.random())
+        return _.random(0, 10000)
     }
 
 
@@ -5321,20 +5282,19 @@ function isWhere(storeId) {
 
 app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
+    var groupId = req.param('groupId');
     var poster = req.param('poster');
     var job = req.param('job');
     var jobId = req.param('jobId');
     var where = req.param('where');
 
-    // PostStore(storeId, jobId, job, where, poster);
-    // res.send(storeId)
-    PostStore(storeId, jobId, job, where, poster)
+    PostStore(storeId, jobId, groupId, job, where, poster)
         .then(result => res.status(200).json(result))
         .catch(err => res.status(500).json(err));
 });
 
 
-function PostStore(storeId, jobId, job, where, poster, time) {
+function PostStore(storeId, jobId, groupId, job, where, poster, time) {
     return new Promise((resolve, reject) => {
         if (!where) {
             where = isWhere(storeId)
@@ -5350,18 +5310,20 @@ function PostStore(storeId, jobId, job, where, poster, time) {
             if (jobData[0]) {
                 Job = jobData[0]
                 job = Job.job
-            }
+                jobId = Job.jobId
+            } else resolve(null)
         }
-
+        console.log('jobId', jobId, job)
         for (var i in groupData) {
 
-            var content = createJDStore(storeId, null, jobId);
-            if (content
-                && groupData[i].groupId
+            if (groupData[i].groupId
+                && (groupData[i].groupId == groupId || !groupId)
                 && (groupData[i].area == where || !where)
                 && (groupData[i].job && groupData[i].job.match(job) || !job )) {
                 poster = _.sample(facebookUser[where])
-                console.log(poster);
+                var content = createJDStore(storeId, null, jobId)
+                console.log('poster', poster, JSON.stringify(content));
+
                 // data[poster] = 'tried';
                 // groupRef.child(groupData[i].groupId).update(data)
                 if (!time) {
@@ -5370,13 +5332,13 @@ function PostStore(storeId, jobId, job, where, poster, time) {
                     time = time + 11 * 60 * 1000
                 }
 
+
                 var postId = facebookPostRef.push().key;
                 var to = groupData[i].groupId
 
-
                 // facebookPostRef.child(postId).update({postId, storeId, jobId, poster, content, time, to})
 
-                axios.post('https://joboana.herokuapp.com/newPost', {storeId, jobId, poster, content, time, to})
+                axios.post('http://localhost:8081/newPost', {postId, storeId, jobId, poster, content, time, to})
                     .then(result => resolve(result))
                     .catch(err => reject(err));
             }
