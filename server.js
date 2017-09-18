@@ -813,7 +813,7 @@ function sendNotification(userData, mail, channel, time) {
         }
     }
     if (!time) {
-        time = Date.now()
+        time = Date.now() + 5000
     }
     var notiId = keygen();
     var notification = {
@@ -2915,8 +2915,8 @@ function keygen() {
     const keylen = 6
 
     let key = ''
-    for ( let i = 0; i < keylen; i+=1 ) {
-        key += alphabet[_.random(0, alphabet.length-1)]
+    for (let i = 0; i < keylen; i += 1) {
+        key += alphabet[_.random(0, alphabet.length - 1)]
     }
     return key
 }
@@ -3404,39 +3404,6 @@ app.get('/admin/createuser', function (req, res) {
 })
 
 
-app.get('/admin/deleteuser', function (req, res) {
-    var userId = req.param('id');
-
-    secondary.auth().deleteUser(userId)
-        .then(function () {
-            console.log("Successfully deleted user");
-            //remove user
-            userRef.child(userId).remove()
-            profileRef.child(userId).remove()
-            var reactRef = firebase.database().ref('activity/like')
-            var reactList = reactRef.orderByChild('userId').equalTo(userId);
-            reactList.once("value")
-                .then(function (snapshot) {
-                    snapshot.forEach(function (childSnapshot) {
-                        // key will be "ada" the first time and "alan" the second time
-                        if (childSnapshot) {
-                            var key = childSnapshot.key;
-                            reactRef.child(key).remove()
-                        }
-
-                        // childData will be the actual contents of the child
-                        res.send('done')
-
-                    });
-                });
-        })
-
-        .catch(function (error) {
-            console.log("Error deleting user:", error);
-        });
-
-})
-
 app.get('/admin/storeEmail', function (req, res) {
     var send = ''
     for (var i in dataUser) {
@@ -3717,7 +3684,7 @@ function checkProfilePoint(profileData) {
 }
 
 function gct(userId) {
-    if(dataUser[userId] && dataUser[userId].currentStore) return dataUser[userId].currentStore
+    if (dataUser[userId] && dataUser[userId].currentStore) return dataUser[userId].currentStore
 }
 
 
@@ -4327,7 +4294,7 @@ function startList() {
  */
 
 
-function sendVerifyEmail(email, userId, name) {
+function sendVerifyEmail(email, userId) {
     var mail = {
         title: 'Chúc mừng ' + getLastName(dataUser[userId].name) + ' đã tham gia cộng đồng người tìm việc của Jobo',
         body: 'Hãy hoàn thành đầy đủ thông tin hồ sơ cá nhân, và đặt lịch hẹn với Jobo để tiến hành phỏng vấn chọn nhé',
@@ -4618,27 +4585,27 @@ function sendMailNotiLikeToStore(card) {
 
 function sendMailNotiLikeToProfile(card) {
 
-    if(card.jobId && dataJob[card.jobId] &&  dataJob[card.jobId].jobName){
-        var jobName ='vào vị trí' + dataJob[card.jobId].jobName
+    if (card.jobId && dataJob[card.jobId] && dataJob[card.jobId].jobName) {
+        var jobName = 'vào vị trí' + dataJob[card.jobId].jobName
     } else {
         var jobName = ''
     }
 
     var mail = {
         title: 'Thương hiệu ' + card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn',
-        body: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn' + jobName+ ', xem offer và phản hồi ngay!',
+        body: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn' + jobName + ', xem offer và phản hồi ngay!',
         data: [{
             title: card.storeName,
             image: card.storeAvatar,
             body: dataJob[card.jobId].jobName
         }],
         description1: 'Chào ' + getLastName(card.userName),
-        description2: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn '+ jobName +', xem chi tiết và phản hồi ngay!',
+        description2: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn ' + jobName + ', xem chi tiết và phản hồi ngay!',
         description3: '',
         subtitle: '',
         image: '',
         calltoaction: 'Xem chi tiết',
-        linktoaction: CONFIG.WEBURL + '/view/store/' + card.storeId+ '?job='+ card.jobId
+        linktoaction: CONFIG.WEBURL + '/view/store/' + card.storeId + '?job=' + card.jobId
     };
     sendNotification(dataUser[card.userId], mail)
 
@@ -4919,10 +4886,10 @@ function analyticsRemind() {
     var datenow = dateStart.getTime()
     var dayy = dateStart.getDate() + '/' + dateStart.getMonth()
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
-        var long = `Từ ${dayy} đến ${new Date(data.dateEnd)}:\n Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var long = `Từ ${dayy} đến ${new Date(data.dateEnd)}: \n Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
             title: dayy + '| Jobo KPI Result ',
-            body: `Từ ${dayy} đến ${new Date(data.dateEnd)}: Total User: ${data.total}` + long,
+            body: long,
             subtitle: '',
             description1: 'Dear friend,',
             description2: long,
@@ -4931,10 +4898,11 @@ function analyticsRemind() {
             linktoaction: 'https://www.messenger.com/t/979190235520989',
             image: ''
         }
-
+        var time = Date.now()
         for (var i in dataUser) {
             if (dataUser[i].admin == true) {
-                sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true})
+                time = time + 5000
+                sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
             }
         }
     })
@@ -5284,14 +5252,6 @@ function PostTextToStore(text, job, where, poster, time = null) {
         }
     }
 }
-
-// schedule.scheduleJob({hour: 9}, function () {
-//     PostStore('-Ko888eO-cKhfXzJzSQh');
-// });
-//
-// schedule.scheduleJob({hour: 10}, function () {
-//     PostStore('-Kop_Dcf9r_gj94B_D3z')
-// });
 
 
 function Notification_FirstRoundInterview() {
