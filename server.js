@@ -1002,6 +1002,7 @@ function init() {
         dataJob = snap.val()
 
     });
+
     // emailRef.once('value', function (snap) {
     //     dataEmail = snap.val()
     //     var array = _.toArray(dataEmail)
@@ -3942,7 +3943,8 @@ function startList() {
 
 
         if (card.action == 'createProfile') {
-            if (dataProfile[card.userId]) {
+            console.log(card)
+            if (dataProfile && card.userId && dataProfile[card.userId]) {
 
                 var userData = dataProfile[card.userId]
                 var name = userData.name || 'bạn'
