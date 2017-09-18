@@ -818,8 +818,7 @@ function sendNotification(userData, mail, channel, time) {
         channel: channel
     }
 
-    notificationRef.child(notiId)
-        .update(notification)
+    notificationRef.child(notiId).update(notification)
 
 }
 
@@ -3700,7 +3699,7 @@ function checkProfilePoint(profileData) {
 }
 
 function gct(userId) {
-    return dataUser[userId].currentStore
+    if(dataUser[userId] && dataUser[userId].currentStore) return dataUser[userId].currentStore
 }
 
 
@@ -4600,21 +4599,28 @@ function sendMailNotiLikeToStore(card) {
 }
 
 function sendMailNotiLikeToProfile(card) {
+
+    if(card.jobId && dataJob[card.jobId] &&  dataJob[card.jobId].jobName){
+        var jobName ='vào vị trí' + dataJob[card.jobId].jobName
+    } else {
+        var jobName = ''
+    }
+
     var mail = {
         title: 'Thương hiệu ' + card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn',
-        body: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn vào vị trí' + getStringJob(card.jobStore) + ', xem offer và phản hồi ngay!',
-        data: {
-            name: card.storeName,
-            avatar: card.storeAvatar,
-            job: getStringJob(card.jobStore)
-        },
+        body: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn' + jobName+ ', xem offer và phản hồi ngay!',
+        data: [{
+            title: card.storeName,
+            image: card.storeAvatar,
+            body: dataJob[card.jobId].jobName
+        }],
         description1: 'Chào ' + getLastName(card.userName),
-        description2: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn vào vị trí ' + getStringJob(card.jobStore) + ', xem chi tiết và phản hồi ngay!',
+        description2: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn '+ jobName +', xem chi tiết và phản hồi ngay!',
         description3: '',
         subtitle: '',
         image: '',
         calltoaction: 'Xem chi tiết',
-        linktoaction: CONFIG.WEBURL + '/view/store/' + card.storeId
+        linktoaction: CONFIG.WEBURL + '/view/store/' + card.storeId+ '?job='+ card.jobId
     };
     sendNotification(dataUser[card.userId], mail)
 
