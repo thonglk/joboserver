@@ -101,11 +101,10 @@ MongoClient.connect(uri, function (err, db) {
 
 var adminEmailList = []
 var db = secondary.database();
+var db2 = joboPxl.database();
 
 
 var configRef = db.ref('config');
-var emailRef = db.ref('emailChannel');
-
 var staticRef = db.ref('static');
 var userRef = db.ref('user');
 var profileRef = db.ref('profile');
@@ -113,18 +112,16 @@ var storeRef = db.ref('store');
 var jobRef = db.ref('job');
 var leadRef = db.ref('lead');
 var googleJobRef = db.ref('googleJob');
-
 var likeActivityRef = db.ref('activity/like');
 
-var logRef = joboPxl.database().ref('log');
-var actRef = joboPxl.database().ref('act');
-var notificationRef = joboPxl.database().ref('notis')
+var logRef = db2.ref('log');
+var actRef = db2.ref('act');
+var notificationRef = db2.ref('notis')
 
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
 var buyRef = db.ref('activity/buy');
 
-var facebookPostRef = db.ref('facebookPost');
 
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
     keyListData, datagoogleJob, facebookAccount
@@ -861,50 +858,6 @@ function sendStoretoPage(storeId) {
 }
 
 
-function PublishFacebook(to, content, poster, postId) {
-    console.log('scheduleJob_PublishFacebook_run', to, poster, postId)
-
-    var accessToken = facebookAccount[poster]
-    if (to && content && accessToken) {
-        if (content.image) {
-            graph.post(to + "/photos?access_token=" + accessToken,
-                {
-                    "url": content.image,
-                    "caption": content.text
-                },
-                function (err, res) {
-                    // returns the post id
-                    if (err) {
-                        console.log(err.message, to, poster);
-                        facebookPostRef.child(postId).update({sent_error: err.message})
-                    } else {
-                        var id = res.id;
-                        console.log(id);
-                        facebookPostRef.child(postId).update({id, sent: Date.now()})
-
-                    }
-
-                });
-        } else {
-            graph.post(to + "/feed?access_token=" + accessToken,
-                {"message": content.text},
-                function (err, res) {
-                    // returns the post id
-                    if (err) {
-                        console.log(err.message, to, poster);
-                        facebookPostRef.child(postId).update({sent_error: err.message})
-                    } else {
-                        var id = res.id;
-                        console.log(id);
-                        facebookPostRef.child(postId).update({id, sent: Date.now()})
-
-                    }
-
-                });
-        }
-    }
-}
-
 function PublishPost(userId, text, accessToken) {
     if (userId && text && accessToken) {
         graph.post(userId + "/feed?access_token=" + accessToken,
@@ -958,134 +911,76 @@ function PublishComment(postId, text, accessToken) {
     }
 }
 
+
 function init() {
-    console.log('init')
+    console.log('listenDatabase')
     configRef.on('value', function (snap) {
         CONFIG = snap.val()
-        facebookAccount = CONFIG.facebookToken
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
-
     })
 
-    staticRef.on('value', function (snap) {
-        dataStatic = snap.val()
+    dataStatic = {}
+    dataUser = {}
+    datagoogleJob = {}
+    dataProfile = {}
+    dataJob = {}
+    dataStore = {}
+    likeActivity = {}
+    keyListData = {}
+    staticRef.on('child_added', function (snap) {
+        dataStatic[snap.key] = snap.val()
+    });
+    staticRef.on('child_changed', function (snap) {
+        dataStatic[snap.key] = snap.val()
     });
 
-    userRef.on('value', function (snap) {
-        console.log('Data User');
-        dataUser = snap.val();
-
+    userRef.on('child_added', function (snap) {
+        dataUser[snap.key] = snap.val()
     });
-    googleJobRef.on('value', function (snap) {
-        datagoogleJob = snap.val()
-        if (!datagoogleJob) {
-            datagoogleJob = {}
-        }
+    userRef.on('child_changed', function (snap) {
+        dataUser[snap.key] = snap.val()
+    });
+    googleJobRef.on('child_added', function (snap) {
+        datagoogleJob[snap.key] = snap.val()
+    });
+    googleJobRef.on('child_changed', function (snap) {
+        datagoogleJob[snap.key] = snap.val()
+    });
+
+    profileRef.on('child_added', function (snap) {
+        dataProfile[snap.key] = snap.val()
+    });
+    profileRef.on('child_changed', function (snap) {
+        dataProfile[snap.key] = snap.val()
+    });
+
+    jobRef.on('child_added', function (snap) {
+        dataJob[snap.key] = snap.val()
+    });
+    jobRef.on('child_changed', function (snap) {
+        dataJob[snap.key] = snap.val()
+    });
+    storeRef.on('child_added', function (snap) {
+        dataStore[snap.key] = snap.val()
+    });
+    storeRef.on('child_changed', function (snap) {
+        dataStore[snap.key] = snap.val()
+    });
+    likeActivityRef.on('child_added', function (snap) {
+        likeActivity[snap.key] = snap.val()
+    });
+    likeActivityRef.on('child_changed', function (snap) {
+        likeActivity[snap.key] = snap.val()
+    });
+    db.ref('keyList').on('child_added', function (snap) {
+        keyListData[snap.key] = snap.val()
     })
 
-    leadRef.on('value', function (snap) {
-        console.log('Data Lead');
-        dataLead = snap.val()
-    })
+    startList()
 
-    profileRef.on('value', function (snap) {
-        console.log('Data Profile');
-        dataProfile = snap.val()
-
-    });
-
-
-    jobRef.on('value', function (snap) {
-        console.log('Data Job');
-        dataJob = snap.val()
-
-    });
-
-    // emailRef.once('value', function (snap) {
-    //     dataEmail = snap.val()
-    //     var array = _.toArray(dataEmail)
-    //     console.log('array', array.length)
-    //     var a = 0
-    //
-    //     function loop() {
-    //         var email = array[a]
-    //         emailChannelCol.insert(email).then(function (res) {
-    //             a++
-    //             if (a < array.length) {
-    //                 loop()
-    //             } else {
-    //                 console.log('done', a)
-    //                 sendPXLEmail('thonglk.mac@gmail.com', 'Doneeeeee', '<a href="https://joboapp.com/">'+a+'</a>', 'abcd')
-    //                     .then(messageId => console.log('Message sent: %s', messageId))
-    //                     .catch(err => console.log(err));
-    //
-    //             }
-    //         })
-    //     }
-    //     loop()
-    // })
-
-    storeRef.on('value', function (snap) {
-        console.log('Data store');
-        dataStore = snap.val();
-    });
-
-    likeActivityRef.on('value', function (snap) {
-        likeActivity = snap.val()
-    });
-    // logRef.once('value', function (snap) {
-    //     console.log('done')
-    //     dataLog = snap.val()
-    //     var logCollection = md.collection('log')
-    //     var logcount = 0
-    //     for(var i in dataLog){
-    //         logcount++
-    //         console.log(logcount)
-    //         var logData = dataLog[i]
-    //         logCollection.insert(logData,function (err,suc) {
-    //             console.log(err)
-    //         })
-    //     }
-    //
-    // });
-
-    //
-    // var startTime = Date.now();
-    // var endTime = startTime + 86400 * 1000;
-    // var a = 0, b = 0;
-    //
-    // notificationRef.on('child_added', function (snap) {
-    //     var noti = snap.val()
-    //     if (noti && noti.time > startTime && noti.time < endTime) {
-    //         console.log('noti', a++);
-    //         schedule.scheduleJob(noti.time, function () {
-    //             console.log('start', noti.time)
-    //
-    //             startSend(noti.userData, noti.mail, noti.channel, noti.notiId).then(function (array) {
-    //                 console.log('array', array)
-    //             })
-    //         })
-    //     }
-    // })
-
-
-    db.ref('keyList').on('value', function (a) {
-        keyListData = a.val()
-        if (!keyListData) {
-            keyListData = {}
-        }
-    })
-
-    return new Promise(function (resolve, reject) {
-        resolve(dataUser)
-    }).then(function () {
-        startList()
-
-    })
 }
-
 
 app.get('/lookalike', function (req, res) {
     var job = req.param('job')
@@ -3878,6 +3773,7 @@ app.get('/initStore', function (req, res) {
 })
 
 function startList() {
+    console.log('startList')
 
     actRef.on('child_added', function (snap) {
         var key = snap.key
@@ -4423,7 +4319,7 @@ function sendVerifyEmail(email, userId, name) {
         description2: 'Bạn hãy nhấn vào link bên dưới để xác thức email',
         calltoaction: 'Xác thực',
         linktoaction: CONFIG.APIURL + '/verifyemail?id=' + userId,
-        description3: 'Link: '+ CONFIG.APIURL + '/verifyemail?id=' + userId,
+        description3: 'Link: ' + CONFIG.APIURL + '/verifyemail?id=' + userId,
         image: ''
     };
     sendNotification(dataUser[userId], mail, {letter: true})
@@ -4770,19 +4666,15 @@ function sendMailNotiMatchToProfile(card) {
 
 app.get('/registerheadhunter', function (req, res) {
     var id = req.param('id')
-    emailRef.child(id).once('value', function (data) {
-        var user = data.val()
-        if (user) {
-            emailRef.child(id).update({headhunter: new Date().getTime()}).then(function () {
-                res.send('Bạn đã đăng ký thành công, hãy sử dụng mã giới thiệu: ' + user.email + ' và chia sẻ link ứng tuyển cho bạn bè nhé')
+    emailChannelCol.findOneAndUpdate({'id': id}, {headhunter: Date.now()}, {new: true}).then(function (data) {
+        if (data) {
+            res.send('Bạn đã đăng ký thành công, hãy sử dụng mã giới thiệu: ' + user.email + ' và chia sẻ link ứng tuyển cho bạn bè nhé')
 
-            })
         } else {
-            res.send('Xảy ra lỗi')
+            res.send('Không có dữ liệu')
+
         }
-
     })
-
 
 })
 
@@ -5312,7 +5204,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
                 }
 
 
-                var postId = facebookPostRef.push().key;
+                var postId = 'f' + _.random(0, 100000)
                 var to = groupData[i].groupId
 
                 // facebookPostRef.child(postId).update({postId, storeId, jobId, poster, content, time, to})
@@ -5360,7 +5252,7 @@ function PostTextToStore(text, job, where, poster, time = null) {
             time = time + 60 * 5 * 1000 || Date.now() + 15000;
 
             console.log(new Date(time))
-            // var postId = facebookPostRef.push().key;
+
             var to = groupData[i].groupId
             axios.post('https://joboana.herokuapp.com/newPost', {poster, content, time, to})
                 .then(result => resolve(result))
