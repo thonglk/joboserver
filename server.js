@@ -73,7 +73,10 @@ var joboPxl = firebase.initializeApp({
     credential: firebase.credential.cert('./pxl/jobo-pxl.json'),
     databaseURL: "https://jobo-pxl.firebaseio.com"
 }, 'jobo-pxl');
-//Mongo//
+var joboTest = firebase.initializeApp({
+    credential: firebase.credential.cert('jobotest.json'),
+    databaseURL: "https://jobotest-15784.firebaseio.com"
+}, 'joboTest');
 
 
 const MongoClient = require('mongodb');
@@ -100,7 +103,7 @@ MongoClient.connect(uri, function (err, db) {
 
 
 var adminEmailList = []
-var db = secondary.database();
+var db = joboTest.database();
 var db2 = joboPxl.database();
 
 
@@ -116,7 +119,7 @@ var likeActivityRef = db.ref('activity/like');
 
 var logRef = db2.ref('log');
 var actRef = db2.ref('act');
-var notificationRef = db2.ref('notis')
+var notificationRef = db2.ref('notihihi')
 
 var ratingRef = db.ref('activity/rating');
 var langRef = db.ref('tran/vi');
@@ -790,7 +793,11 @@ app.get('/sendNotification', function (req, res) {
 
     sendNotification(dataUser['thonglk'], {
         title: 'thông',
-        body: 'hihi'
+        body: 'haha',
+        description1: 'huhu',
+        linktoaction: 'https://google.com',
+        calltoaction: 'Hihi'
+
     }, null, time)
     res.send('done')
 })
@@ -808,7 +815,7 @@ function sendNotification(userData, mail, channel, time) {
     if (!time) {
         time = Date.now()
     }
-    var notiId = notificationRef.push().key;
+    var notiId = keygen();
     var notification = {
         userData: userData,
         mail: mail,
@@ -2902,6 +2909,17 @@ function latinese(str) {
 
 }
 
+function keygen() {
+
+    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' // chars that can be safely used in urls
+    const keylen = 6
+
+    let key = ''
+    for ( let i = 0; i < keylen; i+=1 ) {
+        key += alphabet[_.random(0, alphabet.length-1)]
+    }
+    return key
+}
 
 function createKey(fullname) {
     if (fullname) {
@@ -4901,7 +4919,7 @@ function analyticsRemind() {
     var datenow = dateStart.getTime()
     var dayy = dateStart.getDate() + '/' + dateStart.getMonth()
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
-        var long = `Từ ${dayy} đến ${new Date(data.dateEnd)}:<br> Total User: ${data.total} <br> <b>Employer:</b><br> - New account: ${data.employer.employer} <br> - New store: ${data.employer.store} <br> - New premium: ${data.employer.premium}<br> <b>Jobseeker:</b><br> - HN: ${data.jobseeker.hn} <br> -SG: ${data.jobseeker.sg} <br> <b>Operation:</b> <br>- Ứng viên thành công: ${data.act.success} <br> - Ứng viên đi phỏng vấn:${data.act.meet} <br> - Lượt ứng tuyển: ${data.act.userLikeStore} <br> - Lượt tuyển: ${data.act.storeLikeUser} <br> - Lượt tương hợp: ${data.act.match} <br> <b>Sale:</b> <br>- Lead :<br>${JSON.stringify(data.lead)}<br> <b>GoogleJob:</b><br>${JSON.stringify(data.googleJob)}`
+        var long = `Từ ${dayy} đến ${new Date(data.dateEnd)}:\n Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
             title: dayy + '| Jobo KPI Result ',
             body: `Từ ${dayy} đến ${new Date(data.dateEnd)}: Total User: ${data.total}` + long,
