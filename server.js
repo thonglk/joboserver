@@ -4322,7 +4322,7 @@ function sendWelcomeEmailToProfile(userData, profileData) {
         linktoaction: 'tel:0968269860',
         image: ''
     };
-    sendNotification(userData, mail, {letter: true, web: true, messenger: true, mobile: true})
+    sendNotification(userData, mail)
 }
 
 app.get('/sendWelcomeEmailToStore', function (req, res) {
@@ -4416,7 +4416,7 @@ function sendWelcomeEmailToStore(storeId, userId) {
         }
 
 
-        sendNotification(userInfo, mail, {letter: true, web: true, mobile: true, messenger: true})
+        sendNotification(userInfo, mail)
     })
 }
 
@@ -4453,12 +4453,7 @@ function sendNotiSubcribleToEmployer(userData) {
                         description3: 'Nếu bạn không thích ứng viên này, bạn có thể chọn các ứng viên khác, chúng tôi có hơn 1000 ứng viên được cập nhật mới mỗi ngày.',
                         storeId: card.storeId
                     };
-                    sendNotification(dataUser[card.createdBy], mail, {
-                        letter: true,
-                        web: true,
-                        messenger: true,
-                        mobile: true
-                    })
+                    sendNotification(dataUser[card.createdBy], mail)
                 }
             }
         }
@@ -4546,9 +4541,7 @@ function sendNotiSubcribleToProfile(storeId, jobId) {
                     time = time + 1000
                     sendNotification(dataUser[card.userId], mail, null, time)
                 }
-
             }
-
         }
     } else {
         console.log('sendNotiSubcribleToProfile error', storeData.storeId)
@@ -4572,12 +4565,7 @@ function sendMailNotiLikeToStore(card) {
             linktoaction: CONFIG.WEBURL + '/view/profile/' + card.userId,
             storeId: card.storeId
         };
-        sendNotification(dataUser[dataStore[card.storeId].createdBy], mail, {
-            letter: true,
-            web: true,
-            messenger: true,
-            mobile: true
-        })
+        sendNotification(dataUser[dataStore[card.storeId].createdBy], mail)
 
     }
 
@@ -4615,26 +4603,19 @@ function sendMailNotiMatchToStore(card) {
 
     var notification = {
         title: 'Ứng viên ' + card.userName + ' đã đồng ý tương hợp với thương hiệu của bạn',
-        body: ' Ứng viên ' + card.userName + ' đồng ý với lời mời phỏng vấn vào vị trí ' + getStringJob(card.jobUser) + ', hãy xem thông tin liên hệ và gọi ứng viên tới phỏng vấn',
+        body: ' Ứng viên ' + card.userName + ' đồng ý với lời mời phỏng vấn vào vị trí ' + dataJob[card.jobId].jobName + ', hãy xem thông tin liên hệ và gọi ứng viên tới phỏng vấn',
         data: {
             avatar: card.userAvatar,
-            name: card.userName,
-            job: getStringJob(card.jobUser)
-        },
+            name: card.userName},
         description1: 'Chào thương hiệu ' + card.storeName,
-        description2: ' Ứng viên ' + card.userName + ' đồng ý với lời mời phỏng vấn vào vị trí ' + getStringJob(card.jobUser) + ', hãy xem thông tin liên hệ và gọi ứng viên tới phỏng vấn',
+        description2: ' Ứng viên ' + card.userName + ' đồng ý với lời mời phỏng vấn vào vị trí ' + dataJob[card.jobId].jobName + ', hãy xem thông tin liên hệ và gọi ứng viên tới phỏng vấn',
         description3: '',
         calltoaction: 'Liên hệ ngay!',
         linktoaction: '/view/profile/' + card.userId,
         image: '',
         storeId: card.storeId
     }
-    sendNotification(dataUser[dataStore[card.storeId].createdBy], notification, {
-        letter: true,
-        web: true,
-        messenger: true,
-        mobile: true
-    })
+    sendNotification(dataUser[dataStore[card.storeId].createdBy], notification)
 
 }
 
@@ -4651,7 +4632,7 @@ function sendMailNotiMatchToProfile(card) {
         description4: '',
         image: ''
     };
-    sendNotification(dataUser[card.userId], notification, {letter: true, web: true, messenger: true, mobile: true})
+    sendNotification(dataUser[card.userId], notification)
 }
 
 
