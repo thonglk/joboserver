@@ -247,544 +247,6 @@ var pxlForEmails = new JoboPxlForEmails({
     }
 });
 
-
-const sendPXLEmail = (addressTo, mail, emailMarkup, notiId) => {
-    return new Promise((resolve, reject) => {
-        pxlForEmails.addTracking(`<img src="/jobo.png" alt="logo">${emailMarkup}`, {
-            notiId: notiId,
-        }).then(html => {
-            return sendEmail(addressTo, mail, html, notiId);
-        })
-            .then(notiId => resolve(notiId))
-            .catch(err => reject(err));
-    });
-};
-
-var sendEmail = (addressTo, mail, emailMarkup, notiId) => {
-    return new Promise((resolve, reject) => {
-        // setup email data with unicode symbols
-
-
-        let mailOptions = {
-            from: {
-                name: mail.name || 'Jobo | Tìm việc nhanh',
-                address: mail.address || 'contact@jobo.asia'
-            },
-            bcc: mail.bcc,
-            to: addressTo, // list of receivers
-            subject: mail.title, // Subject line
-            // text: 'Hello world?', // plain text body
-            html: `${emailMarkup}`, // html body
-        }
-        if (mail.attachments) {
-            mailOptions.attachments = [
-                {   // filename and content type is derived from path
-                    path: 'https://jobo.asia/img/proposal_pricing_included.pdf'
-                }
-            ]
-        }
-        // send mail with defined transport object
-        mailTransport.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log('Error sent email', addressTo)
-
-                reject(error);
-            }
-
-            console.log('Email sent:', notiId + addressTo)
-
-            // console.log('Message sent: %s', info.messageId);
-            if (notiId) {
-                notificationRef.child(notiId).update({mail_sent: Date.now()})
-            }
-            resolve(notiId);
-
-
-        });
-    });
-}
-
-function sendEmailTemplate(email, mail, notiId) {
-    return new Promise((resolve, reject) => {
-
-        var card = {}
-
-        var header = '<!doctype html>\n' +
-            '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">\n' +
-            '\n' +
-            '<head>\n' +
-            '    <title></title>\n' +
-            '    <!--[if !mso]><!-- -->\n' +
-            '    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n' +
-            '    <!--<![endif]-->\n' +
-            '    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n' +
-            '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-            '    <style type="text/css">\n' +
-            '        #outlook a {\n' +
-            '            padding: 0;\n' +
-            '        }\n' +
-            '\n' +
-            '        .ReadMsgBody {\n' +
-            '            width: 100%;\n' +
-            '        }\n' +
-            '\n' +
-            '        .ExternalClass {\n' +
-            '            width: 100%;\n' +
-            '        }\n' +
-            '\n' +
-            '        .ExternalClass * {\n' +
-            '            line-height: 100%;\n' +
-            '        }\n' +
-            '\n' +
-            '        body {\n' +
-            '            margin: 0;\n' +
-            '            padding: 0;\n' +
-            '            -webkit-text-size-adjust: 100%;\n' +
-            '            -ms-text-size-adjust: 100%;\n' +
-            '        }\n' +
-            '\n' +
-            '        table,\n' +
-            '        td {\n' +
-            '            border-collapse: collapse;\n' +
-            '            mso-table-lspace: 0pt;\n' +
-            '            mso-table-rspace: 0pt;\n' +
-            '        }\n' +
-            '\n' +
-            '        img {\n' +
-            '            border: 0;\n' +
-            '            height: auto;\n' +
-            '            line-height: 100%;\n' +
-            '            outline: none;\n' +
-            '            text-decoration: none;\n' +
-            '            -ms-interpolation-mode: bicubic;\n' +
-            '        }\n' +
-            '\n' +
-            '        p {\n' +
-            '            display: block;\n' +
-            '            margin: 13px 0;\n' +
-            '        }\n' +
-            '    </style>\n' +
-            '    <!--[if !mso]><!-->\n' +
-            '    <style type="text/css">\n' +
-            '        @media only screen and (max-width:480px) {\n' +
-            '            @-ms-viewport {\n' +
-            '                width: 320px;\n' +
-            '            }\n' +
-            '            @viewport {\n' +
-            '                width: 320px;\n' +
-            '            }\n' +
-            '        }\n' +
-            '    </style>\n' +
-            '    <!--<![endif]-->\n' +
-            '    <!--[if mso]>\n' +
-            '    <xml>\n' +
-            '        <o:OfficeDocumentSettings>\n' +
-            '            <o:AllowPNG/>\n' +
-            '            <o:PixelsPerInch>96</o:PixelsPerInch>\n' +
-            '        </o:OfficeDocumentSettings>\n' +
-            '    </xml>\n' +
-            '    <![endif]-->\n' +
-            '    <!--[if lte mso 11]>\n' +
-            '    <style type="text/css">\n' +
-            '        .outlook-group-fix {\n' +
-            '            width:100% !important;\n' +
-            '        }\n' +
-            '    </style>\n' +
-            '    <![endif]-->\n' +
-            '\n' +
-            '    <!--[if !mso]><!-->\n' +
-            '    <link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700" rel="stylesheet" type="text/css">\n' +
-            '    <style type="text/css">\n' +
-            '        @import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700);\n' +
-            '    </style>\n' +
-            '    <!--<![endif]-->\n' +
-            '    <style type="text/css">\n' +
-            '        @media only screen and (min-width:480px) {\n' +
-            '            .mj-column-per-50 {\n' +
-            '                width: 50%!important;\n' +
-            '            }\n' +
-            '        }\n' +
-            '    </style>\n' +
-            '</head>\n' +
-            '\n' +
-            '<body>\n' +
-            '\n' +
-            '<div class="mj-container">';
-        var footer = '</div>\n' +
-            '</body>\n' +
-            '\n' +
-            '</html>';
-
-        var image = ' <!--[if mso | IE]>\n' +
-            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-            '        <tr>\n' +
-            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-            '    <![endif]-->\n' +
-            '    <div style="margin:0px auto;max-width:600px;">\n' +
-            '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
-            '            <tbody>\n' +
-            '            <tr>\n' +
-            '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
-            '                        <tr>\n' +
-            '                            <td style="vertical-align:undefined;width:600px;">\n' +
-            '                    <![endif]-->\n' +
-            '                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0">\n' +
-            '                        <tbody>\n' +
-            '                        <tr>\n' +
-            '                            <td style="width:550px;"><img alt="" title="" height="auto" src="' + mail.image + '" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="550"></td>\n' +
-            '                        </tr>\n' +
-            '                        </tbody>\n' +
-            '                    </table>\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    </td></tr></table>\n' +
-            '                    <![endif]-->\n' +
-            '                </td>\n' +
-            '            </tr>\n' +
-            '            </tbody>\n' +
-            '        </table>\n' +
-            '    </div>\n' +
-            '    <!--[if mso | IE]>\n' +
-            '    </td></tr></table>\n' +
-            '    <![endif]-->';
-
-        var text = '\n' +
-            '    <!--[if mso | IE]>\n' +
-            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-            '        <tr>\n' +
-            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-            '    <![endif]-->\n' +
-            '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
-            '    <!--[if mso | IE]>\n' +
-            '    </td></tr></table>\n' +
-            '    <![endif]-->';
-
-        var button = '  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-            '        <tr>\n' +
-            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-            '    <![endif]-->\n' +
-            '    <div style="margin:0px auto;max-width:600px;">\n' +
-            '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
-            '            <tbody>\n' +
-            '            <tr>\n' +
-            '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
-            '                        <tr>\n' +
-            '                            <td style="vertical-align:undefined;width:600px;">\n' +
-            '                    <![endif]-->\n' +
-            '                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="justify" border="0">\n' +
-            '                        <tbody>\n' +
-            '                        <tr style="border-collapse:collapse"> <td class="m_-5282972956275044657w580" style="font-family:' + font + ';font-weight:300;border-collapse:collapse" width="580"> <div style="text-align:center"><a href="' + mail.linktoaction + '" style="background: #1FBDF1;background: -webkit-linear-gradient(to left, #1FBDF1, #39DFA5); background: linear-gradient(to left, #1FBDF1, #39DFA5);color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;font-weight:bold;line-height:60px;text-align:center;text-decoration:none;width:300px" target="_blank"> ' + mail.calltoaction + '</a></div> </td> </tr>\n' +
-            '                        </tbody>\n' +
-            '                    </table>\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    </td></tr></table>\n' +
-            '                    <![endif]-->\n' +
-            '                </td>\n' +
-            '            </tr>\n' +
-            '            </tbody>\n' +
-            '        </table>\n' +
-            '    </div>\n' +
-            '    <!--[if mso | IE]>\n' +
-            '    </td></tr></table>\n' +
-            '    <![endif]-->';
-
-        var card_header = '  <!--[if mso | IE]>\n' +
-            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-            '        <tr>\n' +
-            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-            '    <![endif]-->\n' +
-            '    <div style="margin:0px auto;max-width:600px;">\n' +
-            '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
-            '            <tbody>\n' +
-            '            <tr>\n' +
-            '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
-            '                        <tr>';
-
-        var card_footer = '  </tr>\n' +
-            '\n' +
-            '                    </table>\n' +
-            '                    <![endif]-->\n' +
-            '                </td>\n' +
-            '            </tr>\n' +
-            '            </tbody>\n' +
-            '        </table>\n' +
-            '    </div>\n' +
-            '    <!--[if mso | IE]>\n' +
-            '    </td></tr></table>\n' +
-            '    <![endif]-->'
-
-        var card_body = '<td style="vertical-align:top;width:300px;">\n' +
-            '                    <![endif]-->\n' +
-            '                    <div class="mj-column-per-50 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;">\n' +
-            '                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">\n' +
-            '                            <tbody>\n' +
-            '                            <tr>\n' +
-            '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-            '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0">\n' +
-            '                                        <tbody>\n' +
-            '                                        <tr>\n' +
-            '                                            <td style="width:165px;"><img alt="" title="" height="auto" src="' + card.image + '" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="165"></td>\n' +
-            '                                        </tr>\n' +
-            '                                        </tbody>\n' +
-            '                                    </table>\n' +
-            '                                </td>\n' +
-            '                            </tr>\n' +
-            '                            <tr>\n' +
-            '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-            '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;">' + card.title + '</div>\n' +
-            '                                </td>\n' +
-            '                            </tr>\n' +
-            '                            <tr>\n' +
-            '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-            '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;">' + card.body + '</div>\n' +
-            '                                </td>\n' +
-            '                            </tr>\n' +
-            '                            <tr>\n' +
-            '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-            '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0">\n' +
-            '                                        <tbody>\n' +
-            '                                        <tr>\n' +
-            '                                            <td style="border:none;border-radius:40px;color:#ffffff;cursor:auto;padding:10px 25px;" align="center" valign="middle" bgcolor="#1FBDF1">\n' +
-            '<a href="' + card.linktoaction + '"><p style="text-decoration:none;background:#1FBDF1;color:#ffffff;font-family:' + font + ';font-size:12px;font-weight:normal;line-height:120%;text-transform:none;margin:0px;">' + card.calltoaction + '</p> </a>\n' +
-            '                                            </td>\n' +
-            '                                        </tr>\n' +
-            '                                        </tbody>\n' +
-            '                                    </table>\n' +
-            '                                </td>\n' +
-            '                            </tr>\n' +
-            '                            </tbody>\n' +
-            '                        </table>\n' +
-            '                    </div>\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    </td>';
-        var outtro = '<!--[if mso | IE]>\n' +
-            '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-            '        <tr>\n' +
-            '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-            '    <![endif]-->\n' +
-            '    <div style="margin:0px auto;max-width:600px;">\n' +
-            '        <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:0px;width:100%;" align="center" border="0">\n' +
-            '            <tbody>\n' +
-            '            <tr>\n' +
-            '                <td style="text-align:center;vertical-align:top;direction:ltr;font-size:0px;padding:20px 0px;">\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">\n' +
-            '                        <tr>\n' +
-            '                            <td style="vertical-align:undefined;width:600px;">\n' +
-            '                    <![endif]-->\n' +
-            '                    <p style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;"></p>\n' +
-            '                    <!--[if mso | IE]><table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" style="font-size:1px;margin:0px auto;border-top:1px solid #d4d4d4;width:100%;" width="600"><tr><td style="height:0;line-height:0;"> </td></tr></table><![endif]-->\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    </td><td style="vertical-align:undefined;width:50px;">\n' +
-            '                    <![endif]-->\n' +
-            '                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="left" border="0">\n' +
-            '                        <tbody>\n' +
-            '                        <tr>\n' +
-            '                            <td style="width:50px;"><img alt="" title="" height="auto" src="https://jobo.asia/img/logo.png" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="50"></td>\n' +
-            '                        </tr>\n' +
-            '                        </tbody>\n' +
-            '                    </table>\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    </td><td style="vertical-align:undefined;width:200px;">\n' +
-            '                    <![endif]-->\n' +
-            '                    <div style="cursor:auto;color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:11px;line-height:22px;text-align:right;"><a href="https://goo.gl/awK5qg" style="color: #000000; text-decoration: none;">We are hiring</a></div>\n' +
-            '                    <!--[if mso | IE]>\n' +
-            '                    </td></tr></table>\n' +
-            '                    <![endif]-->\n' +
-            '                </td>\n' +
-            '            </tr>\n' +
-            '            </tbody>\n' +
-            '        </table>\n' +
-            '    </div>\n' +
-            '    <!--[if mso | IE]>\n' +
-            '    </td></tr></table>\n' +
-            '    <![endif]-->'
-
-
-        var htmlMail = '';
-
-        if (mail.description1) {
-            mail.description = mail.description1
-            htmlMail = htmlMail + header + '\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-                '        <tr>\n' +
-                '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-                '    <![endif]-->\n' +
-                '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    </td></tr></table>\n' +
-                '    <![endif]-->';
-        }
-        if (mail.image) {
-            htmlMail = htmlMail + image
-        }
-        if (mail.description2) {
-            mail.description = mail.description2
-            htmlMail = htmlMail + '\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-                '        <tr>\n' +
-                '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-                '    <![endif]-->\n' +
-                '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    </td></tr></table>\n' +
-                '    <![endif]-->';
-        }
-        if (mail.linktoaction) {
-            htmlMail = htmlMail + button
-
-        }
-        if (mail.description3) {
-            mail.description = mail.description3
-            htmlMail = htmlMail + '\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-                '        <tr>\n' +
-                '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-                '    <![endif]-->\n' +
-                '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    </td></tr></table>\n' +
-                '    <![endif]-->';
-        }
-        if (mail.data) {
-            htmlMail = htmlMail + card_header
-            for (var i in mail.data) {
-
-                var card = mail.data[i]
-                htmlMail = htmlMail + '<td style="vertical-align:top;width:300px;">\n' +
-                    '                    <![endif]-->\n' +
-                    '                    <div class="mj-column-per-50 outlook-group-fix" style="vertical-align:top;display:inline-block;direction:ltr;font-size:13px;text-align:left;width:100%;">\n' +
-                    '                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">\n' +
-                    '                            <tbody>\n' +
-                    '                            <tr>\n' +
-                    '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-                    '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-spacing:0px;" align="center" border="0">\n' +
-                    '                                        <tbody>\n' +
-                    '                                        <tr>\n' +
-                    '                                            <td style="width:165px;"><img alt="" title="" height="auto" src="' + card.image + '" style="border:none;border-radius:0px;display:block;font-size:13px;outline:none;text-decoration:none;width:100%;height:auto;" width="165"></td>\n' +
-                    '                                        </tr>\n' +
-                    '                                        </tbody>\n' +
-                    '                                    </table>\n' +
-                    '                                </td>\n' +
-                    '                            </tr>\n' +
-                    '                            <tr>\n' +
-                    '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-                    '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:16px;font-weight:bold;line-height:22px;text-align:center;">' + card.title + '</div>\n' +
-                    '                                </td>\n' +
-                    '                            </tr>\n' +
-                    '                            <tr>\n' +
-                    '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-                    '                                    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:center;">' + card.body + '</div>\n' +
-                    '                                </td>\n' +
-                    '                            </tr>\n' +
-                    '                            <tr>\n' +
-                    '                                <td style="word-wrap:break-word;font-size:0px;padding:10px 25px;" align="center">\n' +
-                    '                                    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;" align="center" border="0">\n' +
-                    '                                        <tbody>\n' +
-                    '                                        <tr>\n' +
-                    '                                            <td style="border:none;border-radius:40px;color:#ffffff;cursor:auto;padding:10px 25px;" align="center" valign="middle" bgcolor="#1FBDF1">\n' +
-                    '<a href="' + card.linktoaction + '"><p style="text-decoration:none;background:#1FBDF1;color:#ffffff;font-family:' + font + ';font-size:12px;font-weight:normal;line-height:120%;text-transform:none;margin:0px;">' + card.calltoaction + '</p> </a>\n' +
-                    '                                            </td>\n' +
-                    '                                        </tr>\n' +
-                    '                                        </tbody>\n' +
-                    '                                    </table>\n' +
-                    '                                </td>\n' +
-                    '                            </tr>\n' +
-                    '                            </tbody>\n' +
-                    '                        </table>\n' +
-                    '                    </div>\n' +
-                    '                    <!--[if mso | IE]>\n' +
-                    '                    </td>';
-            }
-            htmlMail = htmlMail + card_footer
-        }
-        if (mail.description4) {
-            mail.description = mail.description4
-            htmlMail = htmlMail + '\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;">\n' +
-                '        <tr>\n' +
-                '            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">\n' +
-                '    <![endif]-->\n' +
-                '    <div style="cursor:auto;color:#000;font-family:' + font + ';font-size:13px;line-height:22px;text-align:left;">' + mail.description + '</div>\n' +
-                '    <!--[if mso | IE]>\n' +
-                '    </td></tr></table>\n' +
-                '    <![endif]-->';
-        }
-        if (mail.outtro) {
-            htmlMail = htmlMail + outtro
-        }
-
-        htmlMail = htmlMail + footer
-        sendEmail(email, mail, htmlMail, notiId)
-            .then(notiId => resolve(notiId))
-            .catch(err => reject(err));
-    });
-}
-
-function startSend(userData, mail, channel, notiId) {
-    return new Promise((sResolve, sReject) => {
-        console.log('startSend', notiId, mail.title);
-
-        const sendEmailTempPromise = new Promise((resolve, reject) => {
-            if (userData.email && userData.wrongEmail != true && channel.letter && userData.email.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-                sendEmailTemplate(userData.email, mail, notiId)
-                    .then(notiId => resolve({
-                        notiId,
-                        letter: true
-                    }))
-                    .catch(err => resolve({notiId, letter: false}));
-            } else resolve({notiId, letter: false});
-        });
-
-        const sendNotificationToGivenUserWeb = new Promise((resolve, reject) => {
-            if (userData.webToken && channel.web) {
-                sendNotificationToGivenUser(userData.webToken, mail, 'web', notiId).then(notiId => resolve({
-                    notiId,
-                    web: true
-                })).catch(err => resolve({notiId, web: false}));
-            } else resolve({notiId, web: false});
-
-        });
-
-        const sendNotificationToGivenUserApp = new Promise((resolve, reject) => {
-            if (userData.mobileToken && channel.mobile) {
-                sendNotificationToGivenUser(userData.mobileToken, mail, 'app', notiId).then(notiId => resolve({
-                    notiId,
-                    mobile: true
-                })).catch(err => resolve({notiId, mobile: false}));
-            } else resolve({notiId, mobile: false});
-
-        });
-
-        const sendMessengerPromise = new Promise((resolve, reject) => {
-            if (userData.messengerId && channel.messenger) {
-                sendMessenger(userData.messengerId, mail, notiId).then(notiId => resolve({
-                    notiId,
-                    messenger: true
-                })).catch(err => reject(err));
-            } else resolve({notiId, messenger: false});
-        });
-
-        Promise.all([
-            sendEmailTempPromise,
-            sendNotificationToGivenUserWeb,
-            sendNotificationToGivenUserApp,
-            sendMessengerPromise
-        ])
-            .then(array => sResolve(array))
-            .catch(err => sReject(err));
-    });
-}
-
 app.get('/sendNotification', function (req, res) {
     var yes = req.param('yes')
     var time = null;
@@ -803,29 +265,36 @@ app.get('/sendNotification', function (req, res) {
 })
 
 function sendNotification(userData, mail, channel, time) {
-    if (!userData) return;
-    if (!channel) {
-        channel = {
-            web: true,
-            letter: true,
-            mobile: true,
-            messenger: true
+    return new Promise(function (resolve,reject) {
+        if (!userData) return;
+        if (!channel) {
+            channel = {
+                web: true,
+                letter: true,
+                mobile: true,
+                messenger: true
+            }
         }
-    }
-    if (!time) {
-        time = Date.now() + 5000
-    }
-    var notiId = keygen();
-    var notification = {
-        userData: userData,
-        mail: mail,
-        notiId: notiId,
-        time: time,
-        createdAt: Date.now(),
-        channel: channel
-    }
+        if (!time) {
+            time = Date.now() + 5000
+        }
+        var notiId = keygen();
+        var notification = {
+            userData: userData,
+            mail: mail,
+            notiId: notiId,
+            time: time,
+            createdAt: Date.now(),
+            channel: channel
+        }
 
-    notificationRef.child(notiId).update(notification)
+        notificationRef.child(notiId).update(notification).then(function (result) {
+            resolve({code:'success'})
+        }).catch(function (err) {
+            reject(err)
+        })
+    })
+
 
 }
 
@@ -3003,19 +2472,24 @@ app.get('/sendFirstEmail', function (req, res) {
     }).then(function (profile) {
         mail.data = profile
         console.log(mail)
-        sendNotification({email: mail.to, userId: mail.storeId}, mail, {
-            letter: true,
-            web: true,
-            mobile: true,
-            messenger: true
+        sendNotification({email: mail.to, userId: mail.storeId}, mail).then(function (result) {
+            console.log('sendNotification',result)
+            if(result.code == 'success'){
+                leadCol.updateOne(
+                    {"storeId": mail.storeId},
+                    {$set: {"firstEmail_mail_sent": Date.now()}}
+                ).then(function (data) {
+                    res.send({code: 'success'})
+                }).catch(function (err) {
+                    res.send({code: 'error',err})
+
+                })
+
+            }
+        }).catch(function (err) {
+            res.send({code: 'error',err})
         })
-        leadCol.updateOne(
-            {"storeId": mail.storeId},
-            {$set: {"firstEmail_mail_sent": Date.now()}}
-        ).then(function (data) {
-            console.log('data', data)
-            res.send({code: 'sucess'})
-        })
+
     })
 
 })
@@ -3827,7 +3301,7 @@ function startList() {
             if (dataProfile && card.userId && dataProfile[card.userId]) {
 
                 var userData = dataProfile[card.userId]
-                var name = userData.name || 'bạn'
+                var name = userData.name || 'bạn';
                 var userId = card.userId
                 staticRef.child(card.userId).update(staticData);
 
@@ -4299,7 +3773,7 @@ function sendVerifyEmail(email, userId) {
         title: 'Chúc mừng ' + getLastName(dataUser[userId].name) + ' đã tham gia cộng đồng người tìm việc của Jobo',
         body: 'Hãy hoàn thành đầy đủ thông tin hồ sơ cá nhân, và đặt lịch hẹn với Jobo để tiến hành phỏng vấn chọn nhé',
         subtitle: '',
-        description1: 'Chào ' + getLastName(dataProfile[userData.userId].name),
+        description1: 'Chào ' + getLastName(dataProfile[userId].name),
         description2: 'Bạn hãy nhấn vào link bên dưới để xác thức email',
         calltoaction: 'Xác thực',
         linktoaction: CONFIG.APIURL + '/verifyemail?id=' + userId,
