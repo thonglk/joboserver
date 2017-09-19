@@ -393,6 +393,7 @@ function init() {
             CONFIG.APIURL = 'http://localhost:8080'
             CONFIG.AnaURL = 'http://localhost:8081'
         }
+        console.log('CONFIG.APIURL', CONFIG.APIURL )
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
