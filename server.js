@@ -4,6 +4,7 @@ var express = require('express');
 
 var app = express();
 var port = process.env.PORT || 8080;
+
 var fs = require('fs');
 var http = require('http')
 var https = require('https')
@@ -265,7 +266,7 @@ app.get('/sendNotification', function (req, res) {
 })
 
 function sendNotification(userData, mail, channel, time) {
-    return new Promise(function (resolve,reject) {
+    return new Promise(function (resolve, reject) {
         if (!userData) return;
         if (!channel) {
             channel = {
@@ -287,12 +288,9 @@ function sendNotification(userData, mail, channel, time) {
             createdAt: Date.now(),
             channel: channel
         }
-
-        notificationRef.child(notiId).update(notification).then(function (result) {
-            resolve({code:'success'})
-        }).catch(function (err) {
-            reject(err)
-        })
+        axios.post(CONFIG.AnaURL + '/newNoti', notification)
+            .then(result => resolve(result))
+            .catch(err => reject(err));
     })
 
 
@@ -322,9 +320,9 @@ function sendStoretoPage(storeId) {
 
             storeData.userInfo = dataUser[storeData.createdBy]
             if (storeData.avatar) {
-                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2), publishChannel.Jobo.token)
+                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2,storeData.jobData[0].jobId), publishChannel.Jobo.token)
             } else {
-                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2), publishChannel.Jobo.token)
+                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2,storeData.jobData[0].jobId), publishChannel.Jobo.token)
             }
         }
 
@@ -391,6 +389,10 @@ function init() {
     console.log('listenDatabase')
     configRef.on('value', function (snap) {
         CONFIG = snap.val()
+        if(!process.env.PORT) {
+            CONFIG.APIURL = 'http://localhost:8080'
+            CONFIG.AnaURL = 'http://localhost:8081'
+        }
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
@@ -404,6 +406,7 @@ function init() {
     dataStore = {}
     likeActivity = {}
     keyListData = {}
+
     staticRef.on('child_added', function (snap) {
         dataStatic[snap.key] = snap.val()
     });
@@ -2414,8 +2417,6 @@ function createKey(fullname) {
     } else {
         return _.random(0, 10000)
     }
-
-
 }
 
 
@@ -2473,21 +2474,21 @@ app.get('/sendFirstEmail', function (req, res) {
         mail.data = profile
         console.log(mail)
         sendNotification({email: mail.to, userId: mail.storeId}, mail).then(function (result) {
-            console.log('sendNotification',result)
-            if(result.code == 'success'){
+            console.log('sendNotification', result)
+            if (result.code == 'success') {
                 leadCol.updateOne(
                     {"storeId": mail.storeId},
                     {$set: {"firstEmail_mail_sent": Date.now()}}
                 ).then(function (data) {
                     res.send({code: 'success'})
                 }).catch(function (err) {
-                    res.send({code: 'error',err})
+                    res.send({code: 'error', err})
 
                 })
 
             }
         }).catch(function (err) {
-            res.send({code: 'error',err})
+            res.send({code: 'error', err})
         })
 
     })
@@ -4080,7 +4081,8 @@ function sendMailNotiMatchToStore(card) {
         body: ' Ứng viên ' + card.userName + ' đồng ý với lời mời phỏng vấn vào vị trí ' + dataJob[card.jobId].jobName + ', hãy xem thông tin liên hệ và gọi ứng viên tới phỏng vấn',
         data: {
             avatar: card.userAvatar,
-            name: card.userName},
+            name: card.userName
+        },
         description1: 'Chào thương hiệu ' + card.storeName,
         description2: ' Ứng viên ' + card.userName + ' đồng ý với lời mời phỏng vấn vào vị trí ' + dataJob[card.jobId].jobName + ', hãy xem thông tin liên hệ và gọi ứng viên tới phỏng vấn',
         description3: '',
@@ -4654,7 +4656,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
                 var postId = 'f' + _.random(0, 100000)
                 var to = groupData[i].groupId
 
-                // facebookPostRef.child(postId).update({postId, storeId, jobId, poster, content, time, to})
 
                 axios.post('https://joboana.herokuapp.com/newPost', {postId, storeId, jobId, poster, content, time, to})
                     .then(result => resolve(result))
