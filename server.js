@@ -320,9 +320,9 @@ function sendStoretoPage(storeId) {
 
             storeData.userInfo = dataUser[storeData.createdBy]
             if (storeData.avatar) {
-                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2,storeData.jobData[0].jobId), publishChannel.Jobo.token)
+                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2, storeData.jobData[0].jobId), publishChannel.Jobo.token)
             } else {
-                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2,storeData.jobData[0].jobId), publishChannel.Jobo.token)
+                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2, storeData.jobData[0].jobId), publishChannel.Jobo.token)
             }
         }
 
@@ -389,11 +389,11 @@ function init() {
     console.log('listenDatabase')
     configRef.on('value', function (snap) {
         CONFIG = snap.val()
-        if(!process.env.PORT) {
+        if (!process.env.PORT) {
             CONFIG.APIURL = 'http://localhost:8080'
             CONFIG.AnaURL = 'http://localhost:8081'
         }
-        console.log('CONFIG.APIURL', CONFIG.APIURL )
+        console.log('CONFIG.APIURL', CONFIG.APIURL)
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
@@ -779,7 +779,7 @@ function createJDStore(storeId, random, jobId) {
         sex = '',
         time = '',
         description = '',
-        job = 'server';
+        job = 'default';
     const contact = CONFIG.contact[isWhere(storeId)].phone;
     const address = shortAddress(storeData.address).replace(/\s\s/g, ' ');
     const storeName = storeData.storeName;
@@ -1139,6 +1139,7 @@ app.get('/api/lead', (req, res) => {
         pipeline.push(stage.email)
     }
 
+
     leadCol.aggregate(pipeline, (err, result) => {
         if (err) {
             res.send(err);
@@ -1152,6 +1153,50 @@ app.get('/api/lead', (req, res) => {
     })
 });
 
+function getPaginatedItemss(collection,time, sort, page = 1, per_page = 15) {
+    return new Promise((resolve, reject) => {
+        if (!collection) reject('Mongoose collection is required!');
+
+        const offset = (page - 1) * per_page;
+        const startDate = Date.now();
+        const endDate = startDate + 86400 * 1000;
+        const query = {};
+        if (time) query.time = {
+            $gt: startDate,
+            $lt: endDate
+        }
+        var typesort = {}
+
+        if (sort){
+            typesort[sort] = -1
+        } else {
+            typesort['createdAt'] = -1
+        }
+
+            collection.find(query)
+                .skip(offset)
+                .limit(per_page)
+                .sort(typesort)
+                .then(posts => {
+                    collection.count()
+                        .then(count => resolve({
+                            page: page,
+                            per_page: per_page,
+                            total: count,
+                            total_pages: Math.ceil(count / per_page),
+                            data: posts
+                        }))
+                        .catch(err_ => {
+                            console.log('Get Pagination Count Error:', err_);
+                            reject(err_);
+                        });
+                })
+                .catch(err => {
+                    console.log('Get Pagination Error:', err);
+                    reject(err);
+                });
+    });
+}
 
 app.get('/api/email', (req, res) => {
     let {
@@ -2496,6 +2541,40 @@ app.get('/sendFirstEmail', function (req, res) {
 
 })
 ;
+
+app.get('/api/notification', function (req, res) {
+    let {
+        email,
+        p: page
+    } = req.query;
+
+    var stage = {
+
+        email: {
+            $match: {
+                'userData.email': email
+            }
+        },
+    }
+    var pipeline = []
+
+    if (email) {
+        pipeline.push(stage.email)
+    }
+
+    notificationCol.aggregate(pipeline, (err, result) => {
+        if (err) {
+            res.send(err);
+        } else {
+            var sorded = _.sortBy(result, function (card) {
+                return -card.createdAt
+            })
+            var sendData = getPaginatedItems(sorded, page)
+            res.send(sendData)
+        }
+    })
+
+})
 
 app.get('/getLongToken', function (req, res) {
     var shortToken = req.param('token')

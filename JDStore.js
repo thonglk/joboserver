@@ -1,5 +1,14 @@
 const JD = {};
 //job: server, bartender, receptionist, cashier [3] (Mã Mây,Iris)
+JD['default'] = {
+    0: function ({ storeName, address = '', jobName = '', salary = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+        const text = `Tuyển dụng vị trí ${jobName} tại ${storeName}, làm việc ở ${address}\n
+   ${salary}${working_type}${time}${figure}${unit}${experience}${sex}${description}
+Nhanh tay ứng tuyển tại: ${jobUrl}.\n
+Liên hệ ${contact}.\n\n${deadline}`;
+        return text;
+    }
+}
 JD['server'] = {
     0: function ({ storeName, address = '', jobName = '', salary = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
         const text = `${storeName} tại ${address} hiện đang "nhắn tìm đồng đội"\n
