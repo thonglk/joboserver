@@ -3401,7 +3401,6 @@ function startList() {
 
                     setTimeout(function () {
                         sendWelcomeEmailToProfile(dataUser[card.userId], userData)
-                        sendNotiSubcribleToEmployer(userData);
 
                         actRef.child(key).remove()
 
@@ -3656,7 +3655,6 @@ function startList() {
                 likeActivityRef.child(actKey).update({jobName: jobData.jobName})
             }
             setTimeout(function () {
-                console.log('sendMailNotiLikeToStore',likeData)
                 sendMailNotiLikeToStore(likeData)
 
                 if (dataStatic[jobData.jobId]) {
@@ -3665,7 +3663,6 @@ function startList() {
                 }
                 if (dataStatic[card.userId]) {
                     var b = dataStatic[card.userId].like++
-                    console.log('b', b)
                     staticRef.child(card.userId).update({like: b || 0})
                 }
                 actRef.child(key).remove()
