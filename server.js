@@ -184,7 +184,8 @@ groupRef.once('value', function (snap) {
 });
 var facebookUser = {
     hn: ['dieulinh', 'khanh', 'mailinh', 'maitran', 'thuythuy'],
-    hcm: ['huynhthaotg', 'mmyn42', 'thao2', 'thuythuy', 'thythy']
+    hcm: ['huynhthaotg', 'mmyn42', 'thao2', 'thuythuy', 'thythy','chaulm','chanh'],
+    all:['dieulinh', 'khanh', 'mailinh', 'maitran', 'thuythuy','huynhthaotg', 'mmyn42', 'thao2', 'thythy','chaulm','chanh'],
 }
 
 
@@ -3641,23 +3642,32 @@ function startList() {
          * like Store
          */
 
-        if (card.action == 'like' && card.data.storeId) {
-            var actKey = card.data.storeId + ':' + card.userId
-            likeActivityRef.child(actKey).update({actId: actKey})
+        if (card.action == 'like' && card.data.jobId) {
+
+            var likeData = _.findWhere(likeActivity,{userId: card.userId,jobId:card.data.jobId})
+            if(!likeData) return
+            var jobData = dataJob[card.data.jobId]
+            var actKey = jobData.storeId +':'+ card.userId+':'+ jobData.jobId
+
+            if(!likeData.actId){
+                likeActivityRef.child(actKey).update({actId: actKey})
+            }
+            if(!likeData.jobName){
+                likeActivityRef.child(actKey).update({jobName: jobData.jobName})
+            }
             setTimeout(function () {
+                console.log('sendMailNotiLikeToStore',likeData)
                 sendMailNotiLikeToStore(likeData)
 
-                if (dataStatic[card.data.storeId]) {
-                    var a = dataStatic[card.data.storeId].liked++
-                    staticRef.child(card.data.storeId).update({liked: a || 0})
+                if (dataStatic[jobData.jobId]) {
+                    var a = dataStatic[jobData.jobId].liked++
+                    staticRef.child(jobData.jobId).update({liked: a || 0})
                 }
                 if (dataStatic[card.userId]) {
-                    console.log('dataStatic[card.userId]', dataStatic[card.userId])
                     var b = dataStatic[card.userId].like++
                     console.log('b', b)
                     staticRef.child(card.userId).update({like: b || 0})
                 }
-
                 actRef.child(key).remove()
             }, 5000)
 
@@ -4107,18 +4117,17 @@ function sendMailNotiLikeToStore(card) {
     if (card) {
         var mail = {
             title: 'Ứng viên ' + card.userName + ' vừa ứng tuyển vào thương hiệu của bạn',
-            body: 'Ứng viên ' + card.userName + ' vừa mới ứng tuyển vị trí ' + dataJob[card.jobId].jobName + ', xem hồ sơ và tuyển ngay!',
+            body: 'Ứng viên ' + card.userName + ' vừa mới ứng tuyển vị trí ' + card.jobName + ', xem hồ sơ và tuyển ngay!',
             data: [{
                 title: card.userName,
                 image: card.userAvatar,
             }],
             description1: 'Chào cửa hàng ' + card.storeName,
-            description2: 'Ứng viên ' + card.userName + ' vừa mới ứng tuyển vị trí ' + dataJob[card.jobId].jobName + ', xem hồ sơ và tuyển ngay!',
+            description2: 'Ứng viên ' + card.userName + ' vừa mới ứng tuyển vị trí ' + card.jobName + ', xem hồ sơ và tuyển ngay!',
             description3: '',
             image: '',
             calltoaction: 'Xem hồ sơ',
             linktoaction: CONFIG.WEBURL + '/view/profile/' + card.userId,
-            storeId: card.storeId
         };
         sendNotification(dataUser[dataStore[card.storeId].createdBy], mail)
 
@@ -4749,40 +4758,27 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
 
 app.route('/PostText2Store')
     .post(function (req, res) {
-        var {text, poster, job, where, time} = req.body;
-        // PostTextToStore(text, job, where, poster, time);
-        // res.json('done');
-        PostTextToStore(text, job, where, poster, time)
+        var {text, poster,image, job, where, time} = req.body;
+
+        PostTextToStore(text,image, job, where, poster, time)
             .then(result => res.status(200).json(result))
             .catch(err => res.status(500).json(err));
     });
 
-function PostTextToStore(text, job, where, poster, time = null) {
-    return new Promise((resolve, reject) => {
+function PostTextToStore(text,image, job, where, poster, time = null) {
 
-    });
     for (var i in groupData) {
-        var content = {text};
+        var content = {text,image};
         if (content &&
             groupData[i].groupId &&
             (groupData[i].area == where || !where) &&
             (groupData[i].job && groupData[i].job.match(job) || !job)) {
-            var data = {};
-            if (groupData[i].poster) {
-                var random = _.random(0, groupData[i].poster.length - 1);
-                poster = groupData[i].poster[random]
-            } else {
-                poster = 'thuythuy'
-            }
-            console.log(poster)
-            data[poster] = 'tried';
-            groupRef.child(groupData[i].groupId).update(data)
+
             time = time + 60 * 5 * 1000 || Date.now() + 15000;
 
-            console.log(new Date(time))
 
             var to = groupData[i].groupId
-            axios.post('https://joboana.herokuapp.com/newPost', {poster, content, time, to})
+            axios.post(CONFIG.AnaURL+'/newPost', {poster, content, time, to})
                 .then(result => resolve(result))
                 .catch(err => reject(err));
         }

@@ -129,7 +129,7 @@ ${storeName} chờ bạn và đang rất nóng lòng đóng chào các bạn joi
     1: function ({ storeName, address = '', jobName = '', salary = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
         const text = `Cơ hội trở thành ${jobName} dành cho các bạn mới tốt nghiệp.\n${storeName} địa chỉ ${address}.\n${salary}
 ${description}${figure}${experience}${sex}${unit}
-Bạn nào cảm thấy phù hợp có thể gửi CV về trangnt@vjl.com.vn
+Bạn nào cảm thấy phù hợp có thể gửi CV về hr@joboapp.com
 Thông tin chi tiết comment bên dưới hoặc vui lòng inbox mình ;)${deadline}`;
         return text;
     },
