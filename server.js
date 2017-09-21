@@ -936,10 +936,7 @@ function checkInadequate() {
             var profile = dataProfiles[i]
             if (!profile.userId) {
                 console.log('thieu dataProfile', i)
-                profileRef.child(i).update({
-                        userId: i
-                    }
-                )
+                profileRef.child(i).update({userId: i})
             }
             if (profile.act) {
                 console.log('profile.act remove', i)
@@ -2135,17 +2132,48 @@ app.get('/update/user', function (req, res) {
 
         if (userDataStr) {
             var userData = JSON.parse(userDataStr);
-            userRef.child(userId).update(userData)
+            if (dataUser[userId]) {
+                //update
+                userRef.child(userId).update(userData)
+            } else {
+                userRef.child(userId).update(userData)
 
-
+                //create
+                if (userData.type == 2) {
+                    var mail = {
+                        title: 'Jobo_Sale| New employer register',
+                        body: JSON.stringify(userData),
+                        description1: 'Dear friend,',
+                        description2: JSON.stringify(userData),
+                        description3: 'Keep up guys! We can do it <3',
+                        image: ''
+                    }
+                    if (userData.phone) {
+                        mail.calltoaction = 'Gọi tư vấn';
+                        mail.linktoaction = 'tel:'+ userData.phone;
+                    } else {
+                        mail.calltoaction = 'Email chào hàng';
+                        mail.linktoaction = CONFIG.WEBURL+'/admin/lead';
+                    }
+                    var time = Date.now()
+                    for (var i in dataUser) {
+                        if (dataUser[i].admin == true) {
+                            time = time + 5000
+                            sendNotification(dataUser[i], mail, {
+                                letter: true,
+                                web: true,
+                                messenger: true,
+                                mobile: true
+                            }, time)
+                        }
+                    }
+                }
+            }
         }
         if (profileDataStr) {
             var profileData = JSON.parse(profileDataStr)
 
-            if (dataProfile[profileData.userId]) {
-                profileData.updatedAt = Date.now()
-            }
-
+            profileData.updatedAt = Date.now()
             profileRef.child(userId).update(profileData)
 
 
