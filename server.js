@@ -128,8 +128,7 @@ var buyRef = db.ref('activity/buy');
 
 
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
-    keyListData, datagoogleJob, facebookAccount
-
+    keyListData, datagoogleJob
 
 var groupRef = db.ref('groupData');
 
@@ -182,11 +181,6 @@ groupRef.once('value', function (snap) {
 
 
 });
-var facebookUser = {
-    hn: ['dieulinh', 'khanh', 'mailinh', 'maitran', 'thuythuy'],
-    hcm: ['huynhthaotg', 'mmyn42', 'thao2', 'thuythuy', 'thythy','chaulm','chanh'],
-    all:['dieulinh', 'khanh', 'mailinh', 'maitran', 'thuythuy','huynhthaotg', 'mmyn42', 'thao2', 'thythy','chaulm','chanh'],
-}
 
 
 var mailTransport = nodemailer.createTransport(ses({
@@ -385,6 +379,7 @@ function PublishComment(postId, text, accessToken) {
     }
 }
 
+var facebookUser
 
 function init() {
     console.log('listenDatabase')
@@ -395,6 +390,20 @@ function init() {
             CONFIG.AnaURL = 'http://localhost:8081'
         }
         console.log('CONFIG.APIURL', CONFIG.APIURL)
+        facebookUser = {
+            vn: [],
+        }
+
+        for (var i in CONFIG.facebookAccount) {
+            var facebook = CONFIG.facebookAccount[i]
+            if (!facebookUser[facebook.area]) {
+                facebookUser[facebook.area] = []
+            }
+            facebookUser[facebook.area].push(facebook.key);
+            facebookUser.vn.push(facebook.key)
+        }
+        console.log(facebookUser)
+
     })
     langRef.on('value', function (snap) {
         Lang = snap.val()
@@ -431,6 +440,7 @@ function init() {
 
     profileRef.on('child_added', function (snap) {
         dataProfile[snap.key] = snap.val()
+
     });
     profileRef.on('child_changed', function (snap) {
         dataProfile[snap.key] = snap.val()
@@ -438,6 +448,7 @@ function init() {
 
     jobRef.on('child_added', function (snap) {
         dataJob[snap.key] = snap.val()
+
     });
     jobRef.on('child_changed', function (snap) {
         dataJob[snap.key] = snap.val()
@@ -573,14 +584,19 @@ function getShortPremiumJob(ref) {
     }
 }
 
-app.get('/createListPremiumJob', function (req, res) {
-    var where = req.param('where')
-    res.send(createListPremiumJob(where))
+app.get('/PremiumJob', function (req, res) {
+    let {where, type} = req.query
+    res.send(createListPremiumJob(where, type))
 })
 
-function createListPremiumJob(where) {
+function createListPremiumJob(where, type) {
     var jobHN = "";
+    var jobHNArray = []
     var jobHCM = "";
+    var jobHCMArray = []
+    var jobAll = '';
+    var jobAllArray = []
+
     var jobs = _.sortBy(dataJob, function (card) {
         return -card.createdAt
     })
@@ -593,56 +609,47 @@ function createListPremiumJob(where) {
             && job.deadline > Date.now()
         ) {
             var storeData = dataStore[job.storeId]
-            var jobString = '◆ ' + job.jobName + ' | ' + job.storeName + ' | ' + shortAddress(job.address) + ' | ' + new Date(job.createdAt) + ' | ' + job.jobId + ' \n';
-
-            var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
-            var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
-            if (disToHN < 100) {
-                jobHN = jobHN + jobString + ' \n'
-            } else if (disToSG < 100) {
-                jobHCM = jobHCM + jobString + ' \n'
-            }
-        }
-
-    }
-    if (where == 'hn') {
-        return jobHN
-    } else if (where == 'hcm') {
-        return jobHCM
-    } else {
-        return jobHN + jobHCM
-    }
-}
-
-app.get('/createListPremiumJobArray', function (req, res) {
-    var where = req.param('where')
-    res.send(createListPremiumJobArray())
-})
-
-function createListPremiumJobArray() {
-    var jobHN = [];
-    var jobs = _.sortBy(dataJob, function (card) {
-        return -card.createdAt
-    })
-    for (var i in jobs) {
-        var job = jobs[i]
-        if (job.createdBy && job.storeId
-            && dataUser[job.createdBy]
-            && dataUser[job.createdBy].package == 'premium'
-            && dataStore[job.storeId]
-            && job.deadline > Date.now()
-        ) {
-            var jobString = {
+            var jobString = '◆ ' + job.jobName + ' | ' + storeData.storeName + ' | ' + shortAddress(job.address) + ' | ' + new Date(job.createdAt) + ' | ' + job.jobId + ' \n';
+            var jobArray = {
                 storeId: job.storeId,
                 jobId: job.jobId,
                 jobName: job.jobName,
                 storeName: dataStore[job.storeId].storeName
             }
-            jobHN.push(jobString)
+            var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
+            var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
+            if (disToHN < 100) {
+                jobHN = jobHN + jobString + ' \n'
+                jobHNArray.push(jobArray)
+            } else if (disToSG < 100) {
+                jobHCM = jobHCM + jobString + ' \n'
+                jobHCMArray.push(jobArray)
+
+            }
+            jobAll = jobAll + jobString + '\n'
+            jobAllArray.push(jobArray)
         }
     }
-    return jobHN
+
+    if (type == 'array') {
+        if (where == 'hn') {
+            return jobHNArray
+        } else if (where == 'hcm') {
+            return jobHCMArray
+        } else {
+            return jobAllArray
+        }
+    } else {
+        if (where == 'hn') {
+            return jobHN
+        } else if (where == 'hcm') {
+            return jobHCM
+        } else {
+            return jobAll
+        }
+    }
 }
+
 
 app.get('/createListGoogleJob', function (req, res) {
     res.send(createListGoogleJob())
@@ -875,45 +882,53 @@ function checkInadequate() {
                 console.log('checkInadequateStoreIdInJob_deadline', i)
                 jobRef.child(i).update({deadline: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
             }
-            // if (job.act) {
-            //     console.log('job.act remove', i)
-            //
-            //     jobRef.child(i).child('act').remove()
-            // }
-            // if (job.distance) {
-            //     console.log('job.distance remove', i)
-            //
-            //     jobRef.child(i).child('distance').remove()
-            // }
+            if (job.act) {
+                console.log('job.act remove', i)
+
+                jobRef.child(i).child('act').remove()
+            }
+            if (job.distance) {
+                console.log('job.distance remove', i)
+
+                jobRef.child(i).child('distance').remove()
+            }
+            if (!job.createdAt) {
+                jobRef.child(i).update({updatedAt: Date.now(), createdAt: Date.now()})
+                console.log('jobRef done')
+            }
+            if (!job.updatedAt) {
+                jobRef.child(i).update({updatedAt: job.createdAt})
+                console.log('jobRef done')
+            }
         }
     })
-    // storeRef.once('value', function (a) {
-    //     var dataStores = a.val()
-    //
-    //     for (var i in dataStores) {
-    //         var store = dataStores[i]
-    //         if (store.act) {
-    //             console.log('store.act remove', i)
-    //
-    //             storeRef.child(i).child('act').remove()
-    //         }
-    //         if (store.distance) {
-    //             console.log('store.distance remove', i)
-    //
-    //             storeRef.child(i).child('distance').remove()
-    //         }
-    //         if (store.static) {
-    //             console.log('store.static remove', i)
-    //
-    //             storeRef.child(i).child('static').remove()
-    //         }
-    //         if (store.presence) {
-    //             console.log('store.presence remove', i)
-    //
-    //             storeRef.child(i).child('presence').remove()
-    //         }
-    //     }
-    // })
+    storeRef.once('value', function (a) {
+        var dataStores = a.val()
+
+        for (var i in dataStores) {
+            var store = dataStores[i]
+            if (store.act) {
+                console.log('store.act remove', i)
+
+                storeRef.child(i).child('act').remove()
+            }
+            if (store.distance) {
+                console.log('store.distance remove', i)
+
+                storeRef.child(i).child('distance').remove()
+            }
+            if (store.static) {
+                console.log('store.static remove', i)
+
+                storeRef.child(i).child('static').remove()
+            }
+            if (store.presence) {
+                console.log('store.presence remove', i)
+
+                storeRef.child(i).child('presence').remove()
+            }
+        }
+    })
     profileRef.once('value', function (a) {
         var dataProfiles = a.val()
 
@@ -930,6 +945,14 @@ function checkInadequate() {
                 console.log('profile.act remove', i)
 
                 profileRef.child(i).child('act').remove()
+            }
+            if (!profile.createdAt) {
+                profileRef.child(i).update({updatedAt: Date.now(), createdAt: Date.now()})
+                console.log('jobRef done')
+            }
+            if (!profile.updatedAt) {
+                profileRef.child(i).update({updatedAt: profileRef.createdAt})
+                console.log('jobRef done')
             }
 
         }
@@ -1154,7 +1177,7 @@ app.get('/api/lead', (req, res) => {
     })
 });
 
-function getPaginatedItemss(collection,time, sort, page = 1, per_page = 15) {
+function getPaginatedItemss(collection, time, sort, page = 1, per_page = 15) {
     return new Promise((resolve, reject) => {
         if (!collection) reject('Mongoose collection is required!');
 
@@ -1168,34 +1191,34 @@ function getPaginatedItemss(collection,time, sort, page = 1, per_page = 15) {
         }
         var typesort = {}
 
-        if (sort){
+        if (sort) {
             typesort[sort] = -1
         } else {
             typesort['createdAt'] = -1
         }
 
-            collection.find(query)
-                .skip(offset)
-                .limit(per_page)
-                .sort(typesort)
-                .then(posts => {
-                    collection.count()
-                        .then(count => resolve({
-                            page: page,
-                            per_page: per_page,
-                            total: count,
-                            total_pages: Math.ceil(count / per_page),
-                            data: posts
-                        }))
-                        .catch(err_ => {
-                            console.log('Get Pagination Count Error:', err_);
-                            reject(err_);
-                        });
-                })
-                .catch(err => {
-                    console.log('Get Pagination Error:', err);
-                    reject(err);
-                });
+        collection.find(query)
+            .skip(offset)
+            .limit(per_page)
+            .sort(typesort)
+            .then(posts => {
+                collection.count()
+                    .then(count => resolve({
+                        page: page,
+                        per_page: per_page,
+                        total: count,
+                        total_pages: Math.ceil(count / per_page),
+                        data: posts
+                    }))
+                    .catch(err_ => {
+                        console.log('Get Pagination Count Error:', err_);
+                        reject(err_);
+                    });
+            })
+            .catch(err => {
+                console.log('Get Pagination Error:', err);
+                reject(err);
+            });
     });
 }
 
@@ -2113,6 +2136,7 @@ app.get('/update/user', function (req, res) {
         if (userDataStr) {
             var userData = JSON.parse(userDataStr);
             userRef.child(userId).update(userData)
+
 
         }
         if (profileDataStr) {
@@ -3643,15 +3667,15 @@ function startList() {
 
         if (card.action == 'like' && card.data.jobId) {
 
-            var likeData = _.findWhere(likeActivity,{userId: card.userId,jobId:card.data.jobId})
-            if(!likeData) return
+            var likeData = _.findWhere(likeActivity, {userId: card.userId, jobId: card.data.jobId})
+            if (!likeData) return
             var jobData = dataJob[card.data.jobId]
-            var actKey = jobData.storeId +':'+ card.userId+':'+ jobData.jobId
+            var actKey = jobData.storeId + ':' + card.userId + ':' + jobData.jobId
 
-            if(!likeData.actId){
+            if (!likeData.actId) {
                 likeActivityRef.child(actKey).update({actId: actKey})
             }
-            if(!likeData.jobName){
+            if (!likeData.jobName) {
                 likeActivityRef.child(actKey).update({jobName: jobData.jobName})
             }
             setTimeout(function () {
@@ -4681,7 +4705,7 @@ function isWhere(storeId) {
             return 'hcm'
         }
     } else {
-        return null
+        return 'vn'
     }
 
 }
@@ -4726,12 +4750,10 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
                 && (groupData[i].groupId == groupId || !groupId)
                 && (groupData[i].area == where || !where)
                 && (groupData[i].job && groupData[i].job.match(job) || !job )) {
-                poster = _.sample(facebookUser[where])
+                poster = _.sample(facebookUser[where]);
                 var content = createJDStore(storeId, null, jobId)
                 console.log('poster', poster, JSON.stringify(content));
 
-                // data[poster] = 'tried';
-                // groupRef.child(groupData[i].groupId).update(data)
                 if (!time) {
                     time = Date.now() + 4 * 1000
                 } else {
@@ -4755,17 +4777,17 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
 
 app.route('/PostText2Store')
     .post(function (req, res) {
-        var {text, poster,image, job, where, time} = req.body;
+        var {text, poster, image, job, where, time} = req.body;
 
-        PostTextToStore(text,image, job, where, poster, time)
+        PostTextToStore(text, image, job, where, poster, time)
             .then(result => res.status(200).json(result))
             .catch(err => res.status(500).json(err));
     });
 
-function PostTextToStore(text,image, job, where, poster, time = null) {
+function PostTextToStore(text, image, job, where, poster, time = null) {
 
     for (var i in groupData) {
-        var content = {text,image};
+        var content = {text, image};
         if (content &&
             groupData[i].groupId &&
             (groupData[i].area == where || !where) &&
@@ -4775,7 +4797,7 @@ function PostTextToStore(text,image, job, where, poster, time = null) {
 
 
             var to = groupData[i].groupId
-            axios.post(CONFIG.AnaURL+'/newPost', {poster, content, time, to})
+            axios.post(CONFIG.AnaURL + '/newPost', {poster, content, time, to})
                 .then(result => resolve(result))
                 .catch(err => reject(err));
         }
