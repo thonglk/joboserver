@@ -106,7 +106,8 @@ MongoClient.connect(uri, function (err, db) {
 var adminEmailList = []
 var db = joboTest.database();
 var db2 = joboPxl.database();
-
+var auth = firebase.auth()
+var messaging = firebase.messaging();
 
 var configRef = db.ref('config');
 var staticRef = db.ref('static');
@@ -443,10 +444,12 @@ function init() {
 
     });
     profileRef.on('child_changed', function (snap) {
+
         dataProfile[snap.key] = snap.val()
     });
 
     jobRef.on('child_added', function (snap) {
+
         dataJob[snap.key] = snap.val()
 
     });
@@ -454,6 +457,10 @@ function init() {
         dataJob[snap.key] = snap.val()
     });
     storeRef.on('child_added', function (snap) {
+        // if(Number(snap.key) < 1000){
+        //     storeRef.child(snap.key).remove()
+        //     console.log(snap.key)
+        // }
         dataStore[snap.key] = snap.val()
     });
     storeRef.on('child_changed', function (snap) {
@@ -587,7 +594,7 @@ function getShortPremiumJob(ref) {
 app.get('/PremiumJob', function (req, res) {
     let {where, type} = req.query
     res.send(createListPremiumJob(where, type))
-})
+});
 
 function createListPremiumJob(where, type) {
     var jobHN = "";
@@ -601,7 +608,7 @@ function createListPremiumJob(where, type) {
         return -card.createdAt
     })
     for (var i in jobs) {
-        var job = jobs[i]
+        var job = jobs[i];
         if (job.createdBy && job.storeId
             && dataUser[job.createdBy]
             && dataUser[job.createdBy].package == 'premium'
@@ -783,7 +790,7 @@ function createJDJob(jobId) {
 app.get('/createJDStore', function (req, res) {
     var storeId = req.param('storeId')
     var jobId = req.param('jobId')
-    var a = req.param('a')
+    var a = req.param('a');
     createJDStore(storeId, a, jobId)
         .then(text => res.status(200).json(text))
         .catch(err => res.status(500).json(err));
@@ -883,120 +890,293 @@ function createJDStore(storeId, random, jobId) {
 }
 
 app.get('/check', function (req, res) {
-    checkInadequate()
+    // checkJob().then(checkStore().then(checkProfile().then(checkUser().then(()=>res.send('done')))))
+    checkStore().then(function (result) {
+        res.send(result)
+    })
 })
 
-function checkInadequate() {
-    jobRef.once('value', function (a) {
-        var dataJobs = a.val()
-        for (var i in dataJobs) {
-            var job = dataJobs[i];
-            if (!job.storeId) {
-                var array = i.split(':')
+function checkJob() {
+    return new Promise(function (resolve, reject) {
+        jobRef.once('value', function (a) {
+            var arrayJob = _.toArray(a.val())
+            var i = 0;
+            loop(i)
 
-                console.log('checkInadequateStoreIdInJob_deadline', i)
-                jobRef.child(i).update({storeId: array[0]})
-            }
-            if (!job.deadline) {
-                console.log('checkInadequateStoreIdInJob_deadline', i)
-                jobRef.child(i).update({deadline: new Date().getTime() + 1000 * 60 * 60 * 24 * 7})
-            }
-            if (job.act) {
-                console.log('job.act remove', i)
+            function loop(i) {
 
-                jobRef.child(i).child('act').remove()
-            }
-            if (job.distance) {
-                console.log('job.distance remove', i)
+                console.log('arrayJob.length= ' +i +'/'+arrayJob.length)
 
-                jobRef.child(i).child('distance').remove()
-            }
-            if (!job.createdAt) {
-                jobRef.child(i).update({updatedAt: Date.now(), createdAt: Date.now()})
-                console.log('jobRef done')
-            }
-            if (!job.updatedAt) {
-                jobRef.child(i).update({updatedAt: job.createdAt})
-                console.log('jobRef done')
-            }
-        }
-    })
-    storeRef.once('value', function (a) {
-        var dataStores = a.val()
+                var job = Object.assign({}, arrayJob[i]);
+                console.log('job', job.jobName)
 
-        for (var i in dataStores) {
-            var store = dataStores[i]
-            if (store.act) {
-                console.log('store.act remove', i)
+                if(!job.jobId){
+                    console.log('jobId')
+                    i++
+                    if (i < arrayJob.length) {
+                        loop(i)
+                    } else {
+                        resolve('done')
+                    }
+                } else {
 
-                storeRef.child(i).child('act').remove()
-            }
-            if (store.distance) {
-                console.log('store.distance remove', i)
+                    if (!job.deadline) {
+                        console.log('job.deadline', i)
+                        job.deadline = Date.now() + 1000 * 60 * 60 * 24 * 7
+                    }
 
-                storeRef.child(i).child('distance').remove()
-            }
-            if (store.static) {
-                console.log('store.static remove', i)
+                    if (job.act) {
+                        console.log('job.act remove', i)
+                        delete job.act
+                    }
+                    if (job.distance) {
+                        console.log('job.distance remove', i)
+                        delete job.distance
+                    }
+                    if (!job.createdAt) {
+                        console.log('job.createdAt ', i)
 
-                storeRef.child(i).child('static').remove()
-            }
-            if (store.presence) {
-                console.log('store.presence remove', i)
+                        job.createdAt = Date.now()
 
-                storeRef.child(i).child('presence').remove()
-            }
-        }
-    })
-    profileRef.once('value', function (a) {
-        var dataProfiles = a.val()
+                    }
+                    if (!job.updatedAt) {
+                        console.log('job.updatedAt ', i)
+                        job.updatedAt = Date.now()
+                    }
+                    if (JSON.stringify(job) != JSON.stringify(arrayJob[i])) {
+                        jobRef.child(job.jobId).set(job).then(function () {
+                            console.log('job done', i);
 
-        for (var i in dataProfiles) {
-            var profile = dataProfiles[i]
-            if (!profile.userId) {
-                console.log('thieu dataProfile', i)
-                profileRef.child(i).update({userId: i})
-            }
-            if (profile.act) {
-                console.log('profile.act remove', i)
+                            i++
+                            if (i < arrayJob.length) {
+                                loop(i)
+                            } else {
+                                resolve('done')
+                            }
+                        }).catch(function (err) {
+                            console.log('job err', i);
 
-                profileRef.child(i).child('act').remove()
-            }
-            if (!profile.createdAt) {
-                profileRef.child(i).update({updatedAt: Date.now(), createdAt: Date.now()})
-                console.log('jobRef done')
-            }
-            if (!profile.updatedAt) {
-                profileRef.child(i).update({updatedAt: profileRef.createdAt})
-                console.log('jobRef done')
-            }
+                            i++;
+                            if (i < arrayJob.length) {
+                            } else {
+                                resolve('done')
+                            }
+                        })
 
-        }
-    })
-    userRef.once('value', function (a) {
-        var dataUsers = a.val()
-
-
-        for (var i in dataUsers) {
-            var user = dataUsers[i]
-            if (user.admin) {
-                adminEmailList.push(user.email)
-            }
-            if (user.email && user.email.length < 4) {
-                secondary.auth().getUser(i)
-                    .then(function (userRecord) {
-                        // See the UserRecord reference doc for the contents of userRecord.
-                        if (userRecord.email) {
-                            userRef.child(i).update({email: userRecord.email})
+                    } else {
+                        i++
+                        if (i < arrayJob.length) {
+                            loop(i)
                         }
-                    })
-                    .catch(function (error) {
-                        console.log("Error fetching user data:", error);
-                    });
+                    }
+                }
+
             }
-        }
+
+
+        })
+
     })
 }
+
+function checkStore() {
+    return new Promise(function (resolve, reject) {
+        storeRef.once('value', function (a) {
+
+            var arrayJob = _.toArray(a.val())
+            var i = 0
+            loop(i)
+
+            function loop(i) {
+                console.log('arrayJob.length= ' +i +'/'+arrayJob.length)
+
+                var store = Object.assign({}, arrayJob[i]);
+                console.log(store.storeName)
+
+
+                if(!store.storeId){
+                    console.log('storeId')
+                    i++
+                    if (i < arrayJob.length) {
+                        loop(i)
+                    } else {
+                        resolve('done')
+                    }
+                    return
+                }
+                if (store.act) {
+                    console.log('store.act remove', i)
+                    delete store.act
+                }
+                if (store.distance) {
+                    console.log('store.distance remove', i)
+                    delete store.distance
+                }
+                if (store.static) {
+                    console.log('store.static remove', i)
+                    delete store.static
+                }
+                if (store.presence) {
+                    console.log('store.presence remove', i)
+                    delete store.presence
+                }
+
+
+                if (!store.createdAt) {
+                    console.log('store.createdAt ', i)
+                    store.createdAt = Date.now()
+                }
+
+                if (JSON.stringify(store) != JSON.stringify(arrayJob[i])) {
+                    storeRef.child(store.storeId).set(store).then(function () {
+                        console.log('job done', i)
+
+                        i++
+                        if (i < arrayJob.length) {
+                            loop(i)
+                        } else {
+                            resolve('done')
+                        }
+                    })
+
+                } else {
+                    i++
+                    if (i < arrayJob.length) {
+                        loop(i)
+                    } else {
+                        resolve('done')
+                    }
+                }
+
+            }
+        })
+
+    })
+}
+
+function checkProfile() {
+    return new Promise(function (resolve, reject) {
+
+    profileRef.once('value', function (a) {
+        var arrayJob = _.toArray(a.val())
+        var i = 0
+        loop(i)
+
+        function loop(i) {
+            var profile = Object.assign({}, arrayJob[i]);
+            console.log(profile.name);
+
+            if (profile.act) {
+                console.log('profile.act remove', i)
+                delete profile.act
+            }
+            if (profile.distance) {
+                console.log('profile.distance remove', i)
+                delete profile.distance
+            }
+            if (profile.static) {
+                console.log('profile.static remove', i)
+                delete profile.static
+            }
+            if (profile.presence) {
+                console.log('profile.presence remove', i)
+                delete profile.presence
+            }
+
+
+            if (!profile.createdAt) {
+                console.log('profile.createdAt ', i)
+
+                profile.createdAt = Date.now()
+
+            }
+            if (!profile.updatedAt) {
+                console.log('profile.updatedAt ', i)
+                profile.updatedAt = Date.now()
+            }
+
+            if (JSON.stringify(profile) != JSON.stringify(arrayJob[i])) {
+                profileRef.child(profile.userId).set(profile).then(function () {
+                    console.log('job done', i)
+
+                    i++
+                    if (i < arrayJob.length) {
+                        loop(i)
+                    } else {
+                        resolve('done')
+                    }
+                })
+
+            } else {
+                i++
+                if (i < arrayJob.length) {
+                    loop(i)
+                } else {
+                    resolve('done')
+                }
+            }
+
+        }
+
+    })
+    })
+}
+
+function checkUser() {
+    return new Promise(function (resolve, reject) {
+
+        userRef.once('value', function (a) {
+            var arrayJob = _.toArray(a.val())
+            var i = 0
+            loop(i)
+
+            function loop(i) {
+                var user = Object.assign({}, arrayJob[i]);
+                console.log(user.name);
+                if (user.email && user.email.length < 4) {
+                    auth.getUser(user.userId)
+                        .then(function (userRecord) {
+                            // See the UserRecord reference doc for the contents of userRecord.
+                            if (userRecord.email) {
+                                console.log('email update')
+                                userRef.child(userRecord.userId).update({email: userRecord.email}).then(function () {
+                                    i++
+                                    if (i < arrayJob.length) {
+                                        loop(i)
+                                    } else {
+                                        resolve('done')
+                                    }
+                                })
+                            } else {
+                                i++
+                                if (i < arrayJob.length) {
+                                    loop(i)
+                                }else {
+                                    resolve('done')
+                                }
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log("Error fetching user data:", error);
+                        });
+                } else {
+                    i++
+                    if (i < arrayJob.length) {
+                        loop(i)
+                    }else {
+                        resolve('done')
+                    }
+                }
+
+
+            }
+
+
+        })
+    })
+}
+
+
 
 function shortAddress(fullAddress) {
     if (fullAddress) {
@@ -3498,7 +3678,7 @@ function startList() {
         if (card.action == 'createStore') {
             console.log('createStore', card.userId)
             if (dataUser[card.userId] && card.data &&
-                card.data.storeId
+                card.data.storeId && dataStore
             ) {
                 var employerData = dataUser[card.userId]
                 var storeData = dataStore[card.data.storeId]
