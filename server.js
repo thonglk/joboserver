@@ -662,7 +662,7 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
 })
 
 function scheduleJobPushEveryday() {
-    var jobArr = createListPremiumJobArray()
+    var jobArr = createListPremiumJob(null, 'array')
     var time = Date.now() + 5000
     var a = 0
     for (var i in jobArr) {
@@ -673,6 +673,25 @@ function scheduleJobPushEveryday() {
         PostStore(job.storeId, job.jobId, null, null, null, null, sche)
 
     }
+    var mail = {
+        title: 'Jobo_AutoPost | ' + new Date().getDate() + '/' + new Date().getMonth(),
+        body: createListPremiumJob(),
+        subtitle: '',
+        description1: 'Dear friend,',
+        description2: createListPremiumJob(),
+        calltoaction: 'Hello the world',
+        linktoaction: 'https://www.messenger.com/t/979190235520989',
+        image: ''
+    }
+    var time = Date.now()
+    for (var i in dataUser) {
+        if (dataUser[i].admin == true) {
+            time = time + 5000
+            sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
+        }
+    }
+
+
 }
 
 
@@ -2139,34 +2158,33 @@ app.get('/update/user', function (req, res) {
                 userRef.child(userId).update(userData)
 
                 //create
-                if (userData.type == 2) {
-                    var mail = {
-                        title: 'Jobo_Sale| New employer register',
-                        body: JSON.stringify(userData),
-                        description1: 'Dear friend,',
-                        description2: JSON.stringify(userData),
-                        description3: 'Keep up guys! We can do it <3',
-                        image: ''
-                    }
-                    if (userData.phone) {
-                        mail.calltoaction = 'Gọi tư vấn';
-                        mail.linktoaction = 'tel:'+ userData.phone;
-                    } else {
-                        mail.calltoaction = 'Email chào hàng';
-                        mail.linktoaction = CONFIG.WEBURL+'/admin/lead';
-                    }
-                    var time = Date.now()
-                    for (var i in dataUser) {
-                        if (dataUser[i].admin == true) {
-                            time = time + 5000
-                            sendNotification(dataUser[i], mail, {
-                                letter: true,
-                                web: true,
-                                messenger: true,
-                                mobile: true
-                            }, time)
+                if (userData.type == 1) {
+
+                    setTimeout(function () {
+                        var mail = {
+                            title: 'Jobo_Sale| New employer register',
+                            body: JSON.stringify(userData),
+                            description1: 'Dear friend,',
+                            description2: JSON.stringify(userData),
+                            description3: 'Keep up guys! We can do it <3',
+                            image: ''
                         }
-                    }
+                        if (userData.phone) {
+                            mail.calltoaction = 'Gọi tư vấn';
+                            mail.linktoaction = 'tel:' + userData.phone;
+                        } else {
+                            mail.calltoaction = 'Email chào hàng';
+                            mail.linktoaction = CONFIG.WEBURL + '/admin/lead';
+                        }
+                        var time = Date.now()
+                        for (var i in dataUser) {
+                            if (dataUser[i].admin == true) {
+                                time = time + 5000
+                                sendNotification(dataUser[i], mail, null, time)
+                            }
+                        }
+                    }, 60000)
+
                 }
             }
         }
@@ -4780,7 +4798,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
                 && (groupData[i].job && groupData[i].job.match(job) || !job )) {
                 poster = _.sample(facebookUser[where]);
                 var content = createJDStore(storeId, null, jobId)
-                console.log('poster', poster, JSON.stringify(content));
 
                 if (!time) {
                     time = Date.now() + 4 * 1000
