@@ -22,7 +22,7 @@ Nếu khó khăn cứ cmt ngay dưới hoặc liên hệ ${contact} nhé!\n\n
 Nếu cơ sở đó không thuận tiện cho bạn đi lại, tham khảo các cơ sở khác tại : ${storeUrl}\n\n${deadline}`;
         return text;
     },
-    4: function ({ storeName, address = '', jobName = '', salary = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    1: function ({ storeName, address = '', jobName = '', salary = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
         const text = `TUYỂN DỤNG TẠI NHÀ HÀNG ${storeName}\n
 SANG TUẦN ĐI LÀM LUÔN\n\n
    🏆Địa chỉ: ${address}\n
@@ -44,7 +44,7 @@ Liên hệ ${contact}.\n\n${deadline}`;
         return text;
     },
     3: function ({ storeName, address = '', jobName = '', salary = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
-        const text = `Mình thấy trong group có nhiều bạn đăng tin tìm việc ở quận ${address}, mình cũng cần tuyển rất GẤP cho Nhà hàng mình tại ${address} mà sao không gặp được nhau nhỉ.\n
+        const text = `Mình thấy trong group có nhiều bạn đăng tin tìm việc ở ${address}, mình cũng cần tuyển rất GẤP cho Nhà hàng mình tại ${address} mà sao không gặp được nhau nhỉ.\n
 Hy vọng tin này đến được các bạn cần tìm việc!\n\n
   ${storeName}\n
   🏆Địa chỉ: ${address}\n

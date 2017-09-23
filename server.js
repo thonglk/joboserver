@@ -381,6 +381,7 @@ function PublishComment(postId, text, accessToken) {
 }
 
 var facebookUser
+var popularJob = {}
 
 function init() {
     console.log('listenDatabase')
@@ -451,16 +452,24 @@ function init() {
     jobRef.on('child_added', function (snap) {
 
         dataJob[snap.key] = snap.val()
+        var job = dataJob[snap.key]
+
+        if (!popularJob[job.job]) {
+            popularJob[job.job] = {job: job.job, unit: 1}
+        } else {
+            popularJob[job.job].unit++
+        }
+        CONFIG.popularJob = _.sortBy(popularJob, function (job) {
+            return -job.unit
+        })
+
 
     });
     jobRef.on('child_changed', function (snap) {
         dataJob[snap.key] = snap.val()
     });
     storeRef.on('child_added', function (snap) {
-        // if(Number(snap.key) < 1000){
-        //     storeRef.child(snap.key).remove()
-        //     console.log(snap.key)
-        // }
+
         dataStore[snap.key] = snap.val()
     });
     storeRef.on('child_changed', function (snap) {
@@ -657,14 +666,13 @@ function createListPremiumJob(where, type) {
     }
 }
 
-
 app.get('/createListGoogleJob', function (req, res) {
     res.send(createListGoogleJob())
 })
 app.get('/scheduleJobPushEveryday', function (req, res) {
     res.send(scheduleJobPushEveryday())
 })
-schedule.scheduleJob({hour: 7, minute: 0}, function () {
+schedule.scheduleJob({hour: 11, minute: 48}, function () {
     scheduleJobPushEveryday()
 })
 
@@ -683,7 +691,6 @@ function scheduleJobPushEveryday() {
     var mail = {
         title: 'Jobo_AutoPost | ' + new Date().getDate() + '/' + new Date().getMonth(),
         body: createListPremiumJob(),
-        subtitle: '',
         description1: 'Dear friend,',
         description2: createListPremiumJob(),
         calltoaction: 'Hello the world',
@@ -891,7 +898,7 @@ function createJDStore(storeId, random, jobId) {
 
 app.get('/check', function (req, res) {
     // checkJob().then(checkStore().then(checkProfile().then(checkUser().then(()=>res.send('done')))))
-    checkStore().then(function (result) {
+    checkProfile().then(function (result) {
         res.send(result)
     })
 })
@@ -905,12 +912,12 @@ function checkJob() {
 
             function loop(i) {
 
-                console.log('arrayJob.length= ' +i +'/'+arrayJob.length)
+                console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
 
                 var job = Object.assign({}, arrayJob[i]);
                 console.log('job', job.jobName)
 
-                if(!job.jobId){
+                if (!job.jobId) {
                     console.log('jobId')
                     i++
                     if (i < arrayJob.length) {
@@ -988,13 +995,13 @@ function checkStore() {
             loop(i)
 
             function loop(i) {
-                console.log('arrayJob.length= ' +i +'/'+arrayJob.length)
+                console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
 
                 var store = Object.assign({}, arrayJob[i]);
                 console.log(store.storeName)
 
 
-                if(!store.storeId){
+                if (!store.storeId) {
                     console.log('storeId')
                     i++
                     if (i < arrayJob.length) {
@@ -1057,68 +1064,68 @@ function checkStore() {
 function checkProfile() {
     return new Promise(function (resolve, reject) {
 
-    profileRef.once('value', function (a) {
-        var arrayJob = _.toArray(a.val())
-        var i = 0
-        loop(i)
+        profileRef.once('value', function (a) {
+            var arrayJob = _.toArray(a.val())
+            var i = 0
+            loop(i)
 
-        function loop(i) {
-            var profile = Object.assign({}, arrayJob[i]);
-            console.log(profile.name);
+            function loop(i) {
+                var profile = Object.assign({}, arrayJob[i]);
+                console.log(profile.name);
 
-            if (profile.act) {
-                console.log('profile.act remove', i)
-                delete profile.act
-            }
-            if (profile.distance) {
-                console.log('profile.distance remove', i)
-                delete profile.distance
-            }
-            if (profile.static) {
-                console.log('profile.static remove', i)
-                delete profile.static
-            }
-            if (profile.presence) {
-                console.log('profile.presence remove', i)
-                delete profile.presence
-            }
+                if (profile.act) {
+                    console.log('profile.act remove', i)
+                    delete profile.act
+                }
+                if (profile.distance) {
+                    console.log('profile.distance remove', i)
+                    delete profile.distance
+                }
+                if (profile.static) {
+                    console.log('profile.static remove', i)
+                    delete profile.static
+                }
+                if (profile.presence) {
+                    console.log('profile.presence remove', i)
+                    delete profile.presence
+                }
 
 
-            if (!profile.createdAt) {
-                console.log('profile.createdAt ', i)
+                if (!profile.createdAt) {
+                    console.log('profile.createdAt ', i)
 
-                profile.createdAt = Date.now()
+                    profile.createdAt = Date.now()
 
-            }
-            if (!profile.updatedAt) {
-                console.log('profile.updatedAt ', i)
-                profile.updatedAt = Date.now()
-            }
+                }
+                if (!profile.updatedAt) {
+                    console.log('profile.updatedAt ', i)
+                    profile.updatedAt = Date.now()
+                }
 
-            if (JSON.stringify(profile) != JSON.stringify(arrayJob[i])) {
-                profileRef.child(profile.userId).set(profile).then(function () {
-                    console.log('job done', i)
+                if (JSON.stringify(profile) != JSON.stringify(arrayJob[i])) {
+                    profileRef.child(profile.userId).set(profile).then(function () {
+                        console.log('job done', i)
 
+                        i++
+                        if (i < arrayJob.length) {
+                            loop(i)
+                        } else {
+                            resolve('done')
+                        }
+                    })
+
+                } else {
                     i++
                     if (i < arrayJob.length) {
                         loop(i)
                     } else {
                         resolve('done')
                     }
-                })
-
-            } else {
-                i++
-                if (i < arrayJob.length) {
-                    loop(i)
-                } else {
-                    resolve('done')
                 }
+
             }
 
-        }
-
-    })
+        })
     })
 }
 
@@ -1151,7 +1158,7 @@ function checkUser() {
                                 i++
                                 if (i < arrayJob.length) {
                                     loop(i)
-                                }else {
+                                } else {
                                     resolve('done')
                                 }
                             }
@@ -1163,7 +1170,7 @@ function checkUser() {
                     i++
                     if (i < arrayJob.length) {
                         loop(i)
-                    }else {
+                    } else {
                         resolve('done')
                     }
                 }
@@ -1175,7 +1182,6 @@ function checkUser() {
         })
     })
 }
-
 
 
 function shortAddress(fullAddress) {
@@ -1321,7 +1327,6 @@ app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 
 
 schedule.scheduleJob({hour: 12, minute: 30}, function () {
-    checkInadequate()
 });
 
 app.get('/', function (req, res) {
@@ -1330,6 +1335,14 @@ app.get('/', function (req, res) {
 app.get('/group', function (req, res) {
     res.send(groupData);
 });
+
+app.post('/like', function (req, res, next) {
+    let likeData = req.body
+    console.log(likeData)
+    likeActivityRef.child(likeData.actId).update(likeData).then(function (result) {
+        res.send(result)
+    }).catch(err => res.send(err))
+})
 
 app.get('/api/lead', (req, res) => {
     let {
@@ -1672,78 +1685,6 @@ function getRandomJob(industry) {
 
 }
 
-app.get('/api/jobOther', function (req, res) {
-
-    var userId = req.param('userId')
-    var industryfilter = req.param('industry');
-    var jobfilter = req.param('job');
-    var working_typefilter = req.param('working_type');
-    var salaryfilter = req.param('salary');
-    var distancefilter = req.param('distance');
-    var mylng = req.param('lng');
-    var mylat = req.param('lat');
-
-    var sort = req.param('sort');
-    var show = req.param('show');
-    var page = req.param('p');
-
-    if (!page || page < 2) {
-        getGoogleJob(mylat, mylng, industryfilter)
-    }
-    var joblist = [];
-    setTimeout(function () {
-        for (var i in datagoogleJob) {
-
-            var card = datagoogleJob[i]
-
-            if (card.location && mylng && mylat && distancefilter) {
-                card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
-            }
-
-            if (userId) {
-
-                var keyAct = card.place_id + ":" + userId;
-
-                if (likeActivity[keyAct]) {
-                    card.act = likeActivity[keyAct]
-                }
-            }
-
-            if (
-                (card.job == jobfilter || !jobfilter)
-                && (card.distance < 50 || !card.distance)
-                && (card.working_type == working_typefilter || !working_typefilter )
-                && (card.industry == industryfilter || !industryfilter)
-                && (card.salary > salaryfilter || !salaryfilter)
-            ) {
-                joblist.push(card)
-            }
-        }
-        return new Promise(function (resolve, reject) {
-            resolve(joblist)
-        }).then(function (joblist) {
-                var sorded;
-                if (sort == 'viewed' || sort == 'rate' || sort == 'createdAt') {
-                    sorded = _.sortBy(joblist, function (card) {
-                        return -card[sort]
-                    });
-                } else if (sort == 'distance') {
-                    sorded = _.sortBy(joblist, function (card) {
-                        return card[sort]
-                    })
-                } else {
-                    sorded = _.sortBy(joblist, function (card) {
-                        return -card.rating
-                    })
-                }
-                var sendData = getPaginatedItems(sorded, page)
-                res.send(sendData)
-            }
-        )
-
-    }, 1000)
-
-});
 
 app.get('/places', function (req, res) {
     var mylat = req.param('lat') || '10.779942';
@@ -1892,85 +1833,113 @@ app.get('/dash/job', function (req, res) {
 });
 
 app.get('/api/job', function (req, res) {
+    var newfilter = req.query
 
-    var userId = req.param('userId')
-    var industryfilter = req.param('industry');
-    var jobfilter = req.param('job');
-    var working_typefilter = req.param('working_type');
-    var salaryfilter = req.param('salary');
-    var distancefilter = req.param('distance');
+    var typefilter = newfilter.type
+    var userId = newfilter.userId
+    var industryfilter = newfilter.industry
+    var jobfilter = newfilter.job
+    var working_typefilter = newfilter.working_type
+    var salaryfilter = newfilter.salary
+    var distancefilter = newfilter.distance
 
-    var sort = req.param('sort');
-    var show = req.param('show');
-    var page = req.param('p');
+    var sort = newfilter.sort
+    var show = newfilter.show
+    var page = newfilter.page
 
-    if (!CONFIG.data.job[jobfilter]) {
-        jobfilter = ''
-    }
+
     if (dataProfile[userId] && dataProfile[userId].location) {
         var userData = dataProfile[userId];
         var mylat = userData.location.lat;
         var mylng = userData.location.lng;
     }
     var joblist = []
-    for (var i in dataJob) {
+    console.log('typefilter', typefilter)
+    if (typefilter == 'google') {
+        console.log('googlejob')
+        if (!page || page < 2) {
+            getGoogleJob(mylat, mylng, industryfilter)
+        }
+        for (var i in datagoogleJob) {
 
-        var obj = dataJob[i]
-        if (dataStore[obj.storeId] && dataStore[obj.storeId].storeName) {
+            var card = datagoogleJob[i]
 
-            var store = dataStore[obj.storeId]
-            var storeData = {
-                storeName: store.storeName,
-                createdBy: store.createdBy,
-                avatar: store.avatar,
-                industry: store.industry,
-                location: store.location,
-                address: store.address
-
-            };
-
-            if (dataUser[store.createdBy] && dataUser[store.createdBy].package) {
-                storeData.package = dataUser[store.createdBy].package
-            }
-
-            var card = Object.assign(obj, storeData);
-
-            if (userData) {
-
-                var keyAct = obj.storeId + ":" + userId;
-
-                if (likeActivity[keyAct]) {
-                    card.act = likeActivity[keyAct]
-                }
-                if (card.location) {
-                    card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
-                }
+            if (card.location && mylng && mylat && distancefilter) {
+                card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
             }
 
             if (
                 (card.job == jobfilter || !jobfilter)
-                && (card.distance < 50 || !distancefilter)
+                && (card.distance < 50 || !card.distance)
                 && (card.working_type == working_typefilter || !working_typefilter )
                 && (card.industry == industryfilter || !industryfilter)
                 && (card.salary > salaryfilter || !salaryfilter)
             ) {
-                card.match = 0
-                if (card.package == 'premium') {
-                    card.match = card.match + 100
-                }
-
-                if (card.createdAt) {
-                    var p = 100 / (Date.now() - card.createdAt)
-                    card.match = card.match + p
-                }
-
                 joblist.push(card)
-
             }
-
-
         }
+    } else {
+        console.log('primaryJob')
+
+        for (var i in dataJob) {
+
+            var obj = dataJob[i]
+            if (dataStore[obj.storeId] && dataStore[obj.storeId].storeName) {
+
+                var store = dataStore[obj.storeId]
+                var storeData = {
+                    storeName: store.storeName,
+                    createdBy: store.createdBy,
+                    avatar: store.avatar,
+                    industry: store.industry,
+                    location: store.location,
+                    address: store.address
+
+                };
+
+                if (dataUser[store.createdBy] && dataUser[store.createdBy].package) {
+                    storeData.package = dataUser[store.createdBy].package
+                }
+
+                var card = Object.assign(obj, storeData);
+
+                if (userData) {
+
+                    var keyAct = obj.storeId + ":" + userId;
+
+                    if (likeActivity[keyAct]) {
+                        card.act = likeActivity[keyAct]
+                    }
+                    if (card.location) {
+                        card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
+                    }
+                }
+
+                if (
+                    (card.job == jobfilter || !jobfilter)
+                    && (card.distance < 50 || !card.distance)
+                    && (card.working_type == working_typefilter || !working_typefilter )
+                    && (card.industry == industryfilter || !industryfilter)
+                    && (card.salary > salaryfilter || !salaryfilter)
+                ) {
+                    card.match = 0
+                    if (card.package == 'premium') {
+                        card.match = card.match + 100
+                    }
+
+                    if (card.createdAt) {
+                        var p = 100 / (Date.now() - card.createdAt)
+                        card.match = card.match + p
+                    }
+
+                    joblist.push(card)
+
+                }
+            }
+        }
+
     }
+
     return new Promise(function (resolve, reject) {
         resolve(joblist)
     }).then(function (joblist) {
@@ -1989,85 +1958,7 @@ app.get('/api/job', function (req, res) {
                 })
             }
             var sendData = getPaginatedItems(sorded, page)
-            res.send(sendData)
-        }
-    )
-
-});
-
-app.get('/api/filterEmployer', function (req, res) {
-
-    var query = req.param('q')
-    var param = JSON.parse(query)
-    var location = param.location
-    var industryfilter = param.industry
-    var jobfilter = param.job
-    var working_typefilter = param.working_type
-    var distancefilter = param.distance
-    var packagefilter = param.package
-
-    var page = req.param('p');
-
-    var joblist = []
-    for (var i in dataJob) {
-        var obj = dataJob[i]
-        if (obj.storeId && dataStore[obj.storeId]) {
-
-            var store = dataStore[obj.storeId]
-            var storeData = {
-                storeName: store.storeName,
-                createdBy: store.createdBy,
-                avatar: store.avatar,
-                industry: store.industry,
-                location: store.location,
-                address: store.address
-
-            };
-
-            if (dataUser[store.createdBy] && dataUser[store.createdBy].package) {
-                storeData.package = dataUser[store.createdBy].package
-            }
-
-            var card = Object.assign(obj, storeData);
-
-
-            if (
-                (card.job == jobfilter || !jobfilter)
-                && (card.working_type == working_typefilter || !working_typefilter)
-                && (card.industry == industryfilter || !industryfilter)
-                && (card.package == packagefilter || !packagefilter)
-            ) {
-                if (location && card.location) {
-                    card.distance = getDistanceFromLatLonInKm(location.lat, location.lng, card.location.lat, card.location.lng);
-                    if (card.distance < distancefilter || !distancefilter) {
-                        joblist.push(card)
-                    }
-                } else {
-                    joblist.push(card)
-
-                }
-
-            }
-        }
-    }
-    return new Promise(function (resolve, reject) {
-        resolve(joblist)
-    }).then(function (joblist) {
-            var sorded;
-            if (sort == 'viewed' || sort == 'rate' || sort == 'createdAt') {
-                sorded = _.sortBy(joblist, function (card) {
-                    return -card[sort]
-                });
-            } else if (sort == 'distance') {
-                sorded = _.sortBy(joblist, function (card) {
-                    return card[sort]
-                })
-            } else {
-                sorded = _.sortBy(joblist, function (card) {
-                    return -card.createdAt
-                })
-            }
-            var sendData = getPaginatedItems(sorded, page)
+            sendData.newfilter = newfilter
             res.send(sendData)
         }
     )
@@ -2261,7 +2152,7 @@ app.get('/on/profile', function (req, res) {
     if (dataProfile[userId]) {
         res.send(dataProfile[userId])
     } else {
-        res.send('NO_DATA')
+        res.send({err: 'No Data'})
     }
 
 });
@@ -2827,23 +2718,6 @@ app.get('/api/notification', function (req, res) {
 
 })
 
-app.get('/getLongToken', function (req, res) {
-    var shortToken = req.param('token')
-    https.get('https://graph.facebook.com/oauth/access_token?' +
-        'grant_type=fb_exchange_token&' +
-        'client_id= 295208480879128&' +
-        'client_secret=4450decf6ea88c391f4100b5740792ae&' +
-        'fb_exchange_token=' + shortToken, function (response) {
-        var body = '';
-        response.on('data', function (chunk) {
-            body += chunk;
-        });
-
-        response.on('end', function () {
-            res.send(body);
-        });
-    })
-})
 
 app.get('/update/log', function (req, res) {
     var userId = req.param('userId')
@@ -3676,7 +3550,7 @@ function startList() {
 
 
         if (card.action == 'createStore') {
-            console.log('createStore', card.userId)
+            console.log('createStore', card.userId, card.id)
             if (dataUser[card.userId] && card.data &&
                 card.data.storeId && dataStore
             ) {
@@ -4395,8 +4269,7 @@ function sendMailNotiLikeToProfile(card) {
         body: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn' + jobName + ', xem offer và phản hồi ngay!',
         data: [{
             title: card.storeName,
-            image: card.storeAvatar,
-            body: dataJob[card.jobId].jobName
+            image: card.storeAvatar
         }],
         description1: 'Chào ' + getLastName(card.userName),
         description2: card.storeName + ' vừa gửi lời mời phỏng vấn cho bạn ' + jobName + ', xem chi tiết và phản hồi ngay!',
