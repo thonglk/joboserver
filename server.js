@@ -1237,7 +1237,6 @@ function checkInadequateProfile() {
                 }
             }
 
-
         } else if (!dataProfile[i] && dataUser[i].type == 2) {
             bb++
         } else if (dataUser[i].currentStore && dataUser[i].type == 1) {
@@ -2238,7 +2237,6 @@ app.get('/update/user', function (req, res) {
                             description1: 'Dear friend,',
                             description2: JSON.stringify(userData),
                             description3: 'Keep up guys! We can do it <3',
-                            image: ''
                         }
                         if (userData.phone) {
                             mail.calltoaction = 'Gọi tư vấn';
@@ -2270,8 +2268,39 @@ app.get('/update/user', function (req, res) {
 
         if (storeDataStr) {
             var storeData = JSON.parse(storeDataStr)
-            storeRef.child(storeId).update(storeData)
+            if (dataStore[storeId]) {
+                //update
+                storeRef.child(storeId).update(storeData)
+            } else {
+                storeRef.child(storeId).update(storeData)
+                var user = dataUser[storeData.createdBy]
+                storeData.userData = user
+                //create
+                setTimeout(function () {
+                    var mail = {
+                        title: 'Jobo_Sale| New Store register',
+                        body: JSON.stringify(storeData),
+                        description1: 'Dear friend,',
+                        description2: JSON.stringify(storeData),
+                        description3: 'Keep up guys! We can do it <3',
+                    }
+                    if (user.phone) {
+                        mail.calltoaction = 'Gọi tư vấn';
+                        mail.linktoaction = 'tel:' + user.phone;
+                    } else {
+                        mail.calltoaction = 'Email chào hàng';
+                        mail.linktoaction = CONFIG.WEBURL + '/admin/lead';
+                    }
+                    var time = Date.now()
+                    for (var i in dataUser) {
+                        if (dataUser[i].admin == true) {
+                            time = time + 5000
+                            sendNotification(dataUser[i], mail, null, time)
+                        }
+                    }
+                }, 60000)
 
+            }
         }
 
         res.send({code: 'success', id: userId})
