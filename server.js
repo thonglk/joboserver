@@ -604,6 +604,18 @@ app.get('/PremiumJob', function (req, res) {
     let {where, type} = req.query
     res.send(createListPremiumJob(where, type))
 });
+app.get('/googleJob', function (req, res) {
+    var list = []
+    for (var i in datagoogleJob) {
+        if (datagoogleJob[i].storeName) {
+            list.push(datagoogleJob[i].storeName)
+        }
+
+    }
+
+    var send = _.sample(list, 80)
+    res.send(send)
+});
 
 function createListPremiumJob(where, type) {
     var jobHN = "";
@@ -1502,7 +1514,9 @@ app.get('/sendEmailMarketing', function (req, res) {
             getMongoDB(emailChannelCol)
                 .then(dataEmail => resolve(dataEmail))
                 .catch(err => reject(err));
-        } else resolve({});
+        } else resolve(
+            [{email: mail.to}]
+        );
     });
 
     const promiseDLead = new Promise((resolve, reject) => {
@@ -1832,7 +1846,9 @@ app.get('/dash/job', function (req, res) {
 });
 
 app.get('/api/job', function (req, res) {
+
     var newfilter = req.query
+    console.log(newfilter)
 
     var typefilter = newfilter.type
     var userId = newfilter.userId
@@ -1841,77 +1857,34 @@ app.get('/api/job', function (req, res) {
     var working_typefilter = newfilter.working_type
     var salaryfilter = newfilter.salary
     var distancefilter = newfilter.distance
+    var apply = newfilter.apply
 
     var sort = newfilter.sort
     var show = newfilter.show
     var page = newfilter.page
-
-
-    if (dataProfile[userId] && dataProfile[userId].location) {
-        var userData = dataProfile[userId];
-        var mylat = userData.location.lat;
-        var mylng = userData.location.lng;
-    }
     var joblist = []
-    console.log('typefilter', typefilter)
-    if (typefilter == 'google') {
-        console.log('googlejob')
-        if (!page || page < 2) {
-            getGoogleJob(mylat, mylng, industryfilter)
+
+
+    return new Promise(function (resolve, reject) {
+
+
+        if (dataProfile[userId] && dataProfile[userId].location) {
+            var userData = dataProfile[userId];
+            var mylat = userData.location.lat;
+            var mylng = userData.location.lng;
         }
-        for (var i in datagoogleJob) {
-
-            var card = datagoogleJob[i]
-
-            if (card.location && mylng && mylat && distancefilter) {
-                card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
+        console.log('typefilter', typefilter)
+        if (typefilter == 'google') {
+            console.log('googlejob')
+            if (!page || page < 2) {
+                getGoogleJob(mylat, mylng, industryfilter)
             }
+            for (var i in datagoogleJob) {
 
-            if (
-                (card.job == jobfilter || !jobfilter)
-                && (card.distance < 50 || !card.distance)
-                && (card.working_type == working_typefilter || !working_typefilter )
-                && (card.industry == industryfilter || !industryfilter)
-                && (card.salary > salaryfilter || !salaryfilter)
-            ) {
-                joblist.push(card)
-            }
-        }
-    } else {
-        console.log('primaryJob')
+                var card = datagoogleJob[i]
 
-        for (var i in dataJob) {
-
-            var obj = dataJob[i]
-            if (dataStore[obj.storeId] && dataStore[obj.storeId].storeName) {
-
-                var store = dataStore[obj.storeId]
-                var storeData = {
-                    storeName: store.storeName,
-                    createdBy: store.createdBy,
-                    avatar: store.avatar,
-                    industry: store.industry,
-                    location: store.location,
-                    address: store.address
-
-                };
-
-                if (dataUser[store.createdBy] && dataUser[store.createdBy].package) {
-                    storeData.package = dataUser[store.createdBy].package
-                }
-
-                var card = Object.assign(obj, storeData);
-
-                if (userData) {
-
-                    var keyAct = obj.storeId + ":" + userId;
-
-                    if (likeActivity[keyAct]) {
-                        card.act = likeActivity[keyAct]
-                    }
-                    if (card.location) {
-                        card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
-                    }
+                if (card.location && mylng && mylat && distancefilter) {
+                    card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 }
 
                 if (
@@ -1921,28 +1894,116 @@ app.get('/api/job', function (req, res) {
                     && (card.industry == industryfilter || !industryfilter)
                     && (card.salary > salaryfilter || !salaryfilter)
                 ) {
-                    card.match = 0
-                    if (card.package == 'premium') {
-                        card.match = card.match + 100
-                    }
-
-                    if (card.createdAt) {
-                        var p = 100 / (Date.now() - card.createdAt)
-                        card.match = card.match + p
-                    }
-
                     joblist.push(card)
-
                 }
             }
+            resolve(joblist)
+
+        } else if (typefilter == 'lead') {
+
+            var stage = {
+
+                ref: {
+                    $match: {
+                        'ref': newfilter.ref
+                    }
+                },
+                email: {
+                    $match: {
+                        'email': newfilter.email
+                    }
+                },
+            }
+            var pipeline = []
+            if (newfilter.ref) {
+                pipeline.push(stage.ref)
+            }
+            if (newfilter.email) {
+                pipeline.push(stage.email)
+            }
+
+            leadCol.aggregate(pipeline, (err, result) => {
+                if (err) {
+
+                } else {
+                    console.log(result.length)
+                    resolve(result)
+                }
+            })
+
+        } else if (typefilter == 'marketing') {
+
+            for (var i in dataUser) {
+
+                var user = dataUser[i]
+                if(user.type == 1 && user.package != 'premium'){
+                    var store = _.findWhere(dataStore, {createdBy: user.userId})
+                    var job = _.findWhere(dataJob, {createdBy: user.userId})
+                    var card = Object.assign(user, store, job)
+                    joblist.push(card)
+                }
+            }
+            resolve(joblist)
+
+
+        } else {
+            console.log('primaryJob')
+            for (var i in dataJob) {
+
+                var job = dataJob[i]
+                if (apply) {
+                    job.apply = _.where(likeActivity, {jobId: job.jobId})
+                }
+                if (dataStore[job.storeId] && dataStore[job.storeId].storeName) {
+
+                    var store = dataStore[job.storeId]
+                    var user = dataUser[store.createdBy]
+                    var stat = dataStatic[job.jobId]
+
+
+                    var card = Object.assign(store, user, job, stat);
+
+                    if (userData) {
+
+                        card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
+
+                        if (card.location) {
+                            card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
+                        }
+                    }
+                    if (card.package != 'premium') {
+                        card.package = 'basic'
+                    }
+
+                    if (
+                        (card.job == jobfilter || !jobfilter)
+                        && (card.distance < 50 || !card.distance)
+                        && (card.working_type == working_typefilter || !working_typefilter )
+                        && (card.industry == industryfilter || !industryfilter)
+                        && (card.salary > salaryfilter || !salaryfilter)
+                        && (card.package == typefilter)
+                    ) {
+                        card.match = 0
+
+                        if (card.createdAt) {
+                            var p = 100 / (Date.now() - card.createdAt)
+                            card.match = card.match + p
+                        }
+                        joblist.push(card)
+
+                    }
+                }
+            }
+            resolve(joblist)
+
         }
 
-    }
-
-    return new Promise(function (resolve, reject) {
-        resolve(joblist)
     }).then(function (joblist) {
+            console.log(joblist.length)
             var sorded;
+            if (!sort) {
+                sort = 'createdAt'
+            }
             if (sort == 'viewed' || sort == 'rate' || sort == 'createdAt') {
                 sorded = _.sortBy(joblist, function (card) {
                     return -card[sort]
@@ -1951,11 +2012,8 @@ app.get('/api/job', function (req, res) {
                 sorded = _.sortBy(joblist, function (card) {
                     return card[sort]
                 })
-            } else {
-                sorded = _.sortBy(joblist, function (card) {
-                    return -card.match
-                })
             }
+
             var sendData = getPaginatedItems(sorded, page)
             sendData.newfilter = newfilter
             res.send(sendData)
@@ -1964,7 +2022,26 @@ app.get('/api/job', function (req, res) {
 
 });
 
+app.post('/addAdminNote', function (req, res) {
+    var data = req.body
+    var note = data.note
+    if (data.type == 'lead') {
+        leadCol.updateOne(
+            {"storeId": data.id},
+            {
+                $push: {
+                    "adminNote": note
+                }
+            }
+        ).then(function (data) {
+            res.send({code: 'success'})
+        }).catch(function (err) {
+            res.send({code: 'error', err})
 
+        })
+    }
+
+})
 app.get('/api/employer', function (req, res) {
     var userId = req.param('userId')
     var jobfilter = req.param('job');
@@ -4834,7 +4911,6 @@ function isWhere(storeId) {
     } else {
         return 'vn'
     }
-
 }
 
 app.get('/PostStore', function (req, res) {
