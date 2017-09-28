@@ -1501,22 +1501,20 @@ function getMongoDB(collection, pipeline = []) {
     });
 }
 
-app.get('/sendEmailMarketing', function (req, res) {
-    var mailStr = req.param('mail');
-    var mail = JSON.parse(mailStr);
-    var query = req.param('q');
-    var param = JSON.parse(query);
-    var time = param.time;
-    var sendingList = {};
+app.post('/sendEmailMarketing', function (req, res) {
+    var query = req.body
+    var param = query.newfilter;
+    var mail = query.mail
+
 
     const promiseDEmail = new Promise((resolve, reject) => {
         if (param.dataEmail) {
             getMongoDB(emailChannelCol)
                 .then(dataEmail => resolve(dataEmail))
                 .catch(err => reject(err));
-        } else resolve(
-            [{email: mail.to}]
-        );
+        } else if(param.email){
+            resolve([{email: param.email}])
+        } else resolve([])
     });
 
     const promiseDLead = new Promise((resolve, reject) => {
@@ -1524,13 +1522,19 @@ app.get('/sendEmailMarketing', function (req, res) {
             getMongoDB(leadCol)
                 .then(dataLead => resolve(dataLead))
                 .catch(err => reject(err));
-        } else resolve({});
+        } else resolve([]);
     });
 
     const promiseUser = new Promise((resolve, reject) => {
         if (param.dataUser) {
-            resolve(dataUser);
-        } else resolve({});
+            var dataUserArray
+            if (param.type) {
+                dataUserArray = _.where(dataUser, {type: param.type})
+            } else {
+                dataUserArray = _.toArray(dataUser)
+            }
+            resolve(dataUserArray);
+        } else resolve([]);
     });
 
     Promise.all([
@@ -1539,25 +1543,26 @@ app.get('/sendEmailMarketing', function (req, res) {
         promiseUser
     ])
         .then(data => {
+            console.log(data[0].length, data[1].length, data[2].length)
+            var sendingList = [...data[0],...data[1],...data[2]];
 
-            sendingList = Object.assign(data[0], data[1], data[2]);
-            var a = 0
-            for (var i in sendingList) {
-                var data = sendingList[i]
-                if ((data.type == param.type || !param.type) &&
-                    (data.email == param.email || !param.email)
-                ) {
-                    a++
-                    if (!time) {
-                        time = Date.now() + 2000
+            if (param.action == 0) {
+                res.send({code: 'view', numberSent: sendingList.length, data: sendingList})
+            } else {
+                for (var i in sendingList) {
+                    var data = sendingList[i]
+                    if (!mail.time) {
+                        mail.time = Date.now() + 2000
                     } else {
-                        time = time + 100
+                        mail.time = mail.time + 100
                     }
                     sendNotification(data, mail, null, time)
                 }
+                res.send({code: 'success', numberSent: sendingList.length, data: sendingList})
+
             }
 
-            res.send('sent' + a + 'in' + Object.keys(sendingList).length)
+
         })
         .catch(err => res.status(500).json(err));
 
@@ -1913,8 +1918,8 @@ app.get('/api/job', function (req, res) {
                         'email': newfilter.email
                     }
                 },
-            }
-            var pipeline = []
+            };
+            var pipeline = [];
             if (newfilter.ref) {
                 pipeline.push(stage.ref)
             }
@@ -1936,7 +1941,7 @@ app.get('/api/job', function (req, res) {
             for (var i in dataUser) {
 
                 var user = dataUser[i]
-                if(user.type == 1 && user.package != 'premium'){
+                if (user.type == 1 && user.package != 'premium') {
                     var store = _.findWhere(dataStore, {createdBy: user.userId})
                     var job = _.findWhere(dataJob, {createdBy: user.userId})
                     var card = Object.assign(user, store, job)
