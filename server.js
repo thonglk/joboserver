@@ -129,59 +129,11 @@ var buyRef = db.ref('activity/buy');
 
 
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
-    keyListData, datagoogleJob
+    keyListData, datagoogleJob;
 
 var groupRef = db.ref('groupData');
 
 var groupData, groupArray;
-groupRef.once('value', function (snap) {
-    groupData = snap.val();
-    groupArray = _.toArray(groupData)
-    // var a = 0
-    //
-    // function loop() {
-    //     var groupDataObj = groupArray[a]
-    //     var poster = []
-    //     for (var i in groupDataObj) {
-    //         if (groupDataObj[i] == true) {
-    //             poster.push(i)
-    //         }
-    //     }
-    //     console.log(poster)
-    //     groupDataObj.poster = poster
-    //     if (groupDataObj.groupId) {
-    //         groupRef.child(groupDataObj.groupId).update(groupDataObj)
-    //     }
-    //     a++
-    //     if (a < groupArray.length) {
-    //         loop()
-    //     }
-    //
-    // }
-    //
-    // loop()
-    //
-    //
-    // var fields = ['name', 'groupId', 'link', 'finder', 'job', 'area', 'poster', 'thuythuy', 'thong', 'thao2', 'toi', 'thythy', 'khanh', 'dieulinh', 'maitran', 'dong', 'mailinh', 'myhuyen2', 'thao'];
-    // var myUser = []
-    // for (var i in groupData) {
-    //     var group = groupData[i]
-    //     myUser.push(group)
-    // }
-    // return new Promise(function (resolve, reject) {
-    //     resolve(myUser)
-    // }).then(function (myUser) {
-    //     var csv = json2csv({data: myUser, fields: fields});
-    //
-    //     fs.writeFile('groupActive.csv', csv, function (err) {
-    //         if (err) throw err;
-    //         console.log('file saved');
-    //     });
-    //
-    // })
-
-
-});
 
 
 var mailTransport = nodemailer.createTransport(ses({
@@ -463,6 +415,12 @@ function init() {
             return -job.unit
         })
 
+        groupRef.once('value', function (snap) {
+            groupData = snap.val();
+            groupArray = _.toArray(groupData)
+            CONFIG.groupData = groupData
+        });
+
 
     });
     jobRef.on('child_changed', function (snap) {
@@ -489,6 +447,29 @@ function init() {
 
 }
 
+process.on('exit', function (code) {
+    //Notification code when application process is killed
+
+    const data = {
+        recipientIds: ['1100401513397714', '1460902087301324', '1226124860830528'],
+        messages: {
+            text: `Server sập sml rồi: ${code}`
+        }
+    };
+    axios.post('https://jobobot.herokuapp.com/noti', data);
+});
+
+process.on('uncaughtException', function (err) {
+    console.log('Caught exception: ' + err);
+    //1100401513397714;1460902087301324;1226124860830528
+    const data = {
+        recipientIds: ['1100401513397714', '1460902087301324', '1226124860830528'],
+        messages: {
+            text: `Server sập sml rồi, lỗi uncaughtException: ${err}`
+        }
+    };
+    axios.post('https://jobobot.herokuapp.com/noti', data);
+});
 app.get('/lookalike', function (req, res) {
     var job = req.param('job')
 
@@ -817,7 +798,7 @@ app.get('/createJDStore', function (req, res) {
 
 const {JD} = require('./JDStore');
 
-function createJDStore(storeId, random, jobId) {
+function createJDStore(postId, storeId, random, jobId) {
     // return new Promise((resolve, reject) => {
     var storeData = dataStore[storeId];
     var Job = dataJob[jobId];
@@ -825,6 +806,7 @@ function createJDStore(storeId, random, jobId) {
     var text = '',
         working_type = '',
         salary = '',
+        hourly_wages = '',
         figure = '',
         unit = '',
         experience = '',
@@ -853,27 +835,24 @@ function createJDStore(storeId, random, jobId) {
     var link = '';
 
     if (jobId) {
-        link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?job=' + jobId + '#ref=' + job + random;
+        link = CONFIG.WEBURL + 'signup/2?apply=' + storeData.storeId + '?job=' + jobId + '#ref=' + postId;
     } else {
-        link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + job + random;
+        link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
     }
-    if (Job.working_type) working_type = `🏆Hình thức: ${CONFIG.data.working_type[Job.working_type]}\n`;
-    if (Job.salary) salary = `🏆Lương khởi điểm: ${Job.salary} triệu\n`;
-    if (Job.hourly_wages) salary = `🏆Lương: ${Job.hourly_wages} K/H + THƯỞNG HẤP DẪN + TIPS\n`;
-    if (Job.figure) figure = '🏆Cần ngoại hình ưa nhìn cởi mở 😊\n';
+    if (Job.working_type) working_type = `${CONFIG.data.working_type[Job.working_type]}`;
+    if (Job.salary) salary = `${Job.salary}`;
+    if (Job.hourly_wages) hourly_wages = `${Job.hourly_wages}`;
+    if (Job.figure) figure = 'Cần ngoại hình ưa nhìn cởi mở 😊\n';
     if (Job.deadline) {
         const date = new Date(Job.deadline);
-        deadline = `🏆Hạn chót nộp hồ sơ: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
+        deadline = `Hạn chót nộp hồ sơ: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
     }
-    if (Job.experience) experience = `🏆Yêu cầu ứng viên có kinh nghiệm 😊\n`;
-    if (Job.unit) unit = `🏆Số lượng cần tuyển: ${Job.unit} ứng viên\n`;
-    if (Job.sex) {
-        if (Job.sex == 'female') sex = '🏆Yêu cầu giới tính: Nữ\n';
-        else if (Job.sex == 'male') sex = '🏆Yêu cầu giới tính: Nam\n';
-    }
-    if (Job.working_type != 'fulltime') time = '🏆Thời gian linh động phù hợp với các bạn sinh viên\n';
-    if (Job.description) description = `🏆Mô tả công việc: ${Job.description}\n`;
+    if (Job.experience) experience = Job.experience;
+    if (Job.unit) unit = `${Job.unit}`;
+    if (Job.sex) sex = Job.sex;
+    if (Job.working_type != 'fulltime') time = 'Thời gian linh động phù hợp với các bạn sinh viên\n';
+    if (Job.description) description = `${Job.description}`;
 
 
     text = JD[job][random]({
@@ -881,6 +860,7 @@ function createJDStore(storeId, random, jobId) {
         address,
         jobName,
         salary,
+        hourly_wages,
         working_type,
         time,
         jobUrl: link,
@@ -1512,7 +1492,7 @@ app.post('/sendEmailMarketing', function (req, res) {
             getMongoDB(emailChannelCol)
                 .then(dataEmail => resolve(dataEmail))
                 .catch(err => reject(err));
-        } else if(param.email){
+        } else if (param.email) {
             resolve([{email: param.email}])
         } else resolve([])
     });
@@ -1544,7 +1524,7 @@ app.post('/sendEmailMarketing', function (req, res) {
     ])
         .then(data => {
             console.log(data[0].length, data[1].length, data[2].length)
-            var sendingList = [...data[0],...data[1],...data[2]];
+            var sendingList = [...data[0], ...data[1], ...data[2]];
 
             if (param.action == 0) {
                 res.send({code: 'view', numberSent: sendingList.length, data: sendingList})
@@ -1556,13 +1536,10 @@ app.post('/sendEmailMarketing', function (req, res) {
                     } else {
                         mail.time = mail.time + 100
                     }
-                    sendNotification(data, mail, null, time)
+                    sendNotification(data, mail, null, mail.time)
                 }
                 res.send({code: 'success', numberSent: sendingList.length, data: sendingList})
-
             }
-
-
         })
         .catch(err => res.status(500).json(err));
 
@@ -1966,7 +1943,7 @@ app.get('/api/job', function (req, res) {
                     var stat = dataStatic[job.jobId]
 
 
-                    var card = Object.assign(store, user, job, stat);
+                    var card = Object.assign({},store, user, job, stat);
 
                     if (userData) {
 
@@ -2950,6 +2927,7 @@ app.get('/view/store', function (req, res) {
 
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
+        console.log('storeData',storeData)
         if (storeData.interviewTime) {
             var now = new Date()
             now.setHours(storeData.interviewTime.hour)
@@ -4927,20 +4905,19 @@ app.get('/PostStore', function (req, res) {
     var where = req.param('where');
 
     PostStore(storeId, jobId, groupId, job, where, poster)
-        .then(result => res.status(200).json(result))
-        .catch(err => res.status(500).json(err));
+    res.status(200).json({code:'success'})
 });
 
 
-function PostStore(storeId, jobId, groupId, job, where, poster, time) {
+function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
     return new Promise((resolve, reject) => {
-        if (!where) {
+        if (!where && storeId) {
             where = isWhere(storeId)
         }
         if (jobId) {
             var Job = dataJob[jobId]
             job = Job.job
-        } else {
+        } else if (storeId) {
             var jobData = _.filter(dataJob, function (card) {
                 if (card.storeId == storeId && card.deadline > Date.now()) return true
                 else return false
@@ -4951,15 +4928,26 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
                 jobId = Job.jobId
             } else resolve(null)
         }
-        console.log('jobId', jobId, job)
-        for (var i in groupData) {
+        console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
-            if (groupData[i].groupId
-                && (groupData[i].groupId == groupId || !groupId)
-                && (groupData[i].area == where || !where)
-                && (groupData[i].job && groupData[i].job.match(job) || !job )) {
-                poster = _.sample(facebookUser[where]);
-                var content = createJDStore(storeId, null, jobId)
+        if (content) {
+            var authenic_content = true
+        }
+        if (poster) {
+            var authenic_poster = true
+        }
+        if (groupId) {
+            for(var a in groupId){
+
+                var i = groupId[a]
+                console.log('i',i)
+                if (!authenic_poster) {
+                    poster = _.sample(facebookUser[where]);
+                }
+                var postId = 'f' + keygen() + _.random(0, 100000)
+                if (!authenic_content) {
+                    content = createJDStore(postId, storeId, null, jobId)
+                }
 
                 if (!time) {
                     time = Date.now() + 4 * 1000
@@ -4967,49 +4955,78 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time) {
                     time = time + 11 * 60 * 1000
                 }
 
-
-                var postId = 'f' + _.random(0, 100000)
                 var to = groupData[i].groupId
+                console.log('to',to)
 
 
-                axios.post('https://joboana.herokuapp.com/newPost', {postId, storeId, jobId, poster, content, time, to})
+                axios.post('https://joboana.herokuapp.com/newPost', {
+                    postId,
+                    storeId,
+                    jobId,
+                    poster,
+                    content,
+                    time,
+                    to
+                })
                     .then(result => resolve(result))
                     .catch(err => reject(err));
             }
+        } else {
+            for (var i in groupData) {
+
+                if (groupData[i].groupId
+                && (groupData[i].area == where || !where)
+                && (groupData[i].job && groupData[i].job.match(job) || !job )
+                ) {
+
+                    if (!authenic_poster) {
+                        poster = _.sample(facebookUser[where]);
+                    }
+                    if (!authenic_content) {
+                        content = createJDStore(storeId, null, jobId)
+                    }
+                    console.log('authenic', authenic)
+
+                    if (!time) {
+                        time = Date.now() + 4 * 1000
+                    } else {
+                        time = time + 11 * 60 * 1000
+                    }
+
+                    var postId = 'f' + _.random(0, 100000)
+                    var to = groupData[i].groupId
+
+
+                    axios.post('https://joboana.herokuapp.com/newPost', {
+                        postId,
+                        storeId,
+                        jobId,
+                        poster,
+                        content,
+                        time,
+                        to
+                    })
+                        .then(result => resolve(result))
+                        .catch(err => reject(err));
+                }
+
+            }
 
         }
+
     });
 }
 
 
 app.route('/PostText2Store')
     .post(function (req, res) {
-        var {text, poster, image, job, where, time} = req.body;
-
-        PostTextToStore(text, image, job, where, poster, time)
+        var {text, image, poster, groupId, job, where, time} = req.body;
+        var content = {text, image}
+        console.log('content', content)
+        PostStore(null, null, groupId, job, where, poster, time, content)
             .then(result => res.status(200).json(result))
             .catch(err => res.status(500).json(err));
     });
-
-function PostTextToStore(text, image, job, where, poster, time = null) {
-
-    for (var i in groupData) {
-        var content = {text, image};
-        if (content &&
-            groupData[i].groupId &&
-            (groupData[i].area == where || !where) &&
-            (groupData[i].job && groupData[i].job.match(job) || !job)) {
-
-            time = time + 60 * 5 * 1000 || Date.now() + 15000;
-
-
-            var to = groupData[i].groupId
-            axios.post(CONFIG.AnaURL + '/newPost', {poster, content, time, to})
-                .then(result => resolve(result))
-                .catch(err => reject(err));
-        }
-    }
-}
 
 
 function Notification_FirstRoundInterview() {
