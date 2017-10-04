@@ -199,7 +199,7 @@ var pxlForEmails = new JoboPxlForEmails({
 app.get('/sendNotification', function (req, res) {
 
 
-    sendNotification({email:'thonglk.mac@gmail.com'}, {
+    sendNotification({email: 'thonglk.mac@gmail.com'}, {
         title: 'thông',
         body: 'haha',
         description1: 'huhu',
@@ -233,16 +233,16 @@ function sendNotification(userData, mail, channel, time) {
             createdAt: Date.now(),
             channel: channel
         }
-        // CONFIG.AnaURL = 'http://localhost:8081';
-        axios.post(CONFIG.AnaURL + '/newNoti', notification)
+        axios.post('https://joboana.herokuapp.com/newNoti', notification)
             .then(function (result) {
-                console.log('sendNotification',notiId)
+                console.log('sendNotification', notiId)
                 resolve(result)
             })
-            .catch(err => reject(err));
+            .catch(function (err) {
+                console.log('sendNotification failed', notiId)
+                reject(err)
+            })
     })
-
-
 }
 
 
@@ -340,10 +340,7 @@ function init() {
     console.log('listenDatabase')
     configRef.on('value', function (snap) {
         CONFIG = snap.val()
-        if (!process.env.PORT) {
-            CONFIG.APIURL = 'http://localhost:8080'
-            CONFIG.AnaURL = 'http://localhost:8081'
-        }
+
         console.log('CONFIG.APIURL', CONFIG.APIURL)
         facebookUser = {
             vn: [],
@@ -1378,20 +1375,12 @@ app.get('/api/lead', (req, res) => {
     })
 });
 
-function getPaginatedItemss(collection, time, sort, page = 1, per_page = 15) {
+function getPaginatedItemss(collection, query, sort, page = 1, per_page = 15) {
     return new Promise((resolve, reject) => {
         if (!collection) reject('Mongoose collection is required!');
 
         const offset = (page - 1) * per_page;
-        const startDate = Date.now();
-        const endDate = startDate + 86400 * 1000;
-        const query = {};
-        if (time) query.time = {
-            $gt: startDate,
-            $lt: endDate
-        }
         var typesort = {}
-
         if (sort) {
             typesort[sort] = -1
         } else {
@@ -1472,6 +1461,31 @@ app.get('/api/email', (req, res) => {
     })
 });
 
+app.get('/api/notification', (req, res) => {
+    let {
+        title,
+        email,
+        p: page
+    } = req.query;
+    console.log(req.query);
+
+
+    var query = {}
+
+    if (title) {
+        query['mail.title'] = title
+    }
+    if (email) {
+        query['userData.email'] = email
+    }
+    console.log(query);
+    notificationCol.find(query, function (err,result) {
+        res.send(result)
+    })
+
+});
+
+
 function getMongoDB(collection, pipeline = []) {
     return new Promise((resolve, reject) => {
         if (!collection) reject('MongoDB Collection is required!');
@@ -1485,8 +1499,7 @@ function getMongoDB(collection, pipeline = []) {
 app.post('/sendEmailMarketing', function (req, res) {
     var query = req.body
     var param = query.newfilter;
-    var mail = query.mail
-
+    var mail = query.mail;
 
     const promiseDEmail = new Promise((resolve, reject) => {
         if (param.dataEmail) {
@@ -1528,6 +1541,7 @@ app.post('/sendEmailMarketing', function (req, res) {
             var sendingList = [...data[0], ...data[1], ...data[2]];
 
             if (param.action == 0) {
+                console.log('action 0');
                 res.send({code: 'view', numberSent: sendingList.length, data: sendingList})
             } else {
                 for (var i in sendingList) {
@@ -1539,6 +1553,7 @@ app.post('/sendEmailMarketing', function (req, res) {
                     }
                     sendNotification(data, mail, null, mail.time)
                 }
+
                 res.send({code: 'success', numberSent: sendingList.length, data: sendingList})
             }
         })
@@ -1944,7 +1959,7 @@ app.get('/api/job', function (req, res) {
                     var stat = dataStatic[job.jobId]
 
 
-                    var card = Object.assign({},store, user, job, stat);
+                    var card = Object.assign({}, store, user, job, stat);
 
                     if (userData) {
 
@@ -2772,40 +2787,6 @@ app.get('/sendFirstEmail', function (req, res) {
 })
 ;
 
-app.get('/api/notification', function (req, res) {
-    let {
-        email,
-        p: page
-    } = req.query;
-
-    var stage = {
-
-        email: {
-            $match: {
-                'userData.email': email
-            }
-        },
-    }
-    var pipeline = []
-
-    if (email) {
-        pipeline.push(stage.email)
-    }
-
-    notificationCol.aggregate(pipeline, (err, result) => {
-        if (err) {
-            res.send(err);
-        } else {
-            var sorded = _.sortBy(result, function (card) {
-                return -card.createdAt
-            })
-            var sendData = getPaginatedItems(sorded, page)
-            res.send(sendData)
-        }
-    })
-
-})
-
 
 app.get('/update/log', function (req, res) {
     var userId = req.param('userId')
@@ -2928,7 +2909,7 @@ app.get('/view/store', function (req, res) {
 
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
-        console.log('storeData',storeData)
+        console.log('storeData', storeData)
         if (storeData.interviewTime) {
             var now = new Date()
             now.setHours(storeData.interviewTime.hour)
@@ -4906,7 +4887,7 @@ app.get('/PostStore', function (req, res) {
     var where = req.param('where');
 
     PostStore(storeId, jobId, groupId, job, where, poster)
-    res.status(200).json({code:'success'})
+    res.status(200).json({code: 'success'})
 });
 
 
@@ -4938,10 +4919,10 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
             var authenic_poster = true
         }
         if (groupId) {
-            for(var a in groupId){
+            for (var a in groupId) {
 
                 var i = groupId[a]
-                console.log('i',i)
+                console.log('i', i)
                 if (!authenic_poster) {
                     poster = _.sample(facebookUser[where]);
                 }
@@ -4957,7 +4938,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 }
 
                 var to = groupData[i].groupId
-                console.log('to',to)
+                console.log('to', to)
 
 
                 axios.post('https://joboana.herokuapp.com/newPost', {
@@ -4970,7 +4951,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     to
                 })
                     .then(function (result) {
-                        console.log('PostStore',postId)
+                        console.log('PostStore', postId)
                         resolve(result)
                     })
                     .catch(err => reject(err));
@@ -4979,8 +4960,8 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
             for (var i in groupData) {
 
                 if (groupData[i].groupId
-                && (groupData[i].area == where || !where)
-                && (groupData[i].job && groupData[i].job.match(job) || !job )
+                    && (groupData[i].area == where || !where)
+                    && (groupData[i].job && groupData[i].job.match(job) || !job )
                 ) {
 
                     if (!authenic_poster) {
