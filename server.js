@@ -673,11 +673,10 @@ function scheduleJobPushEveryday() {
     var a = 0
     for (var i in jobArr) {
         var job = jobArr[i]
-        var sche = time + a * 60 * 60 * 1000
+        var sche = time + a * 60 * 60 * 1000;
         a++
         console.log(new Date(sche).getHours())
         PostStore(job.storeId, job.jobId, null, null, null, null, sche)
-
     }
     var mail = {
         title: 'Jobo_AutoPost | ' + new Date().getDate() + '/' + new Date().getMonth(),
@@ -688,13 +687,13 @@ function scheduleJobPushEveryday() {
         linktoaction: 'https://www.messenger.com/t/979190235520989',
         image: ''
     }
-    var time = Date.now()
-    for (var i in dataUser) {
-        if (dataUser[i].admin == true) {
-            time = time + 5000
-            sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
-        }
-    }
+    // var time = Date.now()
+    // for (var i in dataUser) {
+    //     if (dataUser[i].admin == true) {
+    //         time = time + 5000
+    //         sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
+    //     }
+    // }
 
 
 }
@@ -796,8 +795,8 @@ app.get('/createJDStore', function (req, res) {
 
 const {JD} = require('./JDStore');
 
-function createJDStore(postId, storeId, random, jobId) {
-    // return new Promise((resolve, reject) => {
+function createJDStore(storeId, random, jobId, postId) {
+
     var storeData = dataStore[storeId];
     var Job = dataJob[jobId];
 
@@ -879,6 +878,7 @@ function createJDStore(postId, storeId, random, jobId) {
     }
 
     var randomphoto = _.random(0, storeData.photo.length - 1)
+
     return {
         text: text,
         link: link,
@@ -4936,9 +4936,13 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
 
         if (content) {
             var authenic_content = true
+        } else {
+            authenic_content = false
         }
         if (poster) {
             var authenic_poster = true
+        } else {
+            authenic_poster = false
         }
         if (groupId) {
             for (var a in groupId) {
@@ -4947,9 +4951,9 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 if (!authenic_poster) {
                     poster = _.sample(facebookUser[where]);
                 }
-                var postId = 'f' + keygen() + _.random(0, 100000)
+                var postId = 'f' + keygen()
                 if (!authenic_content) {
-                    content = createJDStore(postId, storeId, null, jobId)
+                    content = createJDStore(storeId, null, jobId, postId)
                 }
 
                 if (!time) {
@@ -4977,7 +4981,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
             }
         } else {
             for (var i in groupData) {
-
+                console.log('data', groupData[i].area, where, groupData[i].job, job)
                 if (groupData[i].groupId
                     && (groupData[i].area == where || !where)
                     && (groupData[i].job && groupData[i].job.match(job) || !job )
@@ -4986,10 +4990,10 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     if (!authenic_poster) {
                         poster = _.sample(facebookUser[where]);
                     }
+                    var postId = 'f' + keygen()
                     if (!authenic_content) {
-                        content = createJDStore(storeId, null, jobId)
+                        content = createJDStore(storeId, null, jobId, postId)
                     }
-                    console.log('authenic', authenic)
 
                     if (!time) {
                         time = Date.now() + 4 * 1000
@@ -4997,7 +5001,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                         time = time + 11 * 60 * 1000
                     }
 
-                    var postId = 'f' + _.random(0, 100000)
                     var to = groupData[i].groupId
 
 
@@ -5010,7 +5013,10 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                         time,
                         to
                     })
-                        .then(result => resolve(result))
+                        .then(result => {
+                            console.log('PostStore', postId)
+                            resolve(result)
+                        })
                         .catch(err => reject(err));
                 }
 
@@ -5020,7 +5026,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
 
     });
 }
-
 
 
 function Notification_FirstRoundInterview() {
