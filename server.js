@@ -1465,23 +1465,35 @@ app.get('/api/notification', (req, res) => {
     let {
         title,
         email,
-        p: page
+        p: page,
+        letter_open,
+        letter_click
     } = req.query;
-    console.log(req.query);
 
 
-    var query = {}
+    var pipeline = {}
+    if (email) {
+        pipeline['userData.email'] = email
+    }
 
     if (title) {
-        query['mail.title'] = title
+        pipeline['mail.title'] = title
     }
-    if (email) {
-        query['userData.email'] = email
+    if (letter_open == true) {
+        pipeline.letter_open = {$exists: true}
     }
-    console.log(query);
-    notificationCol.find(query, function (err,result) {
-        res.send(result)
-    })
+    if (letter_click == true) {
+        pipeline.letter_click = {$exists: true}
+    }
+    console.log(pipeline)
+    notificationCol.find(pipeline).toArray(function (err, result) {
+        if (err) throw err;
+        var sorded = _.sortBy(result, function (card) {
+            return -card.createdAt
+        })
+        var sendData = getPaginatedItems(sorded, page)
+        res.send(sendData)
+    });
 
 });
 
@@ -4878,6 +4890,16 @@ function isWhere(storeId) {
     }
 }
 
+app.route('/PostFacebook')
+    .post(function (req, res) {
+        var {text, image, poster, groupId, job, where, time} = req.body;
+        console.log('req.body', req.body)
+        var content = {text, image}
+        PostStore(null, null, groupId, job, where, poster, time, content)
+            .then(result => res.status(200).json(result))
+            .catch(err => res.status(500).json(err));
+    });
+
 app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
     var groupId = req.param('groupId');
@@ -4922,7 +4944,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
             for (var a in groupId) {
 
                 var i = groupId[a]
-                console.log('i', i)
                 if (!authenic_poster) {
                     poster = _.sample(facebookUser[where]);
                 }
@@ -4938,8 +4959,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 }
 
                 var to = groupData[i].groupId
-                console.log('to', to)
-
 
                 axios.post('https://joboana.herokuapp.com/newPost', {
                     postId,
@@ -5002,16 +5021,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
     });
 }
 
-
-app.route('/PostText2Store')
-    .post(function (req, res) {
-        var {text, image, poster, groupId, job, where, time} = req.body;
-        var content = {text, image}
-        console.log('content', content)
-        PostStore(null, null, groupId, job, where, poster, time, content)
-            .then(result => res.status(200).json(result))
-            .catch(err => res.status(500).json(err));
-    });
 
 
 function Notification_FirstRoundInterview() {
