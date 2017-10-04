@@ -197,19 +197,16 @@ var pxlForEmails = new JoboPxlForEmails({
 });
 
 app.get('/sendNotification', function (req, res) {
-    var yes = req.param('yes')
-    var time = null;
-    if (yes) time = Date.now() + 5 * 1000
 
 
-    sendNotification(dataUser['thonglk'], {
+    sendNotification({email:'thonglk.mac@gmail.com'}, {
         title: 'thông',
         body: 'haha',
         description1: 'huhu',
         linktoaction: 'https://google.com',
         calltoaction: 'Hihi'
 
-    }, null, time)
+    })
     res.send('done')
 })
 
@@ -236,8 +233,12 @@ function sendNotification(userData, mail, channel, time) {
             createdAt: Date.now(),
             channel: channel
         }
+        // CONFIG.AnaURL = 'http://localhost:8081';
         axios.post(CONFIG.AnaURL + '/newNoti', notification)
-            .then(result => resolve(result))
+            .then(function (result) {
+                console.log('sendNotification',notiId)
+                resolve(result)
+            })
             .catch(err => reject(err));
     })
 
@@ -4968,7 +4969,10 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     time,
                     to
                 })
-                    .then(result => resolve(result))
+                    .then(function (result) {
+                        console.log('PostStore',postId)
+                        resolve(result)
+                    })
                     .catch(err => reject(err));
             }
         } else {
