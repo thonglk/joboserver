@@ -2284,8 +2284,17 @@ app.get('/on/profile', function (req, res) {
 
 });
 
+app.get('/on/job', function (req, res) {
+    var jobId = req.param('jobId');
+    var jobData = dataJob[jobId]
+    jobData.storeData = dataStore[jobData.storeId]
+    res.send(jobData)
+
+
+});
 app.get('/on/store', function (req, res) {
-    var storeId = req.param('storeId')
+    var storeId = req.param('storeId');
+
     if (dataStore[storeId]) {
         var storeData = dataStore[storeId]
         storeData.jobData = _.where(dataJob, {storeId: storeId});
@@ -3684,12 +3693,12 @@ app.get('/initStore', function (req, res) {
     if (storeData.job) {
         setTimeout(function () {
             sendStoretoPage(storeId)
-        }, 5000)
+        }, 5000);
         setTimeout(function () {
             PostStore(storeId, jobId)
-        }, 10000)
+        }, 10000);
         setTimeout(function () {
-            sendNotiSubcribleToProfile(storeId)
+            sendNotiNewJobSubcribleToProfile(jobId)
         }, 20000)
     }
     res.send('done')
@@ -4417,8 +4426,7 @@ app.get('/sendNotiSubcribleToProfile', function (req, res) {
 })
 app.get('/sendNotiNewJobSubcribleToProfile', function (req, res) {
     var jobId = req.param('jobId');
-
-    res.send(sendNotiNewJobSubcribleToProfile(jobId))
+    sendNotiNewJobSubcribleToProfile(jobId).then(a => res.send(a))
 })
 
 String.prototype.simplify = function () {
@@ -4435,51 +4443,53 @@ String.prototype.simplify = function () {
 };
 
 function sendNotiNewJobSubcribleToProfile(jobId) {
-
-    var a = 0
-    var time = Date.now()
-    if (!jobId) return
-    var Job = dataJob[jobId]
-    var job = Job.job
-    var storeId = Job.storeId
-    var storeData = dataStore[storeId]
-    if (storeData.storeName && storeData.location) {
-        for (var i in dataProfile) {
-            var card = dataProfile[i];
-            if (card.location && card.job && card.job[job]) {
-                var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
-                if (dis <= 20) {
-                    a++
-                    var title = 'Jobo | ' + storeData.storeName + ' cần tìm ' + Job.jobName
-                    var mail = {
-                            title,
-                            mailId: title.simplify() + keygen(),
-                            body: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
-                            data:
-                                [{
-                                    title: storeData.storeName,
-                                    image: storeData.avatar || '',
-                                    body: Job.jobName + ' cách ' + dis + ' km',
-                                    calltoaction: 'Xem chi tiết',
-                                    linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
-                                }],
-                            description1: 'Dear ' + getLastName(card.name),
-                            description2: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
-                            description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone} hoặc tới trực tiếp ${CONFIG.contact[isWhere(storeId)].address} để trao đổi cụ thể hơn nếu bạn muốn đi làm ngay nha \n
+    return new Promise(function (resolve,reject) {
+        var a = 0
+        var time = Date.now()
+        if (!jobId) return
+        var Job = dataJob[jobId]
+        var job = Job.job
+        var storeId = Job.storeId
+        var storeData = dataStore[storeId]
+        if (storeData.storeName && storeData.location) {
+            for (var i in dataProfile) {
+                var card = dataProfile[i];
+                if (card.location && card.job && card.job[job]) {
+                    var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
+                    if (dis <= 20) {
+                        a++
+                        var title = 'Jobo | ' + storeData.storeName + ' cần tìm ' + Job.jobName
+                        var mail = {
+                                title,
+                                mailId: title.simplify() + keygen(),
+                                body: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
+                                data:
+                                    [{
+                                        title: storeData.storeName,
+                                        image: storeData.avatar || '',
+                                        body: Job.jobName + ' cách ' + dis + ' km',
+                                        calltoaction: 'Xem chi tiết',
+                                        linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
+                                    }],
+                                description1: 'Dear ' + getLastName(card.name),
+                                description2: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
+                                description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone} hoặc tới trực tiếp ${CONFIG.contact[isWhere(storeId)].address} để trao đổi cụ thể hơn nếu bạn muốn đi làm ngay nha \n
                        Happy working! \n
                         Thảo - Jobo`,
-                            outtro: true
-                        }
-                    ;
-                    time = time + 3000;
-                    sendNotification(dataUser[card.userId], mail, null, time)
+                                outtro: true
+                            }
+                        ;
+                        time = time + 3000;
+                        sendNotification(dataUser[card.userId], mail, null, time)
+                    }
                 }
             }
+            resolve(a)
+        } else {
+            console.log('sendNotiSubcribleToProfile error', storeData.storeId)
         }
-        return a
-    } else {
-        console.log('sendNotiSubcribleToProfile error', storeData.storeId)
-    }
+    })
+
 }
 
 
