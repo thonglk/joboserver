@@ -898,7 +898,7 @@ function createJDStore(storeId, random, jobId, postId) {
         hourly_wages,
         working_type,
         time,
-        jobUrl: addTrackingEmail(postId,link,'c','f'),
+        jobUrl: addTrackingEmail(postId, link, 'c', 'f'),
         storeUrl: storeData.Url,
         figure,
         unit,
@@ -2330,9 +2330,159 @@ app.get('/delete/job', function (req, res) {
 //     }
 // });
 
+app.get('/update/review', function (req, res) {
+
+    var reviewsStr = req.param('reviews')
+    if (reviewsStr) {
+        var reviews = JSON.parse(reviewsStr)
+
+        res.send({
+            msg: 'done',
+            code: 'success'
+        })
+    }
+});
+
+
+app.post('/update/user', function (req, res) {
+    var userId = req.param('userId')
+    var storeId = req.param('storeId')
+
+    let{user,profile,store} = req.body
+
+
+    if (userId) {
+
+        if (user) {
+            if (dataUser[userId]) {
+                //update
+                userRef.child(userId).update(user)
+            } else {
+                userRef.child(userId).update(user)
+
+                //create
+                if (user.type == 1) {
+
+                    setTimeout(function () {
+                        var mail = {
+                            title: 'Jobo_Sale| New employer register',
+                            body: JSON.stringify(user),
+                            description1: 'Dear friend,',
+                            description2: JSON.stringify(user),
+                            description3: 'Keep up guys! We can do it <3',
+                        }
+                        if (userData.phone) {
+                            mail.calltoaction = 'Gọi tư vấn';
+                            mail.linktoaction = 'tel:' + user.phone;
+                        } else {
+                            mail.calltoaction = 'Email chào hàng';
+                            mail.linktoaction = CONFIG.WEBURL + '/admin/lead';
+                        }
+                        var time = Date.now()
+                        for (var i in dataUser) {
+                            if (dataUser[i].admin == true) {
+                                time = time + 5000
+                                sendNotification(dataUser[i], mail, null, time)
+                            }
+                        }
+                    }, 60000)
+
+                }
+            }
+        }
+        if (profile) {
+            profile.updatedAt = Date.now()
+            profileRef.child(userId).update(profile)
+        }
+
+        if (store) {
+            if (dataStore[storeId]) {
+                //update
+                storeRef.child(storeId).update(store)
+            } else {
+                storeRef.child(storeId).update(store)
+                var userD = dataUser[store.createdBy]
+                //create
+                setTimeout(function () {
+                    var mail = {
+                        title: 'Jobo_Sale| New Store register',
+                        body: JSON.stringify(store),
+                        description1: 'Dear friend,',
+                        description2: JSON.stringify(store),
+                        description3: 'Keep up guys! We can do it <3',
+                    }
+                    if (user.phone) {
+                        mail.calltoaction = 'Gọi tư vấn';
+                        mail.linktoaction = 'tel:' + userD.phone;
+                    } else {
+                        mail.calltoaction = 'Email chào hàng';
+                        mail.linktoaction = CONFIG.WEBURL + '/admin/lead';
+                    }
+                    var time = Date.now()
+                    for (var i in dataUser) {
+                        if (dataUser[i].admin == true) {
+                            time = time + 5000
+                            sendNotification(dataUser[i], mail, null, time)
+                        }
+                    }
+                }, 60000)
+
+            }
+        }
+
+        res.send({code: 'success', id: userId})
+
+    }
+
+});
+
+app.post('/update/job', function (req, res) {
+    var userId = req.param('userId')
+    var {job} = req.body
+    if (userId) {
+
+        for (var i in job) {
+            var jobData = job[i]
+
+            if (jobData.job) {
+                if (!jobData.jobId) {
+                    jobData.jobId = 'j' + Math.round(10000 * Math.random());
+                }
+
+                if (dataJob[jobData.jobId]) {
+                    jobData.updatedAt = Date.now()
+                }
+
+                if (!jobData.jobName) {
+                    jobData.jobName = Lang[jobData.job]
+                }
+
+                jobRef.child(jobData.jobId).update(jobData)
+
+                var dataKey = {}
+                dataKey[jobData.jobId] = jobData.jobName;
+                storeRef.child(jobData.storeId).child('job').update(dataKey)
+
+            } else {
+                console.log('/update/job', jobData.storeId)
+            }
+        }
+
+    }
+
+
+    if (dataUser[userId]) {
+
+        res.send(dataUser[userId])
+    } else {
+        res.send("NO_DATA")
+
+    }
+
+});
+
 app.get('/update/user', function (req, res) {
     var userId = req.param('userId')
-
 
     var userDataStr = req.param('user')
 
@@ -2434,19 +2584,6 @@ app.get('/update/user', function (req, res) {
 
 });
 
-app.get('/update/review', function (req, res) {
-
-    var reviewsStr = req.param('reviews')
-    if (reviewsStr) {
-        var reviews = JSON.parse(reviewsStr)
-
-        res.send({
-            msg: 'done',
-            code: 'success'
-        })
-    }
-});
-
 
 app.get('/update/job', function (req, res) {
     var userId = req.param('userId')
@@ -2494,7 +2631,6 @@ app.get('/update/job', function (req, res) {
     }
 
 });
-
 
 app.get('/update/lead', function (req, res) {
     var leadDataStr = req.param('lead')
@@ -4276,6 +4412,73 @@ app.get('/sendNotiSubcribleToProfile', function (req, res) {
 
     res.send('done')
 })
+app.get('/sendNotiNewJobSubcribleToProfile', function (req, res) {
+    var jobId = req.param('jobId');
+
+    res.send(sendNotiNewJobSubcribleToProfile(jobId))
+})
+
+String.prototype.simplify = function () {
+    return this.toLowerCase()
+        .replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a")
+        .replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e")
+        .replace(/ì|í|ị|ỉ|ĩ/g, "i")
+        .replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o")
+        .replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u")
+        .replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y")
+        .replace(/đ/g, "d")
+        .replace(/^\-+|\-+$/g, "")
+        .replace(/\s/g, '-');
+};
+
+function sendNotiNewJobSubcribleToProfile(jobId) {
+
+    var a = 0
+    var time = Date.now()
+    if (!jobId) return
+    var Job = dataJob[jobId]
+    var job = Job.job
+    var storeId = Job.storeId
+    var storeData = dataStore[storeId]
+    if (storeData.storeName && storeData.location) {
+        for (var i in dataProfile) {
+            var card = dataProfile[i];
+            if (card.location && card.job && card.job[job]) {
+                var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
+                if (dis <= 20) {
+                    a++
+                    var title = 'Jobo | ' + storeData.storeName + ' cần tìm ' + Job.jobName
+                    var mail = {
+                            title,
+                            mailId: title.simplify() + keygen(),
+                            body: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
+                            data:
+                                [{
+                                    title: storeData.storeName,
+                                    image: storeData.avatar || '',
+                                    body: Job.jobName + ' cách ' + dis + ' km',
+                                    calltoaction: 'Xem chi tiết',
+                                    linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
+                                }],
+                            description1: 'Dear ' + getLastName(card.name),
+                            description2: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
+                            description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone} hoặc tới trực tiếp ${CONFIG.contact[isWhere(storeId)].address} để trao đổi cụ thể hơn nếu bạn muốn đi làm ngay nha \n
+                       Happy working! \n
+                        Thảo - Jobo`,
+                            outtro: true
+                        }
+                    ;
+                    time = time + 3000;
+                    sendNotification(dataUser[card.userId], mail, null, time)
+                }
+            }
+        }
+        return a
+    } else {
+        console.log('sendNotiSubcribleToProfile error', storeData.storeId)
+    }
+}
+
 
 function sendNotiSubcribleToProfile(storeId, jobId) {
     var time = Date.now()
