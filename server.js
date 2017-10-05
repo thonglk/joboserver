@@ -1517,11 +1517,11 @@ app.get('/api/notification', (req, res) => {
     if (title) {
         pipeline['mail.title'] = title
     }
-    if (letter_open == true) {
-        pipeline.letter_open = {$exists: true}
+    if (letter_open) {
+        pipeline.letter_open = {$ne: null}
     }
-    if (letter_click == true) {
-        pipeline.letter_click = {$exists: true}
+    if (letter_click) {
+        pipeline.letter_click = {$ne: null}
     }
     console.log(pipeline)
     notificationCol.find(pipeline).toArray(function (err, result) {
