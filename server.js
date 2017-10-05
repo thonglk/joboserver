@@ -873,7 +873,7 @@ function createJDStore(storeId, random, jobId, postId) {
     var link = '';
 
     if (jobId) {
-        link = CONFIG.WEBURL + '/signup/2?apply=' + storeData.storeId + '?job=' + jobId + '#ref=' + postId;
+        link = CONFIG.WEBURL + '/signup/2?apply=' + storeData.storeId + '&job=' + jobId + '#ref=' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
