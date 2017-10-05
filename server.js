@@ -2287,7 +2287,8 @@ app.get('/on/profile', function (req, res) {
 app.get('/on/job', function (req, res) {
     var jobId = req.param('jobId');
     var jobData = dataJob[jobId]
-    jobData.storeData = dataStore[jobData.storeId]
+    const storeId = jobData.storeId
+    jobData.storeData = dataStore[storeId]
     res.send(jobData)
 
 
