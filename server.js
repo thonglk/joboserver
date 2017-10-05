@@ -755,6 +755,44 @@ function shortenURL(longURL, key) {
     })
 }
 
+var configP = {
+    l: 'letter',
+    M: 'messenger',
+    w: 'web',
+    m: 'mobile',
+    f: 'facebook'
+}
+var configT = {
+    o: 'open',
+    c: 'click'
+}
+
+function addTrackingEmail(notiId, url, t = 'o', p = 'l', i = '') {
+    if (url) {
+        var trackUrl = ''
+        var platform = configP[p]
+        var type = configT[t]
+        joboPxl.database().ref('/links/' + notiId + p + t + i)
+            .update({
+                url,
+                linkId: notiId,
+                platform,
+                type
+            })
+        console.log()
+        if (t == 'o') {
+            trackUrl = CONFIG.AnaURL + '/l/' + notiId + p + t + i
+        } else {
+            trackUrl = CONFIG.WEBURL + '/l/' + notiId + p + t + i
+        }
+        console.log('url', trackUrl)
+        return trackUrl
+    }
+
+
+}
+
+
 function createJDJob(jobId) {
     var Job = dataJob[jobId]
     var text = '';
@@ -832,7 +870,7 @@ function createJDStore(storeId, random, jobId, postId) {
     var link = '';
 
     if (jobId) {
-        link = CONFIG.WEBURL + 'signup/2?apply=' + storeData.storeId + '?job=' + jobId + '#ref=' + postId;
+        link = CONFIG.WEBURL + '/signup/2?apply=' + storeData.storeId + '?job=' + jobId + '#ref=' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -860,7 +898,7 @@ function createJDStore(storeId, random, jobId, postId) {
         hourly_wages,
         working_type,
         time,
-        jobUrl: link,
+        jobUrl: addTrackingEmail(postId,link,'c','f'),
         storeUrl: storeData.Url,
         figure,
         unit,
