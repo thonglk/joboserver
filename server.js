@@ -198,7 +198,7 @@ var pxlForEmails = new JoboPxlForEmails({
 
 app.get('/sendNotification', function (req, res) {
 
-
+    console.log('asd');
     sendNotification({email: 'thonglk.mac@gmail.com'}, {
         title: 'thông',
         body: 'haha',
@@ -206,8 +206,8 @@ app.get('/sendNotification', function (req, res) {
         linktoaction: 'https://google.com',
         calltoaction: 'Hihi'
 
-    })
-    res.send('done')
+    }).then(dt => res.status(200).json(dt))
+        .catch(err => res.status(500).send(err));
 })
 
 function sendNotification(userData, mail, channel, time) {
@@ -228,21 +228,24 @@ function sendNotification(userData, mail, channel, time) {
         var notification = {
             userData: userData,
             mail: mail,
-            notiId: notiId,
+            notiId,
             time: time,
             createdAt: Date.now(),
             channel: channel
         }
-        axios.post('https://joboana.herokuapp.com/newNoti', notification)
+
+        db2.ref('tempNoti/' + notiId)
+            .set(notification)
             .then(function (result) {
-                console.log('sendNotification', notiId)
-                resolve(result)
-            })
+            console.log('sendNotification', notiId, result);
+            resolve(notification);
+        })
             .catch(function (err) {
-                console.log('sendNotification failed', notiId)
-                reject(err)
-            })
-    })
+                console.log('sendNotification failed', notiId);
+                reject(err);
+            });
+
+    });
 }
 
 
@@ -2348,7 +2351,7 @@ app.post('/update/user', function (req, res) {
     var userId = req.param('userId')
     var storeId = req.param('storeId')
 
-    let{user,profile,store} = req.body
+    let {user, profile, store} = req.body
 
 
     if (userId) {
