@@ -5381,12 +5381,12 @@ app.post('/unsubscribe', (req, res, next) => {
             }
         });
     }
-
+    // console.log(email);
     const userChannel = () => {
         return new Promise((resolve, reject) => {
             userRef.orderByChild("email").equalTo(email).once('value')
                 .then(user => {
-                    console.log(user.val());
+                    // console.log(user.val());
                     if (!user.val()) return Promise.resolve(null);
                     return userRef.child(Object.keys(user.val())[0])
                         .update({
