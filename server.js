@@ -84,7 +84,7 @@ const MongoClient = require('mongodb');
 
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol, leadCol, emailChannelCol
+var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol, leadCol, emailChannelCol, logCol;
 
 MongoClient.connect(uri, function (err, db) {
     console.log(err);
@@ -98,6 +98,8 @@ MongoClient.connect(uri, function (err, db) {
     staticCol = md.collection('static');
     leadCol = md.collection('lead');
     emailChannelCol = md.collection('emailChannel');
+    logCol = md.collection('log');
+
 
     console.log("Connected correctly to server.");
 });
@@ -210,7 +212,7 @@ app.get('/sendNotification', function (req, res) {
         .catch(err => res.status(500).send(err));
 })
 
-function sendNotification(userData, mail, channel, time) {
+function sendNotification(userData, mail, channel, time, notiId) {
     return new Promise(function (resolve, reject) {
         if (!userData) return;
         if (!channel) {
@@ -224,7 +226,10 @@ function sendNotification(userData, mail, channel, time) {
         if (!time) {
             time = Date.now() + 5000
         }
-        var notiId = keygen();
+        if (!notiId) {
+            notiId = keygen()
+        }
+
         var notification = {
             userData: userData,
             mail: mail,
@@ -836,12 +841,13 @@ app.get('/createJDStore', function (req, res) {
 
 const JD = require('./JDContent');
 
-function createJDStore(storeId, random, jobId, postId) {
+function createJDStore(storeId, random, jobId, postId, typejob) {
     // return new Promise((resolve, reject) => {
     var storeData = dataStore[storeId];
     var Job = dataJob[jobId];
     var text = '',
         working_type = '',
+        work_time = '',
         salary = '',
         hourly_wages = '',
         figure = '',
@@ -857,14 +863,17 @@ function createJDStore(storeId, random, jobId, postId) {
     const storeName = storeData.storeName;
     const jobName = Job.jobName;
 
-    if (Job.job.match(/server|cashier|barista|bartender|receptionist|prepcook|cook|receptionist_cashier/g)) job = 'server';
-    else if (Job.job.match(/business|administration|manager|marketing_pr|designer/g)) {
-        job = 'business';
-    } else if (Job.job.match(/sale/g)) {
-        job = 'sale';
+    if (!typejob) {
+
+        if (Job.job.match(/server|cashier|barista|bartender|receptionist|prepcook|cook|receptionist_cashier/g)) job = 'server';
+        else if (Job.job.match(/business|administration|manager|marketing_pr|designer/g)) {
+            job = 'business';
+        } else if (Job.job.match(/sale/g)) {
+            job = 'sale';
+        }
     }
 
-    if (random && (Object.keys(JD[job]).length - 1) < random)  throw new Error('Out of JD');
+    if (random && (Object.keys(JD[job]).length - 1) < random) throw new Error('Out of JD');
     if (!random) {
         random = _.random(0, Object.keys(JD[job]).length - 1)
     }
@@ -889,7 +898,7 @@ function createJDStore(storeId, random, jobId, postId) {
     if (Job.experience) experience = Job.experience;
     if (Job.unit) unit = `${Job.unit}`;
     if (Job.sex) sex = Job.sex;
-    if (Job.work_time) time = _.toArray(Job.work_time);
+    if (Job.work_time) work_time = _.toArray(Job.work_time);
     if (Job.description) description = `${Job.description}`;
 
     text = JD[job][random]({
@@ -1534,6 +1543,7 @@ app.get('/api/notification', (req, res) => {
         res.send(sendData)
     });
 
+    res.send('haha')
 });
 
 
@@ -1915,13 +1925,19 @@ app.get('/api/job', function (req, res) {
 
 
     return new Promise(function (resolve, reject) {
-
-
-        if (dataProfile[userId] && dataProfile[userId].location) {
+        if (userId && dataProfile[userId]) {
             var userData = dataProfile[userId];
+        }
+
+        if (newfilter.lng && newfilter.lat) {
+            var mylat = newfilter.lat;
+            var mylng = newfilter.lng;
+        } else if (userData && userData.location) {
             var mylat = userData.location.lat;
             var mylng = userData.location.lng;
         }
+
+
         console.log('typefilter', typefilter)
         if (typefilter == 'google') {
             console.log('googlejob')
@@ -2013,12 +2029,10 @@ app.get('/api/job', function (req, res) {
                     var card = Object.assign({}, store, user, job, stat);
 
                     if (userData) {
-
                         card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
-
-                        if (card.location) {
-                            card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
-                        }
+                    }
+                    if (mylat && mylng && card.location) {
+                        card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                     }
                     if (card.package != 'premium') {
                         card.package = 'basic'
@@ -2032,12 +2046,8 @@ app.get('/api/job', function (req, res) {
                         && (card.salary > salaryfilter || !salaryfilter)
                         && (card.package == typefilter)
                     ) {
-                        card.match = 0
 
-                        if (card.createdAt) {
-                            var p = 100 / (Date.now() - card.createdAt)
-                            card.match = card.match + p
-                        }
+
                         joblist.push(card)
 
                     }
@@ -2052,6 +2062,7 @@ app.get('/api/job', function (req, res) {
             var sorded;
             if (!sort) {
                 sort = 'createdAt'
+                newfilter.sort = 'createdAt'
             }
             if (sort == 'viewed' || sort == 'rate' || sort == 'createdAt') {
                 sorded = _.sortBy(joblist, function (card) {
@@ -2985,6 +2996,44 @@ app.get('/sendFirstEmail', function (req, res) {
 })
 ;
 
+app.post('/update/log', function (req, res) {
+        var userId = req.param('userId')
+        var key = req.param('key')
+        var log = req.body
+
+
+        if (userId && log) {
+            logCol.insert(log, function (err, data) {
+                if (err) {
+                    res.status(500).json({err})
+                } else {
+                    res.send({code: 'success'})
+                }
+            })
+        }
+        var action = log.action
+        if (action == 'createProfile'
+            || action == 'createStore'
+            || action == 'updateProfile'
+            || action == 'updateStore'
+            || action == 'viewStore'
+            || action == 'viewProfile'
+            || action == 'like'
+            || action == 'match'
+            || action == 'sendMessage'
+            || action == 'setInterview'
+            || action == 'serviceWorker'
+            || action == 'requestPermission'
+            || action == 'decline'
+
+        ) {
+            actRef.child(key).set(log)
+            console.log("Jobo act", log);
+        }
+
+
+    }
+);
 
 app.get('/update/log', function (req, res) {
     var userId = req.param('userId')
@@ -3073,24 +3122,16 @@ app.get('/view/profile', function (req, res) {
     var profileId = req.param('profileId')
     if (dataProfile[profileId]) {
         var profileData = dataProfile[profileId]
+        profileData.userInfo = dataUser[profileId]
         profileData.actData = {}
         profileData.actData.match = _.where(likeActivity, {userId: profileId, status: 1});
         profileData.actData.like = _.where(likeActivity, {userId: profileId, status: 0, type: 2});
         profileData.actData.liked = _.where(likeActivity, {userId: profileId, status: 0, type: 1});
         profileData.static = dataStatic[profileId]
         if (userId) {
-            if (dataUser[userId]
-                && dataUser[userId].currentStore
-                && likeActivity[dataUser[userId].currentStore + ':' + profileId]) {
-
-                var myStoreId = dataUser[userId].currentStore
-                profileData.act = likeActivity[myStoreId + ':' + profileId]
-            }
-
-            if (dataUser[userId] && dataUser[userId].admin == true) {
-                profileData.adminData = dataUser[profileId]
-            }
+            profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
         }
+
 
         res.send(profileData)
     } else {
@@ -3368,72 +3409,6 @@ app.get('/config', function (req, res) {
 app.get('/lang', function (req, res) {
     res.send(Lang)
 })
-
-/**
- * Send the new star notification email to the given email.
- */
-function sendMessenger(messengerId, noti, key) {
-    return new Promise((resolve, reject) => {
-        var url = 'https://jobobot.herokuapp.com/noti';
-        var param = {
-            messages: {
-                text: noti.body,
-                calltoaction: noti.calltoaction,
-                linktoaction: noti.linktoaction,
-                image: noti.image
-            },
-            recipientIds: messengerId
-        }
-        axios.post(url, param)
-            .then(function (response) {
-                console.log('messenger sent:' + key)
-                notificationRef.child(key).update({messenger_sent: Date.now()});
-                resolve(key);
-            })
-            // .then(() => resolve(key))
-            .catch(function (error) {
-                console.log(error);
-            });
-
-    });
-}
-
-function sendNotificationToGivenUser(registrationToken, noti, type, key) {
-    return new Promise((resolve, reject) => {
-        var payload = {
-            notification: {
-                title: noti.title,
-                body: noti.body || ''
-            },
-            data: {
-                linktoaction: noti.linktoaction || ''
-            }
-        };
-
-        // Set the message as high priority and have it expire after 24 hours.
-        var options = {
-            priority: "high",
-            timeToLive: 60 * 60 * 24
-        };
-
-        // Send a message to the device corresponding to the provided
-        // registration token with the provided options.
-        secondary.messaging().sendToDevice(registrationToken, payload, options)
-            .then(function (response) {
-                if (response.successCount == 1 && type && key) {
-                    var data = {}
-                    data[type + '_sent'] = Date.now()
-                    console.log(type + ' sent', key);
-                    return notificationRef.child(key).update(data);
-                }
-            })
-            .then(() => resolve(key))
-            .catch(function (error) {
-                console.log("Error sending message:", error);
-                reject(error);
-            });
-    });
-}
 
 function getNameById(id) {
     if (dataProfile[id]) {
@@ -4374,6 +4349,17 @@ function sendWelcomeEmailToStore(storeId, userId) {
     })
 }
 
+function checkMatchJob(jobA, jobB) {
+    if (!jobA || !jobB) return false
+    var jobMatch = Object.assign({}, jobA, jobB)
+    var jobMatchlength = Object.keys(jobMatch).length
+    var totalMatchlength = Object.keys(jobA).length + Object.keys(jobB).length
+    if (jobMatchlength < totalMatchlength) {
+        return true
+    } else {
+        return false
+    }
+}
 
 // noti match noti to employer
 function sendNotiSubcribleToEmployer(userData) {
@@ -4384,13 +4370,10 @@ function sendNotiSubcribleToEmployer(userData) {
 
                 var dis = getDistanceFromLatLonInKm(card.location.lat, card.location.lng, userData.location.lat, userData.location.lng);
 
-                if (
-                    (dis <= 20)
-                    &&
-                    ((card.job[userData.job[0]]) || (card.job[userData.job[1]]) || (card.job[userData.job[2]]))
-                ) {
+
+                if (dis <= 20 && checkMatchJob(userData.job, card.job)) {
                     var mail = {
-                        title: 'Có ứng viên mới phù hợp với bạn',
+                        title: 'Jobo | Có ứng viên mới phù hợp với bạn',
                         body: 'Chúng tôi tìm thấy ứng viên ' + userData.name + ' rất phù hợp với thương hiệu của bạn, xem hồ sơ và tuyển ngay!',
                         data: {
                             name: userData.name,
@@ -4399,12 +4382,10 @@ function sendNotiSubcribleToEmployer(userData) {
                         },
                         description1: 'Chào cửa hàng ' + card.storeName,
                         description2: 'Được biết thương hiệu của bạn vẫn đang cần tuyển nhân viên, chúng tôi tìm thấy ứng viên ' + userData.name + ' rất phù hợp với yêu cầu của bạn, xem hồ sơ và tuyển ngay!',
-                        subtitle: '',
-
                         calltoaction: 'Xem hồ sơ',
-                        linktoaction: '/view/profile/' + userData.userId,
+                        linktoaction: CONFIG.WEBURL + '/view/profile/' + userData.userId,
                         image: '',
-                        description3: 'Nếu bạn không thích ứng viên này, bạn có thể chọn các ứng viên khác, chúng tôi có hơn 1000 ứng viên được cập nhật mới mỗi ngày.',
+                        description3: 'Nếu bạn không thích ứng viên này, bạn có thể chọn các ứng viên khác, chúng tôi có hơn 21300 ứng viên được cập nhật mới mỗi ngày.',
                         storeId: card.storeId
                     };
                     sendNotification(dataUser[card.createdBy], mail)
@@ -4458,29 +4439,30 @@ function sendNotiNewJobSubcribleToProfile(jobId) {
                     var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
                     if (dis <= 20) {
                         a++
+                        var notiId = keygen();
+                        var text = createJDStore(storeData.storeId, 0, Job.jobId, notiId, 'default')
                         var title = 'Jobo | ' + storeData.storeName + ' cần tìm ' + Job.jobName
                         var mail = {
-                                title,
-                                mailId: title.simplify() + keygen(),
-                                body: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
-                                data:
-                                    [{
-                                        title: storeData.storeName,
-                                        image: storeData.avatar || '',
-                                        body: Job.jobName + ' cách ' + dis + ' km',
-                                        calltoaction: 'Xem chi tiết',
-                                        linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
-                                    }],
-                                description1: 'Dear ' + getLastName(card.name),
-                                description2: 'Hãy xem yêu cầu chi tiết và nếu phù hợp với bạn thì hãy nhấn ứng tuyển',
-                                description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone} hoặc tới trực tiếp ${CONFIG.contact[isWhere(storeId)].address} để trao đổi cụ thể hơn nếu bạn muốn đi làm ngay nha \n
+                            title,
+                            mailId: title.simplify() + keygen(),
+                            body: text,
+                            data:
+                                [{
+                                    title: storeData.storeName,
+                                    image: storeData.avatar || '',
+                                    body: Job.jobName + ' cách ' + dis + ' km',
+                                    calltoaction: 'Xem chi tiết',
+                                    linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
+                                }],
+                            description1: 'Dear ' + getLastName(card.name),
+                            description2: text,
+                            description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone}  nếu bạn muốn đi làm ngay nha \n
                        Happy working! \n
                         Thảo - Jobo`,
-                                outtro: true
-                            }
-                        ;
+                            outtro: true
+                        };
                         time = time + 3000;
-                        sendNotification(dataUser[card.userId], mail, null, time)
+                        sendNotification(dataUser[card.userId], mail, null, time, notiId)
                     }
                 }
             }
@@ -5356,10 +5338,10 @@ app.get('/sendList', function (req, res) {
 // automate Job post facebook
 
 app.post('/unsubscribe', (req, res, next) => {
-    const { email, notiId, reason } = req.body;
+    const {email, notiId, reason} = req.body;
 
     const emailChannel = () => {
-        return emailChannelCol.findOneAndUpdate({ email: "nguyen.ninh208@gmail.com" }, {
+        return emailChannelCol.findOneAndUpdate({email: "nguyen.ninh208@gmail.com"}, {
             $set: {
                 unsubscribe: {
                     notiId,
@@ -5371,7 +5353,7 @@ app.post('/unsubscribe', (req, res, next) => {
     }
 
     const leadChannel = () => {
-        return leadCol.findOneAndUpdate({ email }, {
+        return leadCol.findOneAndUpdate({email}, {
             $set: {
                 unsubscribe: {
                     notiId,
@@ -5405,11 +5387,11 @@ app.post('/unsubscribe', (req, res, next) => {
     Promise.all([emailChannel(), leadChannel(), userChannel()])
         .then((data) => {
             console.log(data);
-            res.status(200).json({ status: 'done', message: 'Bạn đã đăng ký không nhận email thành công!' })
+            res.status(200).json({status: 'done', message: 'Bạn đã đăng ký không nhận email thành công!'})
         })
         .catch(err => {
             console.log(err);
-            res.status(400).json({ err: JSON.stringify(err), message: 'Lỗi không xác định, vui lòng thử lại sau!' })
+            res.status(400).json({err: JSON.stringify(err), message: 'Lỗi không xác định, vui lòng thử lại sau!'})
         });
 });
 

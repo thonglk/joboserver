@@ -1,22 +1,37 @@
 const JD = {};
 //job: server, bartender, receptionist, cashier [3] (Mã Mây,Iris)
 JD['default'] = {
-    0: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    0: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', work_time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+        if (salary) salary = `🏆Lương: ${salary} triệu/tháng\n`;
+        if (hourly_wages) hourly_wages = `🏆Theo giờ: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
+        if (working_type) working_type = `🏆Hình thức làm việc: ${working_type}\n`;
+        if (work_time) work_time = `🏆Ca làm việc ${work_time}\n`;
+        if (description) description = `🏆Mô tả công việc: ${description}\n`;
+        if (unit) unit = `🏆Số lượng cần tuyển: ${unit} ứng viên\n`;
+        if (experience) experience = `🏆Yêu cầu kinh nghiệm\n`;
+        else experience = '🏆Không cần kinh nghiệm\n';
+        if (sex === 'female') sex = `🏆Giới tính: Nữ\n`;
+        else if (sex === 'male') sex = `🏆Giới tính: Nam\n`;
+        if (figure) figure = '🏆Yêu cầu ngoại hình\n';
+        else figure = '🏆Không yêu cầu ngoại hình\n';
 
-        const text = `Tuyển dụng vị trí ${jobName} tại ${storeName}, làm việc ở ${address}\n
-   Mức lương: ${salary}${hourly_wages}\n
-   Hình thức: ${working_type}\n
-   Thời gian: ${time}\n
-   ${figure}
-   Số lượng: ${unit}\n
-   ${experience}${sex}${description}
-Nhanh tay ứng tuyển tại: ${jobUrl}.\n
-Liên hệ ${contact}.\n\n${deadline}`;
+        const text = `${storeName} - ${jobName.toUpperCase()}👩💻👨💻\n
+🏆Công việc: ${jobName}\n
+${salary}
+${hourly_wages}
+${work_time}
+${figure}
+${experience}
+${sex}
+${unit}
+${description}\n
+
+Ứng tuyển: Vào link: ${jobUrl} và nhấn "Ứng tuyển không cần CV"\n`
         return text;
-    }
+    },
 }
 JD['server'] = {
-    0: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    0: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -41,7 +56,7 @@ Nếu khó khăn cứ cmt ngay dưới hoặc liên hệ ${contact} nhé!\n\n
 Nếu cơ sở đó không thuận tiện cho bạn đi lại, tham khảo các cơ sở khác tại : ${storeUrl}\n\n${deadline}`;
         return text;
     },
-    1: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    1: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -66,7 +81,7 @@ Có chế độ hưởng, thưởng,những ngày lễ...\n\n
 Liên hệ ngay : ${contact}\n\n${deadline}`;
         return text;
     },
-    2: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    2: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -87,7 +102,7 @@ Mình cần tuyển rất gấp , bạn nào có bạn bè cần tìm việc ở
 Liên hệ ${contact}.\n\n${deadline}`;
         return text;
     },
-    3: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    3: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -115,7 +130,7 @@ Mình còn tuyển cho nhiều cơ sở nữa trên hầu hết quận ở Hà N
 Mình cảm ơn nhé!`;
         return text;
     },
-    4: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    4: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -145,7 +160,7 @@ ${time}\n${figure}${unit}${experience}${sex}
 Lưu ý ghi đúng số điện thoại và địa chỉ để mình sắp xếp vào cơ sở gần nhất.\n\n${deadline}`;
         return text;
     },
-    5: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    5: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -170,7 +185,7 @@ Các bạn muốn hỏi thêm liên hệ ${contact} nhé\n
 Mình ghi thông tin chi tiết tại link: ${jobUrl}, các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n${deadline}`;
         return text;
     },
-    6: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    6: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -194,7 +209,7 @@ Mình ghi thông tin chi tiết tại link: ${jobUrl}, các bạn xem kĩ và nh
 Các bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n${deadline}`;
         return text;
     },
-    7: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    7: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -221,7 +236,7 @@ Bên mình sẽ liên lạc và tư vấn trực tiếp cho các bạn nhé!\n\n
 }
 
 JD['business'] = {
-    0: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    0: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `🏆Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `🏆Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `🏆Hình thức làm việc: ${working_type}\n`;
@@ -246,7 +261,7 @@ ${salary}${hourly_wages}${figure}${experience}${sex}${unit}
 ${storeName} chờ bạn và đang rất nóng lòng đóng chào các bạn join team đó, nhanh nhanh nhé!✌️✌️\n🐳${deadline}`;
         return text;
     },
-    1: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    1: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -266,7 +281,7 @@ Bạn nào cảm thấy phù hợp có thể gửi CV về hr@joboapp.com
 Thông tin chi tiết comment bên dưới hoặc vui lòng inbox mình ;)${deadline}`;
         return text;
     },
-    2: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    2: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Với mức lương lên đến : ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -296,7 +311,7 @@ Hoặc liên hệ số điện thoại: ${contact}
 }
 
 JD['sale'] = {
-    0: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    0: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Với mức lương lên đến : ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -319,7 +334,7 @@ Hoàn thành đơn đăng ký tại: ${jobUrl}
 (bạn nào hoàn thành xong thì cmt ở dưới để mình check hoặc không hoàn thành được thì cmt sđt ở dưới để mình liên hệ lại)\n${deadline}`;
         return text;
     },
-    1: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    1: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Với mức lương lên đến : ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -346,7 +361,7 @@ ${deadline}
 Mình cảm ơn nhiều!`;
         return text;
     },
-    2: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    2: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `🏆Với mức lương lên đến : ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `🏆Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `🏆Hình thức làm việc: ${working_type}\n`;
@@ -372,7 +387,7 @@ Bên mình sẽ liên lạc lại những ứng viên phù hợp.
 ${deadline}`;
         return text;
     },
-    3: function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
+    3: function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
         if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
         if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
         if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -398,4 +413,4 @@ Các bạn đăng ký nghiêm túc nhé, cảm ơn các bạn!`;
     }
 }
 
-module.exports = { JD };
+module.exports = {JD};
