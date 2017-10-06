@@ -834,13 +834,12 @@ app.get('/createJDStore', function (req, res) {
         .catch(err => res.status(500).json(err));
 })
 
-const {JD} = require('./JDStore');
+const JD = require('./JDContent');
 
 function createJDStore(storeId, random, jobId, postId) {
-
+    // return new Promise((resolve, reject) => {
     var storeData = dataStore[storeId];
     var Job = dataJob[jobId];
-
     var text = '',
         working_type = '',
         salary = '',
@@ -865,7 +864,7 @@ function createJDStore(storeId, random, jobId, postId) {
         job = 'sale';
     }
 
-    if (random && (Object.keys(JD[job]).length - 1) < random) reject('Out of JD');
+    if (random && (Object.keys(JD[job]).length - 1) < random)  throw new Error('Out of JD');
     if (!random) {
         random = _.random(0, Object.keys(JD[job]).length - 1)
     }
@@ -873,7 +872,7 @@ function createJDStore(storeId, random, jobId, postId) {
     var link = '';
 
     if (jobId) {
-        link = CONFIG.WEBURL + '/signup/2?apply=' + storeData.storeId + '&job=' + jobId + '#ref=' + postId;
+        link = CONFIG.WEBURL + 'signup/2?apply=' + storeData.storeId + '?job=' + jobId + '#ref=' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -881,17 +880,17 @@ function createJDStore(storeId, random, jobId, postId) {
     if (Job.working_type) working_type = `${CONFIG.data.working_type[Job.working_type]}`;
     if (Job.salary) salary = `${Job.salary}`;
     if (Job.hourly_wages) hourly_wages = `${Job.hourly_wages}`;
+    if (Job.salary && Job.hourly_wages && Job.working_type != 'fulltime') salary = '';
     if (Job.figure) figure = 'Cần ngoại hình ưa nhìn cởi mở 😊\n';
     if (Job.deadline) {
-        const date = new Date(Date.now() + 2 * 864000);
+        const date = new Date(Job.deadline);
         deadline = `Hạn chót nộp hồ sơ: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
     }
     if (Job.experience) experience = Job.experience;
     if (Job.unit) unit = `${Job.unit}`;
     if (Job.sex) sex = Job.sex;
-    if (Job.working_type != 'fulltime') time = 'Thời gian linh động phù hợp với các bạn sinh viên\n';
+    if (Job.work_time) time = _.toArray(Job.work_time);
     if (Job.description) description = `${Job.description}`;
-
 
     text = JD[job][random]({
         storeName,
@@ -901,7 +900,7 @@ function createJDStore(storeId, random, jobId, postId) {
         hourly_wages,
         working_type,
         time,
-        jobUrl: addTrackingEmail(postId, link, 'c', 'f'),
+        jobUrl: link,
         storeUrl: storeData.Url,
         figure,
         unit,
@@ -918,12 +917,11 @@ function createJDStore(storeId, random, jobId, postId) {
         storeData.photo = [storeData.avatar]
     }
 
-    var randomphoto = _.sample(storeData.photo)
-
+    var randomphoto = _.random(0, storeData.photo.length - 1)
     return {
         text: text,
         link: link,
-        image: randomphoto
+        image: storeData.photo[randomphoto]
     };
 }
 
@@ -5357,6 +5355,63 @@ app.get('/sendList', function (req, res) {
 
 // automate Job post facebook
 
+app.post('/unsubscribe', (req, res, next) => {
+    const { email, notiId, reason } = req.body;
+
+    const emailChannel = () => {
+        return emailChannelCol.findOneAndUpdate({ email: "nguyen.ninh208@gmail.com" }, {
+            $set: {
+                unsubscribe: {
+                    notiId,
+                    reason,
+                    at: Date.now()
+                }
+            }
+        });
+    }
+
+    const leadChannel = () => {
+        return leadCol.findOneAndUpdate({ email }, {
+            $set: {
+                unsubscribe: {
+                    notiId,
+                    reason,
+                    at: Date.now()
+                }
+            }
+        });
+    }
+
+    const userChannel = () => {
+        return new Promise((resolve, reject) => {
+            userRef.orderByChild("email").equalTo(email).once('value')
+                .then(user => {
+                    console.log(user.val());
+                    if (!user.val()) return Promise.resolve(null);
+                    return userRef.child(Object.keys(user.val())[0])
+                        .update({
+                            unsubscribe: {
+                                notiId,
+                                reason,
+                                at: Date.now()
+                            }
+                        });
+                })
+                .then(() => resolve(true))
+                .catch(err => reject(err));
+        });
+    }
+
+    Promise.all([emailChannel(), leadChannel(), userChannel()])
+        .then((data) => {
+            console.log(data);
+            res.status(200).json({ status: 'done', message: 'Bạn đã đăng ký không nhận email thành công!' })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(400).json({ err: JSON.stringify(err), message: 'Lỗi không xác định, vui lòng thử lại sau!' })
+        });
+});
 
 // start the server
 http.createServer(app).listen(port);
