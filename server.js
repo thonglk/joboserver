@@ -918,12 +918,12 @@ function createJDStore(storeId, random, jobId, postId) {
         storeData.photo = [storeData.avatar]
     }
 
-    var randomphoto = _.random(0, storeData.photo.length - 1)
+    var randomphoto = _.sample(storeData.photo)
 
     return {
         text: text,
         link: link,
-        image: storeData.photo[randomphoto]
+        image: randomphoto
     };
 }
 
