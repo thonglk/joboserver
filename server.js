@@ -237,9 +237,9 @@ function sendNotification(userData, mail, channel, time) {
         db2.ref('tempNoti/' + notiId)
             .set(notification)
             .then(function (result) {
-            console.log('sendNotification', notiId, result);
-            resolve(notification);
-        })
+                console.log('sendNotification', notiId, result);
+                resolve(notification);
+            })
             .catch(function (err) {
                 console.log('sendNotification failed', notiId);
                 reject(err);
@@ -883,7 +883,7 @@ function createJDStore(storeId, random, jobId, postId) {
     if (Job.hourly_wages) hourly_wages = `${Job.hourly_wages}`;
     if (Job.figure) figure = 'Cần ngoại hình ưa nhìn cởi mở 😊\n';
     if (Job.deadline) {
-        const date = new Date(Job.deadline);
+        const date = new Date(Date.now() + 2 * 864000);
         deadline = `Hạn chót nộp hồ sơ: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
     }
     if (Job.experience) experience = Job.experience;
@@ -2289,7 +2289,7 @@ app.get('/on/job', function (req, res) {
     var jobData = dataJob[jobId]
     const storeId = jobData.storeId
     var storeData = dataStore[storeId]
-    var all = Object.assign({},jobData,{storeData})
+    var all = Object.assign({}, jobData, {storeData})
     res.send(all)
 
 
@@ -4445,7 +4445,7 @@ String.prototype.simplify = function () {
 };
 
 function sendNotiNewJobSubcribleToProfile(jobId) {
-    return new Promise(function (resolve,reject) {
+    return new Promise(function (resolve, reject) {
         var a = 0
         var time = Date.now()
         if (!jobId) return
