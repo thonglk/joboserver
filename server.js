@@ -908,7 +908,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         salary,
         hourly_wages,
         working_type,
-        time,
+        work_time,
         jobUrl: addTrackingEmail(postId,link,'c','f'),
         storeUrl: storeData.Url,
         figure,
