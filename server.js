@@ -881,7 +881,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
     var link = '';
 
     if (jobId) {
-        link = CONFIG.WEBURL + 'signup/2?apply=' + storeData.storeId + '?job=' + jobId + '#ref=' + postId;
+        link = CONFIG.WEBURL + '/signup/2?apply=' + storeData.storeId + '&job=' + jobId + '#ref=' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -909,7 +909,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         hourly_wages,
         working_type,
         time,
-        jobUrl: link,
+        jobUrl: addTrackingEmail(postId,link,'c','f'),
         storeUrl: storeData.Url,
         figure,
         unit,
@@ -1545,6 +1545,8 @@ app.get('/api/notification', (req, res) => {
 
     res.send('haha')
 });
+
+
 
 
 function getMongoDB(collection, pipeline = []) {
