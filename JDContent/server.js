@@ -24,11 +24,11 @@ JD[0] = function ({ storeName, address = '', jobName = '', salary = '', hourly_w
 JOBO nhận được thông báo khẩn "nhắn tìm đồng đội" từ biệt đội ${storeName}:\n
    Vị trí: ${jobName}\n
    ${salary}${hourly_wages}${working_type}${timeStr}${description}\n${figure}${unit}${experience}${sex}
-Bỏ ra 1 phút để tìm hiểu thêm thông tin và gia nhập đồng đội ngay hôm nay tại: ${jobUrl}$primary\n
+Bỏ ra 1 phút để tìm hiểu thêm thông tin và gia nhập đồng đội ngay hôm nay tại: ${jobUrl}   \n
 Các bạn chỉ cần hoàn thành hồ sơ tại link trên, ${storeName} sẽ liên hệ lại ngay và đi làm luôn!\n
 Nếu khó khăn cứ cmt ngay dưới hoặc liên hệ ${contact} nhé!\n\n
 ------------------------------------\n
-Nếu cơ sở đó không thuận tiện cho bạn đi lại, tham khảo các cơ sở khác tại : ${storeUrl}\n\nHạn ứng tuyển còn 2 ngày!`;
+Nếu cơ sở đó không thuận tiện cho bạn đi lại, tham khảo các cơ sở khác tại : ${storeUrl}\n\n    `;
   return text;
 }
 
@@ -59,8 +59,8 @@ SANG TUẦN ĐI LÀM LUÔN\n\n
 ${timeStr}
 ${salary}${hourly_wages}${figure}${unit}${experience}${sex}
 Có chế độ hưởng, thưởng,những ngày lễ...\n\n
-#ỨNG TUYỂN TẠI: ${jobUrl}$primary (Ghi đúng số điện thoại để mình liên hệ lại)\n
-Liên hệ ngay : ${contact}\n\nHạn ứng tuyển còn 2 ngày!`;
+#ỨNG TUYỂN TẠI: ${jobUrl}    (Ghi đúng số điện thoại để mình liên hệ lại)\n
+Liên hệ ngay : ${contact}\n\n    `;
   return text;
 }
 
@@ -86,9 +86,9 @@ JD[2] = function ({ storeName, address = '', jobName = '', salary = '', hourly_w
 
   const text = `Có bạn nào quanh khu vực ${address}, mình cần tuyển GẤP nhân viên ${jobName} tại ${storeName}\n
    ${salary}${hourly_wages}${working_type}${timeStr}${description}${figure}${unit}${experience}${sex}
-Nếu chưa rõ các bạn có thể xem cụ thể tại đây ${jobUrl}$primary và ứng tuyển theo link đó để mình xem trước thông tin và hẹn lịch đi phỏng vấn và đi làm ngay.\n
+Nếu chưa rõ các bạn có thể xem cụ thể tại đây ${jobUrl}    và ứng tuyển theo link đó để mình xem trước thông tin và hẹn lịch đi phỏng vấn và đi làm ngay.\n
 Mình cần tuyển rất gấp , bạn nào có bạn bè cần tìm việc ở ${address} thì giới thiệu, tag vào giúp mình với nha. Mình cảm ơn.\n
-Liên hệ ${contact}.\n\nHạn ứng tuyển còn 2 ngày!`;
+Liên hệ ${contact}.\n\n    `;
   return text;
 };
 
@@ -121,9 +121,9 @@ Hy vọng tin này đến được các bạn cần tìm việc!\n\n
 ${salary}${hourly_wages}
 ${timeStr}\n${experience}${sex}
 Môi trường làm việc của Nhà hàng mình nhiều bạn trẻ, vui vẻ và năng động nên luôn luôn chào đón các bạn mới gia nhập đội ngũ nhé!\n
-Các bạn có thể liên hệ ${contact}  để trao đổi hoặc nếu có thể thì hoàn thành đơn ứng tuyển tại link này ${jobUrl}$primary để tiết kiệm thời gian cho cả hai luôn!\n\n
+Các bạn có thể liên hệ ${contact}  để trao đổi hoặc nếu có thể thì hoàn thành đơn ứng tuyển tại link này ${jobUrl}    để tiết kiệm thời gian cho cả hai luôn!\n\n
 Mình còn tuyển cho nhiều cơ sở nữa trên hầu hết quận ở Hà Nội nên nếu cơ sở này không phù hợp để đi lại thì vẫn có thể điền link trên rồi mình xếp vào vị trí phù hợp gần nhà bạn.\n\n
-Mình cảm ơn nhé!\nHạn ứng tuyển còn 2 ngày!`;
+Mình cảm ơn nhé!\n    `;
   return text;
 };
 
@@ -159,8 +159,8 @@ ${timeStr}\n${figure}${unit}${experience}${sex}
 -....\n\n
 #ƯU_TIÊN_GẮN_BÓ_LÂU_DÀI\n
 #Nếu có thắc mắc gì cmt mình giải đáp hoặc liên hệ ${contact}\n
-#Hoàn thành link online này thay cho hồ sơ xin việc bình thường để tiện Nhà hàng xem trước và hẹn lịch đi làm ngay cho bạn: ${jobUrl}$primary\n
-Lưu ý ghi đúng số điện thoại và địa chỉ để mình sắp xếp vào cơ sở gần nhất.\n\nHạn ứng tuyển còn 2 ngày!`;
+#Hoàn thành link online này thay cho hồ sơ xin việc bình thường để tiện Nhà hàng xem trước và hẹn lịch đi làm ngay cho bạn: ${jobUrl}   \n
+Lưu ý ghi đúng số điện thoại và địa chỉ để mình sắp xếp vào cơ sở gần nhất.\n\n    `;
   return text;
 }
 
@@ -192,7 +192,7 @@ ${salary}${hourly_wages}${experience}${sex}
 Môi trường làm việc trẻ trung và được giúp đỡ tạo điều kiện rất nhiều
 Có chế độ thưởng, lương, BHXH (nếu làm lâu dài có BHXH ,...)\n\n
 Các bạn muốn hỏi thêm liên hệ ${contact} nhé\n
-Mình ghi thông tin chi tiết tại link: ${jobUrl}$primary, các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\nHạn ứng tuyển còn 2 ngày!`;
+Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
   return text;
 }
 
@@ -222,8 +222,8 @@ ${timeStr}${figure}${unit}
 ${salary}${hourly_wages}${experience}${sex}
 Sẽ tạo điều kiện cho sinh viên muốn đi làm kiếm thêm thu nhập vì mình biết các bạn vừa học, vừa làm rất khó xếp lịch\n\n
 Các bạn muốn hỏi thêm liên hệ ${contact} nhé\n
-Mình ghi thông tin chi tiết tại link: ${jobUrl}$primary, các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi mình liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\n
-Các bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\nHạn ứng tuyển còn 2 ngày!`;
+Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi mình liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\n
+Các bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
   return text;
 }
 
@@ -252,14 +252,14 @@ ${storeName} tìm đồng đội:\n\n
 Vị trí ${jobName}${figure}${unit}
 ${timeStr}${salary}${hourly_wages}${experience}${sex}
 Phụ cấp 1 bữa trong ngày, có cơ hội làm việc trong môi trường nhà hàng chuyên nghiệp, giúp trau dồi tiếng Anh, tiếng Hoa.\n
-Truy cập vào đường ${jobUrl}$primary và ứng tuyển\n
+Truy cập vào đường ${jobUrl}    và ứng tuyển\n
 Hoặc liên hệ số điện thoại: ${contact}\n
-Bên mình sẽ liên lạc và tư vấn trực tiếp cho các bạn nhé!\n\nHạn ứng tuyển còn 2 ngày!`;
+Bên mình sẽ liên lạc và tư vấn trực tiếp cho các bạn nhé!\n\n    `;
   return text;
 }
 
 JD[8] = function ({ storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)' }) {
-  const text = `${storeName} tại ${address}, tuyển phục vụ với lương cứng. Bạn nào quan tâm thì liên hệ với SĐT ${contact} nhé!Hạn ứng tuyển còn 2 ngày!`;
+  const text = `${storeName} tại ${address}, tuyển phục vụ với lương cứng. Bạn nào quan tâm thì liên hệ với SĐT ${contact} nhé!    `;
   return text;
 }
 
@@ -284,7 +284,7 @@ JD[9] = function ({ storeName, address = '', jobName = '', salary = '', hourly_w
   else figure = 'Không yêu cầu ngoại hình\n';
 
   const text = `Bạn muốn làm tại ${storeName} ở ${address} với lương tối thiểu 3 triệu/ tháng? Nếu đó là những yêu cầu công việc của bạn thì ${storeName} KHÔNG PHẢI là một nơi PHÙ HỢP cho bạn. Vì ngoài mức lương cứng tối thiểu 3tr8/ tháng, bạn còn được tặng thêm 680,000đ tiền cơm cùng hàng loạt các khoảng hậu đãi xứng đáng khác.\n
-Nếu bạn muốn nằm trong nhóm "người hiếm" muốn thử sức với công việc không PHÙ HỢP này thì bạn có thể liên hệ ${contact}. Còn không, bạn có thể tiếp tục tìm một công việc khác, phù hợp hơn qua Jobo nhé!!!\n${jobUrl}\nHạn ứng tuyển còn 2 ngày!`;
+Nếu bạn muốn nằm trong nhóm "người hiếm" muốn thử sức với công việc không PHÙ HỢP này thì bạn có thể liên hệ ${contact}. Còn không, bạn có thể tiếp tục tìm một công việc khác, phù hợp hơn qua Jobo nhé!!!\n${jobUrl}\n    `;
   return text;
 }
 
@@ -314,7 +314,7 @@ ${salary}${hourly_wages}
 😍Địa chỉ: ${address}.
 😍Không phải đóng bất kỳ khoản thu nào khi đi làm.
 -------
-Bạn nào quan tâm mời liên hệ SĐT ${contact} hoặc inbox mình nhé!!\nHạn ứng tuyển còn 2 ngày!`;
+Bạn nào quan tâm mời liên hệ SĐT ${contact} hoặc inbox mình nhé!!\n    `;
   return text;
 }
 
@@ -342,7 +342,7 @@ JD[11] = function ({ storeName, address = '', jobName = '', salary = '', hourly_
   - ${salary}${hourly_wages}
   - ${timeStr}
   - ${address}.
-  Quan tâm! Ứng viên Liên hệ: ${contact}.Hạn ứng tuyển còn 2 ngày!`;
+  Quan tâm! Ứng viên Liên hệ: ${contact}.    `;
   return text;
 }
 
@@ -366,7 +366,7 @@ JD[12] = function ({ storeName, address = '', jobName = '', salary = '', hourly_
   if (figure) figure = 'Yêu cầu ngoại hình\n';
   else figure = 'Không yêu cầu ngoại hình\n';
 
-  const text = `Mình cần tuyển các bạn nhân viên${timeStr} ${salary}${hourly_wages}, bao ăn. Ai quan tâm inbox hoặc liên hệ ${contact} nhé.\nHạn ứng tuyển còn 2 ngày!`;
+  const text = `Mình cần tuyển các bạn nhân viên${timeStr} ${salary}${hourly_wages}, bao ăn. Ai quan tâm inbox hoặc liên hệ ${contact} nhé.\n    `;
   return text;
 }
 
@@ -392,7 +392,7 @@ JD[13] = function ({ storeName, address = '', jobName = '', salary = '', hourly_
   else figure = 'Không yêu cầu ngoại hình\n';
 
   const text = `${unit} ${storeName} vị trí ${jobName}
- Bạn nào đăng ký thì inbox mình hoặc liên hệ ${contact} nhé, mình sẽ gửi JD và cách thức đăng ký. Cực nhanh, cực tiện lợi.\nThông tin thêm tại đây: ${jobUrl}\nHạn ứng tuyển còn 2 ngày!`;
+ Bạn nào đăng ký thì inbox mình hoặc liên hệ ${contact} nhé, mình sẽ gửi JD và cách thức đăng ký. Cực nhanh, cực tiện lợi.\nThông tin thêm tại đây: ${jobUrl}\n    `;
   return text;
 }
 

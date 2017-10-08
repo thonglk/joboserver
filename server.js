@@ -1964,7 +1964,8 @@ app.get('/api/job', function (req, res) {
             }
             resolve(joblist)
 
-        } else if (typefilter == 'lead') {
+        }
+        else if (typefilter == 'lead') {
 
             var stage = {
 
@@ -2009,8 +2010,6 @@ app.get('/api/job', function (req, res) {
                 }
             }
             resolve(joblist)
-
-
         } else {
             console.log('primaryJob')
             for (var i in dataJob) {
@@ -2044,7 +2043,7 @@ app.get('/api/job', function (req, res) {
                         && (card.working_type == working_typefilter || !working_typefilter )
                         && (card.industry == industryfilter || !industryfilter)
                         && (card.salary > salaryfilter || !salaryfilter)
-                        && (card.package == typefilter)
+                        && (card.package == typefilter || !typefilter)
                     ) {
 
 
@@ -4010,7 +4009,10 @@ function startList() {
         if (card.action == 'like' && card.data.jobId) {
 
             var likeData = _.findWhere(likeActivity, {userId: card.userId, jobId: card.data.jobId})
-            if (!likeData) return
+            if (!likeData) {
+                actRef.child(key).remove()
+                return
+            }
             var jobData = dataJob[card.data.jobId]
             var actKey = jobData.storeId + ':' + card.userId + ':' + jobData.jobId
 
@@ -4143,12 +4145,15 @@ function startList() {
          */
 
         if (card.action == 'viewProfile') {
-            if (dataStatic[card.data.userId]) {
+            if (card.data.userId) {
+                var i = 1
+                if (dataStatic[card.data.userId] && dataStatic[card.data.userId].viewed) {
 
-                var i = dataStatic[card.data.userId].viewed++ || 1
+                    i = dataStatic[card.data.userId].viewed++
+                }
                 staticRef.child(card.data.userId).update({viewed: i})
-
                 actRef.child(key).remove()
+
 
             }
         }

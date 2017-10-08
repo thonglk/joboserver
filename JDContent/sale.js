@@ -25,8 +25,8 @@ ${timeStr}
 ${salary}${hourly_wages}
 ${description}${figure}${experience}${sex}${unit}
 L/H: ${contact} nếu các bạn có thắc mắc
-Hoàn thành đơn đăng ký tại: ${jobUrl}$primary
-(bạn nào hoàn thành xong thì cmt ở dưới để mình check hoặc không hoàn thành được thì cmt sđt ở dưới để mình liên hệ lại)\n\nHạn ứng tuyển còn 2 ngày!`;
+Hoàn thành đơn đăng ký tại: ${jobUrl}  
+(bạn nào hoàn thành xong thì cmt ở dưới để mình check hoặc không hoàn thành được thì cmt sđt ở dưới để mình liên hệ lại)\n\n   `;
   return text;
 }
 
@@ -58,8 +58,8 @@ Khuyến khích các bạn có định hướng, thiện chí làm ${jobName}
 Liên hệ: ${contact}
 
 P/s: Bạn nào nghiêm túc làm thì đk pv nhé, vì nhiều bạn đăng kí nhưng mình hẹn lại k đi pv làm rất mất thời gian
-Hoàn thành đơn đăng ký tại: ${jobUrl}$primary
-\nHạn ứng tuyển còn 2 ngày!
+Hoàn thành đơn đăng ký tại: ${jobUrl}  
+\n   
 Mình cảm ơn nhiều!`;
   return text;
 }
@@ -91,9 +91,9 @@ ${description}
 🏆Làm việc tại chi nhánh: ${address}
 ${figure}${experience}${sex}${unit}
 Nhanh tay ứng tuyển, ưu tiên những bạn ứng tuyển đầu vì số lượng tuyển có hạn.
-Click link này để ứng tuyển vị trí của cửa hàng mình: ${jobUrl}$primary
+Click link này để ứng tuyển vị trí của cửa hàng mình: ${jobUrl}  
 Bên mình sẽ liên lạc lại những ứng viên phù hợp.
-\nHạn ứng tuyển còn 2 ngày!`;
+\n   `;
   return text;
 }
 
@@ -121,10 +121,10 @@ JD[3] = function ({ storeName, address = '', jobName = '', salary = '', hourly_w
   const text = `Công việc ổn định dành cho các bạn!
 ${jobName} tại ${storeName} ở ${address}.
 ${salary}${hourly_wages}${description}${figure}${experience}${sex}${unit}
-Mong bạn nào thật sự có nhu cầu tìm việc và mong muốn làm lâu dài thì theo đường link này đăng kí: ${jobUrl}$primary
+Mong bạn nào thật sự có nhu cầu tìm việc và mong muốn làm lâu dài thì theo đường link này đăng kí: ${jobUrl}  
 Hoặc liên hệ theo số điện thoại này: ${contact}
 Bên mình sẽ liên lạc ngay với các ứng viên phù hợp.
-\nHạn ứng tuyển còn 2 ngày!
+\n   
 Các bạn đăng ký nghiêm túc nhé, cảm ơn các bạn!`;
   return text;
 }
@@ -154,7 +154,7 @@ ${salary}${hourly_wages}
 Ưu tiên các bạn có kinh nghiệm hoặc muốn làm trong ngành.
 L/H: ${contact} nếu các bạn có thắc mắc
 Hoàn thành đơn đăng ký tại: ${jobUrl}
-(bạn nào hoàn thành xong thì cmt ở dưới để mình check hoặc không hoàn thành được thì cmt sđt ở dưới để mình liên hệ lại).\nHạn ứng tuyển còn 2 ngày!`;
+(bạn nào hoàn thành xong thì cmt ở dưới để mình check hoặc không hoàn thành được thì cmt sđt ở dưới để mình liên hệ lại).\n   `;
   return text;
 };
 
@@ -218,7 +218,7 @@ ${description}
 Làm việc tại: ${address}
 Nhanh tay ứng tuyển, ưu tiên những bạn ứng tuyển đầu vì số lượng tuyển có hạn.
 Click link này để ứng tuyển vị trí của cửa hàng mình.
-Hạn ứng tuyển còn 2 ngày!\n
+   \n
 Bên mình sẽ liên lạc lại những ứng viên phù hợp.`;
   return text;
 };
@@ -250,7 +250,7 @@ Mong bạn nào thật sự có nhu cầu tìm việc và mong muốn làm lâu 
 Hoặc liên hệ theo số điện thoại này:
 Bên mình sẽ liên lạc ngay với các ứng viên phù hợp.
 Các bạn đăng ký nghiêm túc nhé, cảm ơn các bạn!
-Hạn ứng tuyển còn 2 ngày!`;
+   `;
   return text;
 };
 

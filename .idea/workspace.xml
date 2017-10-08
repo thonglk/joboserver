@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="25183a39-9abd-466e-8eff-c50a5bf19b42" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/JDStore.js" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/business.js" afterPath="$PROJECT_DIR$/JDContent/business.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/default.js" afterPath="$PROJECT_DIR$/JDContent/default.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/sale.js" afterPath="$PROJECT_DIR$/JDContent/sale.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/server.js" afterPath="$PROJECT_DIR$/JDContent/server.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -54,23 +56,45 @@
       <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="433">
-              <caret line="250" column="61" lean-forward="false" selection-start-line="250" selection-start-column="55" selection-end-line="250" selection-end-column="61" />
+            <state relative-caret-position="236">
+              <caret line="2045" column="69" lean-forward="false" selection-start-line="2045" selection-start-column="69" selection-end-line="2045" selection-end-column="69" />
               <folding>
                 <element signature="e#6235#6403#0" expanded="false" />
                 <element signature="e#9682#10190#0" expanded="false" />
                 <element signature="e#10232#10265#0" expanded="false" />
                 <element signature="e#11296#11833#0" expanded="false" />
                 <element signature="e#59114#60064#0" expanded="false" />
-                <element signature="e#60694#60863#0" expanded="false" />
-                <element signature="e#60912#61392#0" expanded="false" />
-                <element signature="e#60951#61351#0" expanded="false" />
+                <element signature="e#60131#60431#0" expanded="false" />
+                <element signature="e#60495#60551#0" expanded="false" />
+                <element signature="e#60585#60643#0" expanded="false" />
+                <element signature="e#60702#60871#0" expanded="false" />
+                <element signature="e#60959#61359#0" expanded="false" />
                 <element signature="n#!!block;n#latinese#0" expanded="false" />
                 <element signature="n#!!block;n#keygen#0" expanded="false" />
                 <element signature="n#!!block;n#createKey#0" expanded="false" />
-                <element signature="e#93575#95846#0" expanded="false" />
-                <element signature="e#96965#97889#0" expanded="false" />
+                <element signature="e#93596#95867#0" expanded="false" />
+                <element signature="e#96986#97910#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/JDContent/index.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="7" column="3" lean-forward="true" selection-start-line="7" selection-start-column="3" selection-end-line="7" selection-end-column="3" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sale.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/JDContent/sale.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2064">
+              <caret line="256" column="0" lean-forward="false" selection-start-line="256" selection-start-column="0" selection-end-line="256" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -88,12 +112,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>index</find>
-      <find>createJDS</find>
-      <find>view/profile</find>
-      <find>update/job</find>
-      <find>update/log</find>
-      <find>mongo</find>
       <find>log</find>
       <find>insert</find>
       <find>logCol</find>
@@ -118,12 +136,14 @@
       <find>act</find>
       <find>createStore</find>
       <find>sendNotification</find>
+      <find>updateProfile</find>
+      <find>like</find>
+      <find>jobU</find>
+      <find>$primary</find>
+      <find>api</find>
+      <find>Hạn ứng tuyển còn 2 ngày!</find>
     </findStrings>
     <replaceStrings>
-      <replace>13</replace>
-      <replace>mail.body</replace>
-      <replace>actRef.child(key).remove()</replace>
-      <replace>CEO &amp; Founder</replace>
       <replace>Col</replace>
       <replace>profileData</replace>
       <replace>&lt;br&gt;</replace>
@@ -150,6 +170,10 @@
       <replace>job</replace>
       <replace />
       <replace>jobData</replace>
+      <replace />
+      <replace />
+      <replace />
+      <replace />
     </replaceStrings>
   </component>
   <component name="Git.Settings">
@@ -195,7 +219,10 @@
         <option value="$PROJECT_DIR$/pxl/pxl-firebase.js" />
         <option value="$PROJECT_DIR$/JDContent/index.js" />
         <option value="$PROJECT_DIR$/JDStore.js" />
+        <option value="$PROJECT_DIR$/JDContent/business.js" />
         <option value="$PROJECT_DIR$/JDContent/default.js" />
+        <option value="$PROJECT_DIR$/JDContent/server.js" />
+        <option value="$PROJECT_DIR$/JDContent/sale.js" />
         <option value="$PROJECT_DIR$/server.js" />
       </list>
     </option>
@@ -217,8 +244,9 @@
     <handled-path value="$PROJECT_DIR$/node_modules" />
   </component>
   <component name="ProjectFrameBounds" fullScreen="true">
+    <option name="y" value="54" />
     <option name="width" value="1280" />
-    <option name="height" value="800" />
+    <option name="height" value="742" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -241,6 +269,11 @@
             <path>
               <item name="joboserver" type="b2602c69:ProjectViewProjectNode" />
               <item name="joboserver" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="joboserver" type="b2602c69:ProjectViewProjectNode" />
+              <item name="joboserver" type="462c0819:PsiDirectoryNode" />
+              <item name="JDContent" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -442,12 +475,12 @@
       <workItem from="1506321871617" duration="24689000" />
       <workItem from="1506595542810" duration="47604000" />
       <workItem from="1507219639553" duration="10410000" />
-      <workItem from="1507280246986" duration="21359000" />
+      <workItem from="1507280246986" duration="23303000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1472938000" />
+    <option name="totallyTimeSpent" value="1474882000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1280" height="800" extended-state="0" />
@@ -455,6 +488,7 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16203336" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3314993" sideWeight="0.50913423" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3287483" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3287483" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2494043" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -467,7 +501,6 @@
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3287483" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -503,13 +536,19 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="40" />
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/server.js</url>
+          <line>1969</line>
+          <properties />
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+      </breakpoints>
+      <option name="time" value="42" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file:///private/var/folders/19/d52zxnqs42xff90n60fhq2600000gp/T/80961737-fe1b-4ed1-8fbb-2705d8f9b3ad/server/server.js" />
-    <entry file="file://$PROJECT_DIR$/messenger-platform-samples/node/public/index.html" />
     <entry file="file://$PROJECT_DIR$/mail/emailverify.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -733,48 +772,66 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/default.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="104">
-          <caret line="7" column="19" lean-forward="false" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/JDContent/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
-          <caret line="7" column="3" lean-forward="false" selection-start-line="7" selection-start-column="3" selection-end-line="7" selection-end-column="3" />
+          <caret line="7" column="3" lean-forward="true" selection-start-line="7" selection-start-column="3" selection-end-line="7" selection-end-column="3" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/JDContent/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="54">
+          <caret line="282" column="46" lean-forward="true" selection-start-line="282" selection-start-column="46" selection-end-line="282" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/default.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="114">
+          <caret line="23" column="6" lean-forward="false" selection-start-line="23" selection-start-column="6" selection-end-line="23" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/business.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="76">
+          <caret line="72" column="6" lean-forward="false" selection-start-line="72" selection-start-column="6" selection-end-line="72" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/sale.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2064">
+          <caret line="256" column="0" lean-forward="false" selection-start-line="256" selection-start-column="0" selection-end-line="256" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="433">
-          <caret line="250" column="61" lean-forward="false" selection-start-line="250" selection-start-column="55" selection-end-line="250" selection-end-column="61" />
+        <state relative-caret-position="236">
+          <caret line="2045" column="69" lean-forward="false" selection-start-line="2045" selection-start-column="69" selection-end-line="2045" selection-end-column="69" />
           <folding>
             <element signature="e#6235#6403#0" expanded="false" />
             <element signature="e#9682#10190#0" expanded="false" />
             <element signature="e#10232#10265#0" expanded="false" />
             <element signature="e#11296#11833#0" expanded="false" />
             <element signature="e#59114#60064#0" expanded="false" />
-            <element signature="e#60694#60863#0" expanded="false" />
-            <element signature="e#60912#61392#0" expanded="false" />
-            <element signature="e#60951#61351#0" expanded="false" />
+            <element signature="e#60131#60431#0" expanded="false" />
+            <element signature="e#60495#60551#0" expanded="false" />
+            <element signature="e#60585#60643#0" expanded="false" />
+            <element signature="e#60702#60871#0" expanded="false" />
+            <element signature="e#60959#61359#0" expanded="false" />
             <element signature="n#!!block;n#latinese#0" expanded="false" />
             <element signature="n#!!block;n#keygen#0" expanded="false" />
             <element signature="n#!!block;n#createKey#0" expanded="false" />
-            <element signature="e#93575#95846#0" expanded="false" />
-            <element signature="e#96965#97889#0" expanded="false" />
+            <element signature="e#93596#95867#0" expanded="false" />
+            <element signature="e#96986#97910#0" expanded="false" />
           </folding>
         </state>
       </provider>

@@ -20,7 +20,7 @@ JD[0] = function ({ storeName, address = '', jobName = '', salary = '', hourly_w
 ${description}\n
 ${salary}${hourly_wages}${figure}${experience}${sex}${unit}
 🏆Hãy đi tiếp chặng đường mới cùng ${storeName} tại:\n
-🎐Cách 1: Vào link: ${jobUrl}$primary và nhấn "Ứng tuyển không cần CV"\n
+🎐Cách 1: Vào link: ${jobUrl}  và nhấn "Ứng tuyển không cần CV"\n
 🎐Cách 2: Nộp CV vào mail HR@joboapp.com\n
 ${storeName} chờ bạn và đang rất nóng lòng đóng chào các bạn join team đó, nhanh nhanh nhé!✌️✌️\n🐳${deadline}`;
   return text;
@@ -69,7 +69,7 @@ Hãy ra nhập với chúng tôi, ${storeName} tuyển dụng:
 ${salary}
 ${description}${figure}${experience}${sex}${unit}
 Đừng để suy nghĩ của người khác khiến bạn mất đi một cơ hội phát triển bản thân.
-Truy cập vào đường link: ${jobUrl}$primary
+Truy cập vào đường link: ${jobUrl} 
 Hoặc liên hệ số điện thoại: ${contact}
 Để được tư vấn trực tiếp từ nhà tuyển dụng của chúng tôi.\n${deadline}`;
   return text;
