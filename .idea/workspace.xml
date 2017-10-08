@@ -2,10 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="25183a39-9abd-466e-8eff-c50a5bf19b42" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/business.js" afterPath="$PROJECT_DIR$/JDContent/business.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/default.js" afterPath="$PROJECT_DIR$/JDContent/default.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/sale.js" afterPath="$PROJECT_DIR$/JDContent/sale.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JDContent/server.js" afterPath="$PROJECT_DIR$/JDContent/server.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -56,25 +52,39 @@
       <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
-              <caret line="2045" column="69" lean-forward="false" selection-start-line="2045" selection-start-column="69" selection-end-line="2045" selection-end-column="69" />
+            <state relative-caret-position="216">
+              <caret line="2674" column="35" lean-forward="false" selection-start-line="2674" selection-start-column="35" selection-end-line="2674" selection-end-column="35" />
               <folding>
                 <element signature="e#6235#6403#0" expanded="false" />
                 <element signature="e#9682#10190#0" expanded="false" />
                 <element signature="e#10232#10265#0" expanded="false" />
                 <element signature="e#11296#11833#0" expanded="false" />
-                <element signature="e#59114#60064#0" expanded="false" />
-                <element signature="e#60131#60431#0" expanded="false" />
-                <element signature="e#60495#60551#0" expanded="false" />
-                <element signature="e#60585#60643#0" expanded="false" />
-                <element signature="e#60702#60871#0" expanded="false" />
-                <element signature="e#60959#61359#0" expanded="false" />
+                <element signature="n#!!block;n#checkJob#0" expanded="false" />
+                <element signature="n#!!block;n#checkProfile#0" expanded="false" />
+                <element signature="e#59080#60030#0" expanded="false" />
+                <element signature="e#60097#60397#0" expanded="false" />
+                <element signature="e#60461#60517#0" expanded="false" />
+                <element signature="e#60551#60609#0" expanded="false" />
+                <element signature="e#60668#60837#0" expanded="false" />
+                <element signature="e#60925#61325#0" expanded="false" />
+                <element signature="e#72376#73857#0" expanded="false" />
+                <element signature="e#73879#73986#0" expanded="false" />
                 <element signature="n#!!block;n#latinese#0" expanded="false" />
                 <element signature="n#!!block;n#keygen#0" expanded="false" />
                 <element signature="n#!!block;n#createKey#0" expanded="false" />
-                <element signature="e#93596#95867#0" expanded="false" />
-                <element signature="e#96986#97910#0" expanded="false" />
+                <element signature="e#94235#96506#0" expanded="false" />
+                <element signature="e#97625#98549#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="business.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/JDContent/business.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-155">
+              <caret line="72" column="6" lean-forward="false" selection-start-line="72" selection-start-column="6" selection-end-line="72" selection-end-column="6" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -84,6 +94,26 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="105">
               <caret line="7" column="3" lean-forward="true" selection-start-line="7" selection-start-column="3" selection-end-line="7" selection-end-column="3" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="default.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/JDContent/default.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="23" column="6" lean-forward="false" selection-start-line="23" selection-start-column="6" selection-end-line="23" selection-end-column="6" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="server.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/JDContent/server.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="153">
+              <caret line="312" column="24" lean-forward="true" selection-start-line="312" selection-start-column="24" selection-end-line="312" selection-end-column="24" />
               <folding />
             </state>
           </provider>
@@ -112,11 +142,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>log</find>
-      <find>insert</find>
-      <find>logCol</find>
-      <find>notification</find>
-      <find>mail</find>
       <find>notificationR</find>
       <find>sendEmail</find>
       <find>notifica</find>
@@ -125,7 +150,6 @@
       <find>api/no</find>
       <find>typesort</find>
       <find>getPaginatedItemss</find>
-      <find>addTrackingEmail</find>
       <find>$pri</find>
       <find>$</find>
       <find>'/'</find>
@@ -142,6 +166,12 @@
       <find>$primary</find>
       <find>api</find>
       <find>Hạn ứng tuyển còn 2 ngày!</find>
+      <find>console.log(data</find>
+      <find>addTrackingEmail</find>
+      <find>findOne</find>
+      <find>update/user</find>
+      <find>data</find>
+      <find>console</find>
     </findStrings>
     <replaceStrings>
       <replace>Col</replace>
@@ -475,12 +505,12 @@
       <workItem from="1506321871617" duration="24689000" />
       <workItem from="1506595542810" duration="47604000" />
       <workItem from="1507219639553" duration="10410000" />
-      <workItem from="1507280246986" duration="23303000" />
+      <workItem from="1507280246986" duration="33062000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1474882000" />
+    <option name="totallyTimeSpent" value="1484641000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1280" height="800" extended-state="0" />
@@ -539,12 +569,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/server.js</url>
-          <line>1969</line>
+          <line>1968</line>
           <properties />
           <option name="timeStamp" value="41" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="42" />
+      <option name="time" value="43" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -772,38 +802,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/index.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="3" lean-forward="true" selection-start-line="7" selection-start-column="3" selection-end-line="7" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/server.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="282" column="46" lean-forward="true" selection-start-line="282" selection-start-column="46" selection-end-line="282" selection-end-column="46" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/default.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="23" column="6" lean-forward="false" selection-start-line="23" selection-start-column="6" selection-end-line="23" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/business.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="76">
-          <caret line="72" column="6" lean-forward="false" selection-start-line="72" selection-start-column="6" selection-end-line="72" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/JDContent/sale.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2064">
@@ -812,26 +810,62 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="3" lean-forward="true" selection-start-line="7" selection-start-column="3" selection-end-line="7" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/default.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="23" column="6" lean-forward="false" selection-start-line="23" selection-start-column="6" selection-end-line="23" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/business.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-155">
+          <caret line="72" column="6" lean-forward="false" selection-start-line="72" selection-start-column="6" selection-end-line="72" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="312" column="24" lean-forward="true" selection-start-line="312" selection-start-column="24" selection-end-line="312" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="2045" column="69" lean-forward="false" selection-start-line="2045" selection-start-column="69" selection-end-line="2045" selection-end-column="69" />
+        <state relative-caret-position="216">
+          <caret line="2674" column="35" lean-forward="false" selection-start-line="2674" selection-start-column="35" selection-end-line="2674" selection-end-column="35" />
           <folding>
             <element signature="e#6235#6403#0" expanded="false" />
             <element signature="e#9682#10190#0" expanded="false" />
             <element signature="e#10232#10265#0" expanded="false" />
             <element signature="e#11296#11833#0" expanded="false" />
-            <element signature="e#59114#60064#0" expanded="false" />
-            <element signature="e#60131#60431#0" expanded="false" />
-            <element signature="e#60495#60551#0" expanded="false" />
-            <element signature="e#60585#60643#0" expanded="false" />
-            <element signature="e#60702#60871#0" expanded="false" />
-            <element signature="e#60959#61359#0" expanded="false" />
+            <element signature="n#!!block;n#checkJob#0" expanded="false" />
+            <element signature="n#!!block;n#checkProfile#0" expanded="false" />
+            <element signature="e#59080#60030#0" expanded="false" />
+            <element signature="e#60097#60397#0" expanded="false" />
+            <element signature="e#60461#60517#0" expanded="false" />
+            <element signature="e#60551#60609#0" expanded="false" />
+            <element signature="e#60668#60837#0" expanded="false" />
+            <element signature="e#60925#61325#0" expanded="false" />
+            <element signature="e#72376#73857#0" expanded="false" />
+            <element signature="e#73879#73986#0" expanded="false" />
             <element signature="n#!!block;n#latinese#0" expanded="false" />
             <element signature="n#!!block;n#keygen#0" expanded="false" />
             <element signature="n#!!block;n#createKey#0" expanded="false" />
-            <element signature="e#93596#95867#0" expanded="false" />
-            <element signature="e#96986#97910#0" expanded="false" />
+            <element signature="e#94235#96506#0" expanded="false" />
+            <element signature="e#97625#98549#0" expanded="false" />
           </folding>
         </state>
       </provider>

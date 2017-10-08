@@ -789,7 +789,6 @@ function addTrackingEmail(notiId, url, t = 'o', p = 'l', i = '') {
                 platform,
                 type
             })
-        console.log()
         if (t == 'o') {
             trackUrl = CONFIG.AnaURL + '/l/' + notiId + p + t + i
         } else {
@@ -895,7 +894,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
     if (Job.figure) figure = 'Cần ngoại hình ưa nhìn cởi mở 😊\n';
     if (Job.deadline) {
         const date = new Date(Job.deadline);
-        deadline = `Hạn chót nộp hồ sơ: ${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`;
+        deadline = `${date.getDate() + 2}/${date.getMonth() + 1}/${date.getFullYear()}`;
     }
     if (Job.experience) experience = Job.experience;
     if (Job.unit) unit = `${Job.unit}`;
@@ -2203,6 +2202,8 @@ app.get('/api/users', function (req, res) {
     var figurefilter = req.param('figure');
     var urgentfilter = req.param('urgent');
     var adminNotefilter = req.param('note')
+    var type = req.param('type')
+
     var mylng = req.param('lng');
     var mylat = req.param('lat');
 
@@ -2211,14 +2212,18 @@ app.get('/api/users', function (req, res) {
     if (!CONFIG.data.job[jobfilter]) {
         jobfilter = ''
     }
-
+    var data = dataProfile
     var usercard = [];
-    for (var i in dataProfile) {
-        var card = dataProfile[i];
+    if (type == 'marketing') {
+        data = dataUser
+    } else if (type == 'lead') {
+        data = dataProfileCC || {}
+    }
+
+    for (var i in data) {
+        var card = data[i];
         card.match = 0;
-        if (card.location
-            && card.avatar
-            && !card.hide
+        if (!card.hide
             && ((card.job && card.job[jobfilter]) || !jobfilter)
             && ((card.working_type == working_typefilter) || !working_typefilter)
             && ((card.sex == sexfilter) || !sexfilter)
@@ -2236,11 +2241,12 @@ app.get('/api/users', function (req, res) {
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 if (distance < distancefilter) {
                     card.distance = distance;
-                    usercard.push(card)
+                    var obj = Object.assign({}, card, dataUser[i])
+                    usercard.push(obj)
                 }
             } else {
-
-                usercard.push(card)
+                var obj = Object.assign({}, dataProfile[i], dataUser[i])
+                usercard.push(obj)
 
             }
 
@@ -2417,10 +2423,16 @@ app.post('/update/user', function (req, res) {
             profileRef.child(userId).update(profile)
         }
 
+        res.send({code: 'success', id: userId})
+
+    }
+    if(storeId){
         if (store) {
             if (dataStore[storeId]) {
                 //update
                 storeRef.child(storeId).update(store)
+                res.send({code: 'success', id: storeId})
+
             } else {
                 storeRef.child(storeId).update(store)
                 var userD = dataUser[store.createdBy]
@@ -2448,11 +2460,10 @@ app.post('/update/user', function (req, res) {
                         }
                     }
                 }, 60000)
+                res.send({code: 'success', id: storeId})
 
             }
         }
-
-        res.send({code: 'success', id: userId})
 
     }
 
@@ -2654,20 +2665,27 @@ app.get('/update/job', function (req, res) {
 
 });
 
-app.get('/update/lead', function (req, res) {
-    var leadDataStr = req.param('lead')
-    var lead = JSON.parse(leadDataStr)
+app.post('/update/lead', function (req, res) {
+    var lead = req.body
+    var storeId = req.param('storeId')
 
-    if (lead) {
-        console.log(lead)
-        lead.storeId = createKey(lead.storeName)
-        leadCol.insert(lead, function (err, data) {
-            if (err) {
-                console.log(err)
-            } else {
-                res.send({code: 'success', id: lead.storeId})
-            }
-        })
+    if (storeId) {
+        leadCol.findOneAndUpdate({storeId}, {
+            $set: {adminNote: lead.adminNote}
+        }).then(resutl => res.send({code: 'success', id: lead.storeId}))
+    } else {
+        if (lead) {
+            console.log(lead)
+            lead.storeId = createKey(lead.storeName)
+            leadCol.insert(lead, function (err, data) {
+                if (err) {
+                    console.log(err)
+                    res.status(500).json(err)
+                } else {
+                    res.send({code: 'success', id: lead.storeId})
+                }
+            })
+        }
     }
 
 
@@ -3217,6 +3235,12 @@ app.get('/log/activity', function (req, res) {
         return -card.likeAt
     });
     var cards = getPaginatedItems(sorded, page);
+    cards.data = _.map(cards.data, function (card) {
+        card.profile = dataProfile[card.userId]
+        card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId])
+        return card;
+    });
+
     res.send(cards)
 });
 
