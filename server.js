@@ -84,7 +84,8 @@ const MongoClient = require('mongodb');
 
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
-var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol, leadCol, emailChannelCol, logCol;
+var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol, leadCol, emailChannelCol, logCol,
+    facebookPostCol;
 
 MongoClient.connect(uri, function (err, db) {
     console.log(err);
@@ -99,6 +100,7 @@ MongoClient.connect(uri, function (err, db) {
     leadCol = md.collection('lead');
     emailChannelCol = md.collection('emailChannel');
     logCol = md.collection('log');
+    facebookPostCol = md.collection('facebookPost');
 
 
     console.log("Connected correctly to server.");
@@ -242,7 +244,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
         db2.ref('tempNoti/' + notiId)
             .set(notification)
             .then(function (result) {
-                console.log('sendNotification', notiId, result);
+                console.log('sendNotification', notiId);
                 resolve(notification);
             })
             .catch(function (err) {
@@ -448,8 +450,8 @@ function init() {
     db.ref('keyList').on('child_added', function (snap) {
         keyListData[snap.key] = snap.val()
     })
+    setTimeout(startList, 15000)
 
-    startList()
 
 }
 
@@ -909,7 +911,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         hourly_wages,
         working_type,
         work_time,
-        jobUrl: addTrackingEmail(postId,link,'c','f'),
+        jobUrl: addTrackingEmail(postId, link, 'c', 'f'),
         storeUrl: storeData.Url,
         figure,
         unit,
@@ -1428,34 +1430,32 @@ function getPaginatedItemss(collection, query, sort, page = 1, per_page = 15) {
         if (!collection) reject('Mongoose collection is required!');
 
         const offset = (page - 1) * per_page;
-        var typesort = {}
+        var typesort = {};
         if (sort) {
             typesort[sort] = -1
         } else {
             typesort['createdAt'] = -1
         }
+        var cursor = collection.find(query)
 
-        collection.find(query)
-            .skip(offset)
+        cursor.skip(offset)
             .limit(per_page)
             .sort(typesort)
-            .then(posts => {
-                collection.count()
-                    .then(count => resolve({
+            .toArray(function (err, posts) {
+                if (err) throw err;
+
+                cursor.count()
+                    .then(total => resolve({
                         page: page,
                         per_page: per_page,
-                        total: count,
-                        total_pages: Math.ceil(count / per_page),
+                        total: total,
+                        total_pages: Math.ceil(total / per_page),
                         data: posts
                     }))
                     .catch(err_ => {
                         console.log('Get Pagination Count Error:', err_);
                         reject(err_);
                     });
-            })
-            .catch(err => {
-                console.log('Get Pagination Error:', err);
-                reject(err);
             });
     });
 }
@@ -1534,19 +1534,17 @@ app.get('/api/notification', (req, res) => {
         pipeline.letter_click = {$ne: null}
     }
     console.log(pipeline)
-    notificationCol.find(pipeline).toArray(function (err, result) {
-        if (err) throw err;
-        var sorded = _.sortBy(result, function (card) {
-            return -card.createdAt
-        })
-        var sendData = getPaginatedItems(sorded, page)
-        res.send(sendData)
-    });
+    getPaginatedItemss(notificationCol, pipeline, null, page).then(result => res.send(result))
+    // notificationCol.find(pipeline)
+    //     .skip(15)
+    //     .limit(15)
+    //     .sort({'createdAt' : -1}).toArray(function (err, result) {
+    //     if (err) throw err;
+    //     res.send(result)
+    //
+    // });
 
-    res.send('haha')
 });
-
-
 
 
 function getMongoDB(collection, pipeline = []) {
@@ -3684,6 +3682,7 @@ app.get('/initStore', function (req, res) {
 function startList() {
     console.log('startList')
 
+
     actRef.on('child_added', function (snap) {
         var key = snap.key
         var card = snap.val();
@@ -3795,10 +3794,9 @@ function startList() {
 
 
         if (card.action == 'createStore') {
-            console.log('createStore', card.userId, card.id)
-            if (dataUser[card.userId] && card.data &&
-                card.data.storeId && dataStore
-            ) {
+            console.log('createStore', card.userId, card.id, card.data.storeId);
+            if (dataUser[card.userId] && card.data && card.data.storeId) {
+
                 var employerData = dataUser[card.userId]
                 var storeData = dataStore[card.data.storeId]
                 var storeId = card.data.storeId
@@ -3818,7 +3816,7 @@ function startList() {
                 var name = employerData.name || 'bạn'
                 var email = dataUser[card.userId].email
                 var userId = card.userId
-                sendVerifyEmail(email, userId, name)
+                sendVerifyEmail(employerData)
                 for (var i in dataJob) {
                     var jobData = dataJob[i]
                     if (jobData.storeId == storeId) {
@@ -3832,7 +3830,6 @@ function startList() {
                             jobRef.child(i).update({createdBy: userId})
                         }
                         if (!jobData.jobName) {
-
                             jobRef.child(i).update({jobName: CONFIG.data.job[jobData.job]})
                         }
                     }
@@ -3851,7 +3848,7 @@ function startList() {
                         sendNotiSubcribleToProfile(storeId)
                     }, 20000)
                 }
-
+                console.log('done')
                 actRef.child(key).remove()
             } else {
                 if (!dataUser[card.userId]) {
@@ -4225,19 +4222,35 @@ function startList() {
  */
 
 
-function sendVerifyEmail(email, userId) {
-    var mail = {
-        title: 'Chúc mừng ' + getLastName(dataUser[userId].name) + ' đã tham gia cộng đồng người tìm việc của Jobo',
-        body: 'Hãy hoàn thành đầy đủ thông tin hồ sơ cá nhân, và đặt lịch hẹn với Jobo để tiến hành phỏng vấn chọn nhé',
-        subtitle: '',
-        description1: 'Chào ' + getLastName(dataProfile[userId].name),
-        description2: 'Bạn hãy nhấn vào link bên dưới để xác thức email',
-        calltoaction: 'Xác thực',
-        linktoaction: CONFIG.APIURL + '/verifyemail?id=' + userId,
-        description3: 'Link: ' + CONFIG.APIURL + '/verifyemail?id=' + userId,
-        image: ''
-    };
-    sendNotification(dataUser[userId], mail, {letter: true})
+function sendVerifyEmail(userData) {
+    if (userData.type = 2) {
+        var mail = {
+            title: 'Chúc mừng ' + getLastName(userData.name) + ' đã tham gia cộng đồng người tìm việc của Jobo',
+            body: 'Hãy hoàn thành đầy đủ thông tin hồ sơ cá nhân, và đặt lịch hẹn với Jobo để tiến hành phỏng vấn chọn nhé',
+            subtitle: '',
+            description1: 'Chào ' + getLastName(userData.name),
+            description2: 'Bạn hãy nhấn vào link bên dưới để xác thức email',
+            calltoaction: 'Xác thực',
+            linktoaction: CONFIG.APIURL + '/verifyemail?id=' + userData.userId,
+            description3: 'Link: ' + CONFIG.APIURL + '/verifyemail?id=' + userData.userId,
+            image: ''
+        };
+        sendNotification(userData, mail, {letter: true})
+    } else if (userData.type = 1) {
+        var mail = {
+            title: 'Jobo | Xác thực Email',
+            body: '',
+            subtitle: '',
+            description1: 'Chào ' + getLastName(userData.name),
+            description2: 'Bạn hãy nhấn vào link bên dưới để xác thức email',
+            calltoaction: 'Xác thực',
+            linktoaction: CONFIG.APIURL + '/verifyemail?id=' + userData.userId,
+            description3: 'Link: ' + CONFIG.APIURL + '/verifyemail?id=' + userData.userId,
+            image: ''
+        };
+        sendNotification(userData, mail, {letter: true})
+    }
+
 
 }
 
@@ -5396,6 +5409,41 @@ app.post('/unsubscribe', (req, res, next) => {
             res.status(400).json({err: JSON.stringify(err), message: 'Lỗi không xác định, vui lòng thử lại sau!'})
         });
 });
+
+
+app.get('/getFbPost', function (req, res) {
+    let {p: page, poster, to, jobId, id, still_alive, schedule, sort} = req.query
+    var query = {}
+    if (poster) {
+        query.poster = poster
+    }
+    if (to) {
+        query.to = to
+    }
+    if (jobId) {
+        query.jobId = jobId
+    }
+    if (id) {
+        query.id = {$ne: null}
+    }
+    if (schedule) {
+        query.time = {$gt: new Date()}
+    } else {
+        query.time = {$lt: new Date()}
+
+    }
+    if (still_alive) {
+        query.id = {$ne: null};
+        query.still_alive = true
+
+    }
+
+    getPaginatedItemss(facebookPostCol, query, sort, page)
+        .then(posts => res.send(posts))
+        .catch(err => res.status(500).json(err));
+
+});
+
 
 // start the server
 http.createServer(app).listen(port);
