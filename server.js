@@ -2234,9 +2234,8 @@ app.get('/api/users', function (req, res) {
         ) {
             if (mylat && mylng && card.location) {
 
-                if (card.expect_distance) {
-                    distancefilter = card.expect_distance
-                }
+                if (card.expect_distance) distancefilter = card.expect_distance
+
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 if (distance < distancefilter) {
                     var obj = Object.assign({}, card, dataUser[i])
@@ -3144,14 +3143,13 @@ app.get('/view/profile', function (req, res) {
         profileData.actData.like = _.where(likeActivity, {userId: profileId, status: 0, type: 2});
         profileData.actData.liked = _.where(likeActivity, {userId: profileId, status: 0, type: 1});
         profileData.static = dataStatic[profileId]
-        if (userId) {
-            profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
-        }
+        if (userId) profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
 
 
+        
         res.send(profileData)
     } else {
-        res.send("NO_DATA")
+        res.send({err:'No data'})
 
     }
 
@@ -3234,11 +3232,12 @@ app.get('/log/activity', function (req, res) {
         return -card.likeAt
     });
     var cards = getPaginatedItems(sorded, page);
-    cards.data = _.map(cards.data, function (card) {
+    var dataAdd = _.map(cards.data, function (card) {
         card.profile = dataProfile[card.userId]
         card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId])
         return card;
     });
+    cards.data = dataAdd
 
     res.send(cards)
 });
