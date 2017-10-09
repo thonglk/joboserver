@@ -2033,7 +2033,7 @@ app.get('/api/job', function (req, res) {
                     var stat = dataStatic[job.jobId]
 
 
-                    var card = Object.assign({}, store, job);
+                    var card = Object.assign({}, store, job,stat,user);
 
                     if (userData) {
                         card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
@@ -2041,9 +2041,8 @@ app.get('/api/job', function (req, res) {
                     if (mylat && mylng && card.location) {
                         card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                     }
-                    if (card.package != 'premium') {
+                    if (card.package != 'premium')
                         card.package = 'basic'
-                    }
 
                     if ((card.job == jobfilter || !jobfilter)
                         && (card.distance < 50 || !card.distance)
