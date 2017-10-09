@@ -289,9 +289,16 @@ function sendStoretoPage(storeId) {
 
 }
 
+app.get('/PublishPost', function (req, res) {
+    let {message, accessToken} = req.query
+    var userId = ""
+    var text = {text: message}
+    PublishPost(userId, text, accessToken)
+    res.send('done')
+})
 
 function PublishPost(userId, text, accessToken) {
-    if (userId && text && accessToken) {
+    if (text && accessToken) {
         graph.post(userId + "/feed?access_token=" + accessToken,
             {
                 "message": text.text,
@@ -1996,7 +2003,8 @@ app.get('/api/job', function (req, res) {
                 }
             })
 
-        } else if (typefilter == 'marketing') {
+        }
+        else if (typefilter == 'marketing') {
 
             for (var i in dataUser) {
 
@@ -2009,7 +2017,8 @@ app.get('/api/job', function (req, res) {
                 }
             }
             resolve(joblist)
-        } else {
+        }
+        else {
             console.log('primaryJob')
             for (var i in dataJob) {
 
@@ -2024,7 +2033,7 @@ app.get('/api/job', function (req, res) {
                     var stat = dataStatic[job.jobId]
 
 
-                    var card = Object.assign({}, store, user, job, stat);
+                    var card = Object.assign({}, store, job);
 
                     if (userData) {
                         card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
@@ -2036,8 +2045,7 @@ app.get('/api/job', function (req, res) {
                         card.package = 'basic'
                     }
 
-                    if (
-                        (card.job == jobfilter || !jobfilter)
+                    if ((card.job == jobfilter || !jobfilter)
                         && (card.distance < 50 || !card.distance)
                         && (card.working_type == working_typefilter || !working_typefilter )
                         && (card.industry == industryfilter || !industryfilter)
@@ -2295,7 +2303,6 @@ app.get('/on/profile', function (req, res) {
     } else {
         res.send({err: 'No Data'})
     }
-
 });
 
 app.get('/on/job', function (req, res) {
@@ -2426,7 +2433,7 @@ app.post('/update/user', function (req, res) {
         res.send({code: 'success', id: userId})
 
     }
-    if(storeId){
+    if (storeId) {
         if (store) {
             if (dataStore[storeId]) {
                 //update
@@ -3148,10 +3155,9 @@ app.get('/view/profile', function (req, res) {
         if (userId) profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
 
 
-        
         res.send(profileData)
     } else {
-        res.send({err:'No data'})
+        res.send({err: 'No data'})
 
     }
 
