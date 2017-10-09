@@ -107,7 +107,6 @@ MongoClient.connect(uri, function (err, db) {
 });
 
 
-var adminEmailList = []
 var db = joboTest.database();
 var db2 = joboPxl.database();
 var auth = firebase.auth()
@@ -140,11 +139,7 @@ var groupRef = db.ref('groupData');
 var groupData, groupArray;
 
 
-var mailTransport = nodemailer.createTransport(ses({
-    accessKeyId: 'AKIAJHPP64MDOXMXAZRQ',
-    secretAccessKey: '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',
-    region: 'us-east-1'
-}));
+
 
 app.use(cors());
 
@@ -156,49 +151,7 @@ app.use(function (req, res, next) {
 });
 
 
-var pxlConfig = require('./pxl/pxl-config');
-
-joboPxl.database().ref('notification').on("child_changed", function (snapshot) {
-    var changedPost = snapshot.val();
-    console.log("The updated post title is " + changedPost.notiId);
-    if (changedPost.mail_open) {
-        notificationRef.child(changedPost.notiId).update({mail_open: changedPost.mail_open})
-    }
-});
-
-// PXL initialize
-var pxl = new Pxl({
-    persistenceLayer: new FirebasePersistenceLayer({db: joboPxl.database()}),
-    queryParam: 'noti',
-    queryUser: 'user',
-    logPxlFailed(err, pxlCode, url) {
-        console.log({pxlCode, url, err});
-    }
-});
-app.use(pxl.trackPxl);
-app.get('/link/:linkId', pxl.redirect);
-
 // PXL FOR Emails initialize
-var pxlForEmails = new JoboPxlForEmails({
-    pxl,
-    openTracking: {
-        shouldApply(link) {
-            return {
-                shorten: !link.startsWith(pxlConfig.host)
-            }
-        }
-    },
-    clickTracking: {
-        shouldApply(link) {
-            return {
-                shorten: !link.startsWith(pxlConfig.host)
-            }
-        }
-    },
-    getFullShortenedLink(linkId) {
-        return `${pxlConfig.host}/link/${ linkId }`
-    }
-});
 
 app.get('/sendNotification', function (req, res) {
 
@@ -365,10 +318,14 @@ function init() {
 
         for (var i in CONFIG.facebookAccount) {
             var facebook = CONFIG.facebookAccount[i]
-            if (!facebookUser[facebook.area]) {
-                facebookUser[facebook.area] = []
+
+            if(facebook.area){
+                if (!facebookUser[facebook.area]) {
+                    facebookUser[facebook.area] = []
+                }
+                facebookUser[facebook.area].push(facebook.key);
+
             }
-            facebookUser[facebook.area].push(facebook.key);
             facebookUser.vn.push(facebook.key)
         }
         console.log(facebookUser)
