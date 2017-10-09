@@ -2232,7 +2232,7 @@ app.get('/api/users', function (req, res) {
             && (card.figure || !figurefilter)
             && (card.adminNote || !adminNotefilter)
         ) {
-            if (mylat && mylng) {
+            if (mylat && mylng && card.location) {
 
                 if (card.expect_distance) {
                     distancefilter = card.expect_distance

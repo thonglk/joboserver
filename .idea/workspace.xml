@@ -50,8 +50,8 @@
       <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="214">
-              <caret line="299" column="19" lean-forward="true" selection-start-line="299" selection-start-column="19" selection-end-line="299" selection-end-column="19" />
+            <state relative-caret-position="4060">
+              <caret line="2042" column="21" lean-forward="true" selection-start-line="2042" selection-start-column="21" selection-end-line="2042" selection-end-column="21" />
               <folding>
                 <element signature="e#6235#6403#0" expanded="false" />
                 <element signature="e#9682#10190#0" expanded="false" />
@@ -65,13 +65,13 @@
                 <element signature="e#60551#60609#0" expanded="false" />
                 <element signature="e#60668#60837#0" expanded="false" />
                 <element signature="e#60925#61325#0" expanded="false" />
-                <element signature="e#72376#73857#0" expanded="false" />
-                <element signature="e#73879#73986#0" expanded="false" />
+                <element signature="e#72374#73855#0" expanded="false" />
+                <element signature="e#73877#73984#0" expanded="false" />
                 <element signature="n#!!block;n#latinese#0" expanded="false" />
                 <element signature="n#!!block;n#keygen#0" expanded="false" />
                 <element signature="n#!!block;n#createKey#0" expanded="false" />
-                <element signature="e#94235#96506#0" expanded="false" />
-                <element signature="e#97625#98549#0" expanded="false" />
+                <element signature="e#94233#96504#0" expanded="false" />
+                <element signature="e#97623#98547#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -140,7 +140,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>notificationR</find>
       <find>sendEmail</find>
       <find>notifica</find>
       <find>notificationC</find>
@@ -170,6 +169,7 @@
       <find>update/user</find>
       <find>data</find>
       <find>console</find>
+      <find>api/user</find>
     </findStrings>
     <replaceStrings>
       <replace>Col</replace>
@@ -503,12 +503,12 @@
       <workItem from="1506321871617" duration="24689000" />
       <workItem from="1506595542810" duration="47604000" />
       <workItem from="1507219639553" duration="10410000" />
-      <workItem from="1507280246986" duration="34879000" />
+      <workItem from="1507280246986" duration="35237000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1486458000" />
+    <option name="totallyTimeSpent" value="1486816000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1280" height="800" extended-state="0" />
@@ -565,14 +565,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/server.js</url>
-          <line>1968</line>
-          <properties />
-          <option name="timeStamp" value="41" />
-        </line-breakpoint>
-      </breakpoints>
       <option name="time" value="43" />
     </breakpoint-manager>
     <watches-manager />
@@ -843,8 +835,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="214">
-          <caret line="299" column="19" lean-forward="true" selection-start-line="299" selection-start-column="19" selection-end-line="299" selection-end-column="19" />
+        <state relative-caret-position="4060">
+          <caret line="2042" column="21" lean-forward="true" selection-start-line="2042" selection-start-column="21" selection-end-line="2042" selection-end-column="21" />
           <folding>
             <element signature="e#6235#6403#0" expanded="false" />
             <element signature="e#9682#10190#0" expanded="false" />
@@ -858,13 +850,13 @@
             <element signature="e#60551#60609#0" expanded="false" />
             <element signature="e#60668#60837#0" expanded="false" />
             <element signature="e#60925#61325#0" expanded="false" />
-            <element signature="e#72376#73857#0" expanded="false" />
-            <element signature="e#73879#73986#0" expanded="false" />
+            <element signature="e#72374#73855#0" expanded="false" />
+            <element signature="e#73877#73984#0" expanded="false" />
             <element signature="n#!!block;n#latinese#0" expanded="false" />
             <element signature="n#!!block;n#keygen#0" expanded="false" />
             <element signature="n#!!block;n#createKey#0" expanded="false" />
-            <element signature="e#94235#96506#0" expanded="false" />
-            <element signature="e#97625#98549#0" expanded="false" />
+            <element signature="e#94233#96504#0" expanded="false" />
+            <element signature="e#97623#98547#0" expanded="false" />
           </folding>
         </state>
       </provider>
