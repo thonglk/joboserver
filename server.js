@@ -2289,7 +2289,9 @@ app.get('/on/user', function (req, res) {
 app.get('/on/profile', function (req, res) {
     var userId = req.param('userId');
     if (dataProfile[userId]) {
-        res.send(dataProfile[userId])
+        var userData = dataProfile[userId]
+        userData.userInfo = dataUser[userId]
+        res.send(userData)
     } else {
         res.send({err: 'No Data'})
     }
