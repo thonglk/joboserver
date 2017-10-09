@@ -2045,7 +2045,6 @@ app.get('/api/job', function (req, res) {
                         && (card.package == typefilter || !typefilter)
                     ) {
 
-
                         joblist.push(card)
 
                     }
@@ -2240,8 +2239,8 @@ app.get('/api/users', function (req, res) {
                 }
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 if (distance < distancefilter) {
-                    card.distance = distance;
                     var obj = Object.assign({}, card, dataUser[i])
+                    obj.distance = distance;
                     usercard.push(obj)
                 }
             } else {
