@@ -10,6 +10,7 @@ var http = require('http')
 var https = require('https')
 var request = require('request');
 var axios = require('axios');
+var circular = require('circular');
 
 var S = require('string');
 
@@ -1340,9 +1341,10 @@ app.get('/group', function (req, res) {
 app.post('/like', function (req, res, next) {
     let likeData = req.body
     console.log(likeData)
-    likeActivityRef.child(likeData.actId).update(likeData).then(function (result) {
-        res.send(result)
-    }).catch(err => res.send(err))
+    likeActivityRef.child(likeData.actId)
+        .update(likeData)
+        .then(result => res.send(result))
+        .catch(err => res.send(err))
 })
 
 app.get('/api/lead', (req, res) => {
@@ -2013,7 +2015,6 @@ app.get('/api/job', function (req, res) {
                 }
             }
             resolve(joblist)
-
         }
 
     }).then(function (joblist) {
@@ -2035,7 +2036,7 @@ app.get('/api/job', function (req, res) {
 
             var sendData = getPaginatedItems(sorded, page)
             sendData.newfilter = newfilter
-            res.send(sendData)
+            res.send(JSON.stringify(sendData, circular()))
         }
     )
 
@@ -2878,7 +2879,6 @@ function createKey(fullname) {
 }
 
 
-
 app.post('/update/log', function (req, res) {
         var userId = req.param('userId')
         var key = req.param('key')
@@ -2964,12 +2964,11 @@ app.get('/initData', function (req, res) {
     if (dataUser[userId]) {
 
         user.userData = dataUser[userId]
-        // user.notification = dataNoti[userId]
+
         if (dataUser[userId].type == 1 && dataUser[userId].currentStore) {
             var storeId = dataUser[userId].currentStore
             user.storeData = dataStore[storeId]
             user.storeList = _.where(dataStore, {createdBy: userId});
-            user.onlineList = _.where(dataProfile, {'presence/status': 'online'})
             user.reactList = {}
             user.reactList.match = _.where(likeActivity, {storeId: storeId, status: 1});
             user.reactList.like = _.where(likeActivity, {storeId: storeId, status: 0, type: 1});
@@ -2977,25 +2976,18 @@ app.get('/initData', function (req, res) {
         }
         if (dataUser[userId].type == 2) {
             if (dataProfile[userId]) {
-                user.userData = Object.assign({},dataProfile[userId], dataUser[userId]);
+                user.userData = Object.assign({}, dataProfile[userId], dataUser[userId]);
 
             }
-            user.onlineList = _.where(dataStore, {'presence/status': 'online'})
             user.reactList = {}
             user.reactList.match = _.where(likeActivity, {userId: userId, status: 1});
             user.reactList.like = _.where(likeActivity, {userId: userId, status: 0, type: 2});
             user.reactList.liked = _.where(likeActivity, {userId: userId, status: 0, type: 1});
         }
 
-        return new Promise(function (resolve, reject) {
-            resolve(user)
-        }).then(function (user) {
-
-                res.send(user)
-            }
-        )
+        res.send(JSON.stringify(user,circular()))
     } else {
-        res.send({err:'Kiểm tra lại thông tin tài khoản'})
+        res.send({err: 'Kiểm tra lại thông tin tài khoản'})
     }
 });
 
@@ -3003,7 +2995,7 @@ app.get('/view/profile', function (req, res) {
     var userId = req.param('userId')
     var profileId = req.param('profileId')
     if (dataProfile[profileId]) {
-        var profileData = Object.assign({},dataProfile[profileId])
+        var profileData = Object.assign({}, dataProfile[profileId])
         profileData.userInfo = dataUser[profileId]
         profileData.actData = {}
         profileData.actData.match = _.where(likeActivity, {userId: profileId, status: 1});
@@ -3012,8 +3004,7 @@ app.get('/view/profile', function (req, res) {
         profileData.static = dataStatic[profileId]
         if (userId) profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
 
-
-        res.send(profileData)
+        res.send(JSON.stringify(profileData,circular()))
     } else {
         res.send({err: 'No data'})
 
@@ -3071,11 +3062,11 @@ app.get('/view/store', function (req, res) {
         if (jobId) {
             storeData.currentJobData = dataJob[jobId]
         }
-        res.send(storeData)
 
+        res.send(JSON.stringify(storeData,circular()))
     } else if (datagoogleJob[storeId]) {
         var storeData = datagoogleJob[storeId]
-        res.send(storeData)
+        res.send(JSON.stringify(storeData,circular()))
     } else {
         res.send({code: 'error'})
     }
@@ -3083,18 +3074,20 @@ app.get('/view/store', function (req, res) {
 
 app.get('/log/activity', function (req, res) {
     var page = req.param('page') || 1
-    var dataLike = Object.assign({},likeActivity);
+    var dataLike = Object.assign({}, likeActivity);
     var sorded = _.sortBy(dataLike, function (card) {
         return -card.likeAt
     });
     var dataAdd = _.map(sorded, function (card) {
-        card.profile = Object.assign({},dataProfile[card.userId]);
-        card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId]);
+        var profileData = Object.assign({}, dataProfile[card.userId])
+        card.profile = profileData
+        var jobData = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId]);
+        card.job = jobData
         return card;
     });
     var cards = getPaginatedItems(dataAdd, page);
 
-    res.status(200).json(JSON.stringify(cards))
+    res.send(JSON.stringify(cards, circular()))
 });
 
 app.get('/log/profile', function (req, res) {
@@ -3284,7 +3277,6 @@ app.get('/config', function (req, res) {
 app.get('/lang', function (req, res) {
     res.send(Lang)
 })
-
 
 
 function getPaginatedItems(items, page) {
@@ -3619,7 +3611,7 @@ function startList() {
             console.log(card)
             if (dataProfile && card.userId && dataProfile[card.userId]) {
 
-                var userData = Object.assign({},dataProfile[card.userId])
+                var userData = Object.assign({}, dataProfile[card.userId])
                 var name = userData.name || 'bạn';
                 var userId = card.userId
                 staticRef.child(card.userId).update(staticData);
@@ -3780,7 +3772,7 @@ function startList() {
         if (card.action == 'updateProfile') {
             if (dataProfile[card.userId]) {
                 staticRef.child(card.userId).update({profile: checkProfilePoint(card.userId)})
-                var userData = Object.assign({},dataProfile[card.userId])
+                var userData = Object.assign({}, dataProfile[card.userId])
                 if (userData.expect_salary) {
                     if (userData.expect_salary > 10) {
                         var res = userData.expect_salary.toString().charAt(0);
@@ -4184,7 +4176,7 @@ function sendWelcomeEmailToStore(storeId, userId) {
     var maxsent = 21
 
     for (var i in dataProfile) {
-        var card = Object.assign({},dataProfile[i]) ;
+        var card = Object.assign({}, dataProfile[i]);
         if (card.location
             && card.avatar
             && card.name
@@ -4324,7 +4316,7 @@ function sendNotiNewJobSubcribleToProfile(jobId) {
         var storeData = dataStore[storeId]
         if (storeData.storeName && storeData.location) {
             for (var i in dataProfile) {
-                var card = Object.assign({},dataProfile[i]);
+                var card = Object.assign({}, dataProfile[i]);
                 if (card.location && card.job && card.job[job]) {
                     var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
                     if (dis <= 20) {
@@ -4599,7 +4591,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
                 } else if (userData.type == 2) {
                     if (dataProfile && dataProfile[i] && dataProfile[i].location) {
-                        var profileData = Object.assign({},dataProfile[i])
+                        var profileData = Object.assign({}, dataProfile[i])
                         var disToHn = getDistanceFromLatLonInKm(profileData.location.lat, profileData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
                         if (disToHn < 100) {
                             jobseeker.hn++
