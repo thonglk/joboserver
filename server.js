@@ -3190,13 +3190,12 @@ app.get('/log/activity', function (req, res) {
     var sorded = _.sortBy(likeActivity, function (card) {
         return -card.likeAt
     });
-    var cards = getPaginatedItems(sorded, page);
-    var dataAdd = _.map(cards.data, function (card) {
+    var dataAdd = _.map(sorded, function (card) {
         card.profile = dataProfile[card.userId]
         card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId])
         return card;
     });
-    cards.data = dataAdd
+    var cards = getPaginatedItems(dataAdd, page);
 
     res.send(cards)
 });
