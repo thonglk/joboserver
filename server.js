@@ -2995,8 +2995,7 @@ app.get('/initData', function (req, res) {
             }
         )
     } else {
-        res.send('NO_DATA')
-
+        res.send({err:'Kiểm tra lại thông tin tài khoản'})
     }
 });
 
