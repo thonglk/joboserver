@@ -900,10 +900,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
 }
 
 app.get('/check', function (req, res) {
-    // checkJob().then(checkStore().then(checkProfile().then(checkUser().then(()=>res.send('done')))))
-    checkProfile().then(function (result) {
-        res.send(result)
-    })
+    checkStore().then(result => res.send(result))
 })
 
 function checkJob() {
@@ -1984,10 +1981,9 @@ app.get('/api/job', function (req, res) {
                 }
                 if (dataStore[job.storeId] && dataStore[job.storeId].storeName) {
 
-                    var store = dataStore[job.storeId]
-                    var user = dataUser[store.createdBy]
-                    var stat = dataStatic[job.jobId]
-
+                    var store = dataStore[job.storeId];
+                    var user = dataUser[store.createdBy];
+                    var stat = dataStatic[job.jobId];
 
                     var card = Object.assign({}, store, job,user);
 
