@@ -3104,18 +3104,18 @@ app.get('/view/store', function (req, res) {
 
 app.get('/log/activity', function (req, res) {
     var page = req.param('page') || 1
-    var dataLike = Object.assign({},likeActivity)
+    var dataLike = Object.assign({},likeActivity);
     var sorded = _.sortBy(dataLike, function (card) {
         return -card.likeAt
     });
     var dataAdd = _.map(sorded, function (card) {
-        card.profile = Object.assign({},dataProfile[card.userId])
-        card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId])
+        card.profile = Object.assign({},dataProfile[card.userId]);
+        card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId]);
         return card;
     });
     var cards = getPaginatedItems(dataAdd, page);
 
-    res.send(cards)
+    res.status(200).json(cards)
 });
 
 app.get('/log/profile', function (req, res) {
