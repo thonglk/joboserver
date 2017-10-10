@@ -139,8 +139,6 @@ var groupRef = db.ref('groupData');
 var groupData, groupArray;
 
 
-
-
 app.use(cors());
 
 app.use(imgNocache());
@@ -319,7 +317,7 @@ function init() {
         for (var i in CONFIG.facebookAccount) {
             var facebook = CONFIG.facebookAccount[i]
 
-            if(facebook.area){
+            if (facebook.area) {
                 if (!facebookUser[facebook.area]) {
                     facebookUser[facebook.area] = []
                 }
@@ -1985,7 +1983,7 @@ app.get('/api/job', function (req, res) {
                     var user = dataUser[store.createdBy];
                     var stat = dataStatic[job.jobId];
 
-                    var card = Object.assign({}, store, job,user);
+                    var card = Object.assign({}, store, job, user);
 
                     if (userData) {
                         card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
@@ -2248,7 +2246,7 @@ app.get('/on/user', function (req, res) {
 app.get('/on/profile', function (req, res) {
     var userId = req.param('userId');
     if (dataProfile[userId]) {
-        var userData = dataProfile[userId]
+        var userData = Object.assign({}, dataProfile[userId])
         userData.userInfo = dataUser[userId]
         res.send(userData)
     } else {
@@ -2895,81 +2893,6 @@ function createKey(fullname) {
 }
 
 
-app.get('/sendFirstEmail', function (req, res) {
-    var mailStr = req.param('mail')
-    var mail = JSON.parse(mailStr)
-
-    var profile = []
-
-    if (mail.profileList) {
-        var countsend = 0
-        var maxsent = 21
-
-        for (var i in dataProfile) {
-            var card = dataProfile[i];
-            if (card.location
-                && card.avatar
-                && card.name
-                && ((card.job && card.job[mail.job]) || (!mail.job && card.feature == true))
-            ) {
-                if (mail.location) {
-                    var mylat = mail.location.lat;
-                    var mylng = mail.location.lng;
-                    var yourlat = card.location.lat;
-                    var yourlng = card.location.lng;
-                    var dis = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng)
-                }
-
-                var stringJob = getStringJob(card.job)
-                if (
-                    (dis < 20 || !dis)
-                ) {
-
-                    profile.push({
-                        title: card.name,
-                        image: card.avatar,
-                        body: stringJob + ' cách ' + dis + ' km',
-                        linktoaction: CONFIG.WEBURL + '/view/profile/' + card.userId,
-                        calltoaction: 'Tuyển'
-                    })
-                    countsend++;
-                }
-                if (countsend == maxsent) {
-                    break
-                }
-            }
-
-        }
-
-    }
-
-    return new Promise(function (resolve, reject) {
-        resolve(profile)
-    }).then(function (profile) {
-        mail.data = profile
-        console.log(mail)
-        sendNotification({email: mail.to, userId: mail.storeId}, mail).then(function (result) {
-            console.log('sendNotification', result)
-            if (result.code == 'success') {
-                leadCol.updateOne(
-                    {"storeId": mail.storeId},
-                    {$set: {"firstEmail_mail_sent": Date.now()}}
-                ).then(function (data) {
-                    res.send({code: 'success'})
-                }).catch(function (err) {
-                    res.send({code: 'error', err})
-
-                })
-
-            }
-        }).catch(function (err) {
-            res.send({code: 'error', err})
-        })
-
-    })
-
-})
-;
 
 app.post('/update/log', function (req, res) {
         var userId = req.param('userId')
@@ -3069,7 +2992,7 @@ app.get('/initData', function (req, res) {
         }
         if (dataUser[userId].type == 2) {
             if (dataProfile[userId]) {
-                user.userData = Object.assign(dataProfile[userId], dataUser[userId]);
+                user.userData = Object.assign({},dataProfile[userId], dataUser[userId]);
 
             }
             user.onlineList = _.where(dataStore, {'presence/status': 'online'})
@@ -3096,7 +3019,7 @@ app.get('/view/profile', function (req, res) {
     var userId = req.param('userId')
     var profileId = req.param('profileId')
     if (dataProfile[profileId]) {
-        var profileData = dataProfile[profileId]
+        var profileData = Object.assign({},dataProfile[profileId])
         profileData.userInfo = dataUser[profileId]
         profileData.actData = {}
         profileData.actData.match = _.where(likeActivity, {userId: profileId, status: 1});
@@ -3174,16 +3097,6 @@ app.get('/view/store', function (req, res) {
     }
 });
 
-app.get('/api/profile', function (req, res) {
-    var userId = req.param('id');
-    var infoUserData = dataUser[userId] || {};
-    var profileData = dataProfile[userId];
-    console.log(infoUserData, profileData)
-
-    var userData = Object.assign(infoUserData, profileData);
-    res.send(userData);
-
-});
 
 app.get('/log/activity', function (req, res) {
     var page = req.param('page') || 1
@@ -3191,7 +3104,7 @@ app.get('/log/activity', function (req, res) {
         return -card.likeAt
     });
     var dataAdd = _.map(sorded, function (card) {
-        card.profile = dataProfile[card.userId]
+        card.profile = Object.assign({},dataProfile[card.userId])
         card.job = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId])
         return card;
     });
@@ -3291,7 +3204,6 @@ app.get('/query', function (req, res) {
             if ((dataProfile[i].name && S(dataProfile[i].name.toLowerCase()).latinise().s.match(qr) && b < 6)
                 || (dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr))
                 || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr))
-
             ) {
                 b++
                 result.profile.push(dataProfile[i])
@@ -3389,13 +3301,7 @@ app.get('/lang', function (req, res) {
     res.send(Lang)
 })
 
-function getNameById(id) {
-    if (dataProfile[id]) {
-        return dataProfile[id].name
-    } else if (dataUser[id] && dataStore[dataUser[id].currentStore]) {
-        return dataStore[dataUser[id].currentStore].storeName
-    }
-}
+
 
 function getPaginatedItems(items, page) {
     var page = page || 1,
@@ -3729,7 +3635,7 @@ function startList() {
             console.log(card)
             if (dataProfile && card.userId && dataProfile[card.userId]) {
 
-                var userData = dataProfile[card.userId]
+                var userData = Object.assign({},dataProfile[card.userId])
                 var name = userData.name || 'bạn';
                 var userId = card.userId
                 staticRef.child(card.userId).update(staticData);
@@ -3890,7 +3796,7 @@ function startList() {
         if (card.action == 'updateProfile') {
             if (dataProfile[card.userId]) {
                 staticRef.child(card.userId).update({profile: checkProfilePoint(card.userId)})
-                var userData = dataProfile[card.userId]
+                var userData = Object.assign({},dataProfile[card.userId])
                 if (userData.expect_salary) {
                     if (userData.expect_salary > 10) {
                         var res = userData.expect_salary.toString().charAt(0);
@@ -4294,7 +4200,7 @@ function sendWelcomeEmailToStore(storeId, userId) {
     var maxsent = 21
 
     for (var i in dataProfile) {
-        var card = dataProfile[i];
+        var card = Object.assign({},dataProfile[i]) ;
         if (card.location
             && card.avatar
             && card.name
@@ -4434,7 +4340,7 @@ function sendNotiNewJobSubcribleToProfile(jobId) {
         var storeData = dataStore[storeId]
         if (storeData.storeName && storeData.location) {
             for (var i in dataProfile) {
-                var card = dataProfile[i];
+                var card = Object.assign({},dataProfile[i]);
                 if (card.location && card.job && card.job[job]) {
                     var dis = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, card.location.lat, card.location.lng);
                     if (dis <= 20) {
@@ -4709,7 +4615,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
                 } else if (userData.type == 2) {
                     if (dataProfile && dataProfile[i] && dataProfile[i].location) {
-                        var profileData = dataProfile[i]
+                        var profileData = Object.assign({},dataProfile[i])
                         var disToHn = getDistanceFromLatLonInKm(profileData.location.lat, profileData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
                         if (disToHn < 100) {
                             jobseeker.hn++
