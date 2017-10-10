@@ -1868,8 +1868,8 @@ app.get('/dash/job', function (req, res) {
 
 app.get('/api/job', function (req, res) {
 
-    var newfilter = req.query
-    console.log(newfilter)
+    var newfilter = req.query;
+    console.log(newfilter);
 
     var typefilter = newfilter.type
     var userId = newfilter.userId
@@ -1961,7 +1961,6 @@ app.get('/api/job', function (req, res) {
 
         }
         else if (typefilter == 'marketing') {
-
             for (var i in dataUser) {
 
                 var user = dataUser[i]
@@ -1973,7 +1972,8 @@ app.get('/api/job', function (req, res) {
                 }
             }
             resolve(joblist)
-        } else {
+        }
+        else {
             console.log('primaryJob')
             for (var i in dataJob) {
 
@@ -3094,7 +3094,7 @@ app.get('/log/activity', function (req, res) {
     });
     var cards = getPaginatedItems(dataAdd, page);
 
-    res.status(200).json(cards)
+    res.status(200).json(JSON.stringify(cards))
 });
 
 app.get('/log/profile', function (req, res) {
