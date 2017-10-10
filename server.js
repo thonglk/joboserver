@@ -3060,7 +3060,7 @@ app.get('/view/store', function (req, res) {
             }
         }
         if (jobId) {
-            storeData.currentJobData = dataJob[jobId]
+            storeData.currentJobData = Object.assign({},dataJob[jobId])
         }
 
         res.send(JSON.stringify(storeData,circular()))
