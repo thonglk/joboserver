@@ -139,8 +139,6 @@ var groupRef = db.ref('groupData');
 var groupData, groupArray;
 
 
-
-
 app.use(cors());
 
 app.use(imgNocache());
@@ -319,7 +317,7 @@ function init() {
         for (var i in CONFIG.facebookAccount) {
             var facebook = CONFIG.facebookAccount[i]
 
-            if(facebook.area){
+            if (facebook.area) {
                 if (!facebookUser[facebook.area]) {
                     facebookUser[facebook.area] = []
                 }
@@ -1974,8 +1972,7 @@ app.get('/api/job', function (req, res) {
                 }
             }
             resolve(joblist)
-        }
-        else {
+        } else {
             console.log('primaryJob')
             for (var i in dataJob) {
 
@@ -1990,8 +1987,9 @@ app.get('/api/job', function (req, res) {
                     var stat = dataStatic[job.jobId]
 
 
-                    var card = Object.assign({}, store, job,stat,user);
-
+                    var card = Object.assign({}, store, job);
+                    card.stat = stat;
+                    card.userInfo = user
                     if (userData) {
                         card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
                     }
