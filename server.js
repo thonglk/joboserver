@@ -3104,7 +3104,8 @@ app.get('/view/store', function (req, res) {
 
 app.get('/log/activity', function (req, res) {
     var page = req.param('page') || 1
-    var sorded = _.sortBy(likeActivity, function (card) {
+    var dataLike = Object.assign({},likeActivity)
+    var sorded = _.sortBy(dataLike, function (card) {
         return -card.likeAt
     });
     var dataAdd = _.map(sorded, function (card) {
