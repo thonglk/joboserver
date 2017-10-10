@@ -898,7 +898,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
 }
 
 app.get('/check', function (req, res) {
-    checkStore().then(result => res.send(result))
+    checkProfile().then(result => res.send(result))
 })
 
 function checkJob() {
@@ -1086,6 +1086,10 @@ function checkProfile() {
                 if (profile.presence) {
                     console.log('profile.presence remove', i)
                     delete profile.presence
+                }
+                if (profile.err) {
+                    console.log('profile.err remove', i)
+                    delete profile.err
                 }
 
 
