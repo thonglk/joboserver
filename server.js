@@ -1998,7 +1998,8 @@ app.get('/api/job', function (req, res) {
                     if (card.package != 'premium')
                         card.package = 'basic'
 
-                    if ((card.job == jobfilter || !jobfilter)
+                    if (
+                        (card.job == jobfilter || !jobfilter)
                         && (card.distance < 50 || !card.distance)
                         && (card.working_type == working_typefilter || !working_typefilter )
                         && (card.industry == industryfilter || !industryfilter)
@@ -2040,26 +2041,6 @@ app.get('/api/job', function (req, res) {
 
 });
 
-app.post('/addAdminNote', function (req, res) {
-    var data = req.body
-    var note = data.note
-    if (data.type == 'lead') {
-        leadCol.updateOne(
-            {"storeId": data.id},
-            {
-                $push: {
-                    "adminNote": note
-                }
-            }
-        ).then(function (data) {
-            res.send({code: 'success'})
-        }).catch(function (err) {
-            res.send({code: 'error', err})
-
-        })
-    }
-
-})
 app.get('/api/employer', function (req, res) {
     var userId = req.param('userId')
     var jobfilter = req.param('job');
@@ -3100,7 +3081,6 @@ app.get('/view/store', function (req, res) {
         res.send({code: 'error'})
     }
 });
-
 
 app.get('/log/activity', function (req, res) {
     var page = req.param('page') || 1
