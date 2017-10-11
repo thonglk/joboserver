@@ -563,8 +563,8 @@ function getShortPremiumJob(ref) {
 }
 
 app.get('/PremiumJob', function (req, res) {
-    let {where, type} = req.query
-    res.send(createListPremiumJob(where, type))
+    let {where, type,job,industry,postId} = req.query
+    res.send(createListPremiumJob(where, type,job,industry, postId))
 });
 app.get('/googleJob', function (req, res) {
     var list = []
@@ -579,7 +579,7 @@ app.get('/googleJob', function (req, res) {
     res.send(send)
 });
 
-function createListPremiumJob(where, type) {
+function createListPremiumJob(where, type,job,industry, postId) {
     var jobHN = "";
     var jobHNArray = []
     var jobHCM = "";
@@ -591,32 +591,44 @@ function createListPremiumJob(where, type) {
         return -card.createdAt
     })
     for (var i in jobs) {
-        var job = jobs[i];
-        if (job.createdBy && job.storeId
-            && dataUser[job.createdBy]
-            && dataUser[job.createdBy].package == 'premium'
-            && dataStore[job.storeId]
-            && job.deadline > Date.now()
+        var jobData = Object.assign({}, jobs[i]);
+        if (jobData.createdBy
+            && jobData.storeId
+            && dataUser[jobData.createdBy]
+            && dataUser[jobData.createdBy].package == 'premium'
+
+            && dataStore[jobData.storeId]
+            && jobData.deadline > Date.now()
+
+            && (jobData.job == job || !job)
+            && (jobData.industry == industry || !industry)
         ) {
-            var storeData = dataStore[job.storeId]
-            var jobString = '◆ ' + job.jobName + ' | ' + storeData.storeName + ' | ' + shortAddress(job.address) + ' | ' + new Date(job.createdAt) + ' | ' + job.jobId + ' \n';
+            var storeData = dataStore[jobData.storeId]
+            jobData = Object.assign(jobData, storeData)
+
             var jobArray = {
-                storeId: job.storeId,
-                jobId: job.jobId,
-                jobName: job.jobName,
-                storeName: dataStore[job.storeId].storeName
-            }
+                storeId: jobData.storeId,
+                jobId: jobData.jobId,
+                jobName: jobData.jobName,
+                storeName: jobData.storeName
+            };
+
+            var jobString = '◆ ' + jobData.jobName + ' | ' + jobData.storeName + ' | ' + shortAddress(jobData.address)
+
+            if (postId) jobString = jobString + ' | ' + addTrackingEmail(postId, CONFIG.WEBURL + '/view/store/' + jobData.storeId + '?job=' + jobData.jobId + '#ref=' + postId, 'c', 'f', jobData.jobId);
+            else jobString = jobString + ' | ' + jobData.jobId
+
             var disToHN = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.hn.lat, CONFIG.address.hn.lng)
             var disToSG = getDistanceFromLatLonInKm(storeData.location.lat, storeData.location.lng, CONFIG.address.sg.lat, CONFIG.address.sg.lng)
             if (disToHN < 100) {
-                jobHN = jobHN + jobString + ' \n'
+                jobHN = jobHN + jobString + ' \n';
                 jobHNArray.push(jobArray)
             } else if (disToSG < 100) {
-                jobHCM = jobHCM + jobString + ' \n'
+                jobHCM = jobHCM + jobString + ' \n';
                 jobHCMArray.push(jobArray)
 
             }
-            jobAll = jobAll + jobString + '\n'
+            jobAll = jobAll + jobString + '\n';
             jobAllArray.push(jobArray)
         }
     }
@@ -643,12 +655,34 @@ function createListPremiumJob(where, type) {
 app.get('/createListGoogleJob', function (req, res) {
     res.send(createListGoogleJob())
 })
+
+
 app.get('/scheduleJobPushEveryday', function (req, res) {
     res.send(scheduleJobPushEveryday())
 })
 schedule.scheduleJob({hour: 11, minute: 48}, function () {
     scheduleJobPushEveryday()
 })
+var stringWhere = {
+    hn: 'Hà Nội',
+    hcm:'Sài Gòn'
+}
+
+function scheduleJob_ListJob(where,job,industry) {
+
+
+
+    for(var i in groupData){
+        var group  = groupData[i]
+
+        var text = `Danh sách việc làm `
+        if(job) text = text +  `${Lang[job]}`
+        if(industry) text = text + ` trong ${Lang[industry]}`
+        if(where && stringWhere[where]) text = text+ ` tại ${stringWhere[where]}`
+        text = text+ `\n 
+        ${createListPremiumJob(where,null,job,industry,postId)} `
+    }
+}
 
 function scheduleJobPushEveryday() {
     var jobArr = createListPremiumJob(null, 'array')
@@ -755,7 +789,8 @@ function addTrackingEmail(notiId, url, t = 'o', p = 'l', i = '') {
         var trackUrl = ''
         var platform = configP[p]
         var type = configT[t]
-        joboPxl.database().ref('/links/' + notiId + p + t + i)
+        var id = notiId + ':' + p + ':' + t + ':' + i
+        joboPxl.database().ref('/links/' + id)
             .update({
                 url,
                 linkId: notiId,
@@ -763,9 +798,9 @@ function addTrackingEmail(notiId, url, t = 'o', p = 'l', i = '') {
                 type
             })
         if (t == 'o') {
-            trackUrl = CONFIG.AnaURL + '/l/' + notiId + p + t + i
+            trackUrl = CONFIG.AnaURL + '/l/' + id
         } else {
-            trackUrl = CONFIG.WEBURL + '/link/' + notiId + p + t + i
+            trackUrl = CONFIG.WEBURL + '/link/' + id
         }
         console.log('url', trackUrl)
         return trackUrl
