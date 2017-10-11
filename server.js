@@ -318,14 +318,24 @@ function init() {
         for (var i in CONFIG.facebookAccount) {
             var facebook = CONFIG.facebookAccount[i]
 
-            if (facebook.area) {
-                if (!facebookUser[facebook.area]) {
-                    facebookUser[facebook.area] = []
+
+            if (facebook.block) {
+                if (!facebookUser.block) {
+                    facebookUser.block = []
                 }
-                facebookUser[facebook.area].push(facebook.key);
+                facebookUser.block.push(facebook.key);
+            } else {
+                if (facebook.area) {
+                    if (!facebookUser[facebook.area]) {
+                        facebookUser[facebook.area] = []
+                    }
+                    facebookUser[facebook.area].push(facebook.key);
+
+                }
+                facebookUser.vn.push(facebook.key)
 
             }
-            facebookUser.vn.push(facebook.key)
+
         }
         console.log(facebookUser)
 
@@ -2985,7 +2995,7 @@ app.get('/initData', function (req, res) {
             user.reactList.liked = _.where(likeActivity, {userId: userId, status: 0, type: 1});
         }
 
-        res.send(JSON.stringify(user,circular()))
+        res.send(JSON.stringify(user, circular()))
     } else {
         res.send({err: 'Kiểm tra lại thông tin tài khoản'})
     }
@@ -3004,7 +3014,7 @@ app.get('/view/profile', function (req, res) {
         profileData.static = dataStatic[profileId]
         if (userId) profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
 
-        res.send(JSON.stringify(profileData,circular()))
+        res.send(JSON.stringify(profileData, circular()))
     } else {
         res.send({err: 'No data'})
 
@@ -3060,13 +3070,13 @@ app.get('/view/store', function (req, res) {
             }
         }
         if (jobId) {
-            storeData.currentJobData = Object.assign({},dataJob[jobId])
+            storeData.currentJobData = Object.assign({}, dataJob[jobId])
         }
 
-        res.send(JSON.stringify(storeData,circular()))
+        res.send(JSON.stringify(storeData, circular()))
     } else if (datagoogleJob[storeId]) {
         var storeData = datagoogleJob[storeId]
-        res.send(JSON.stringify(storeData,circular()))
+        res.send(JSON.stringify(storeData, circular()))
     } else {
         res.send({code: 'error'})
     }
@@ -5080,7 +5090,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     time = time + 11 * 60 * 1000
                 }
 
-                var to = groupData[i].groupId
+                var to = groupData[i].groupId;
 
                 axios.post('https://joboana.herokuapp.com/newPost', {
                     postId,
@@ -5309,6 +5319,15 @@ app.get('/getFbPost', function (req, res) {
         .then(posts => res.send(posts))
         .catch(err => res.status(500).json(err));
 
+});
+app.post('/addFacebookAccount', function (req, res) {
+    let account = req.body
+    if (account.key) {
+        configRef.child('facebookAccount').child(account.key)
+            .update(account)
+            .then(result => res.send(result))
+            .catch(err => res.status(500).json({err}))
+    }
 });
 
 
