@@ -765,7 +765,7 @@ function addTrackingEmail(notiId, url, t = 'o', p = 'l', i = '') {
         if (t == 'o') {
             trackUrl = CONFIG.AnaURL + '/l/' + notiId + p + t + i
         } else {
-            trackUrl = CONFIG.WEBURL + '/l/' + notiId + p + t + i
+            trackUrl = CONFIG.WEBURL + '/link/' + notiId + p + t + i
         }
         console.log('url', trackUrl)
         return trackUrl
