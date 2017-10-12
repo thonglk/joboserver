@@ -563,8 +563,8 @@ function getShortPremiumJob(ref) {
 }
 
 app.get('/PremiumJob', function (req, res) {
-    let {where, type,job,industry,postId} = req.query
-    res.send(createListPremiumJob(where, type,job,industry, postId))
+    let {where, type, job, industry, postId} = req.query
+    res.send(createListPremiumJob(where, type, job, industry, postId))
 });
 app.get('/googleJob', function (req, res) {
     var list = []
@@ -579,7 +579,7 @@ app.get('/googleJob', function (req, res) {
     res.send(send)
 });
 
-function createListPremiumJob(where, type,job,industry, postId) {
+function createListPremiumJob(where, type, job, industry, postId) {
     var jobHN = "";
     var jobHNArray = []
     var jobHCM = "";
@@ -665,22 +665,21 @@ schedule.scheduleJob({hour: 11, minute: 48}, function () {
 })
 var stringWhere = {
     hn: 'Hà Nội',
-    hcm:'Sài Gòn'
+    hcm: 'Sài Gòn'
 }
 
-function scheduleJob_ListJob(where,job,industry) {
+function scheduleJob_ListJob(where, job, industry) {
 
 
-
-    for(var i in groupData){
-        var group  = groupData[i]
+    for (var i in groupData) {
+        var group = groupData[i]
 
         var text = `Danh sách việc làm `
-        if(job) text = text +  `${Lang[job]}`
-        if(industry) text = text + ` trong ${Lang[industry]}`
-        if(where && stringWhere[where]) text = text+ ` tại ${stringWhere[where]}`
-        text = text+ `\n 
-        ${createListPremiumJob(where,null,job,industry,postId)} `
+        if (job) text = text + `${Lang[job]}`
+        if (industry) text = text + ` trong ${Lang[industry]}`
+        if (where && stringWhere[where]) text = text + ` tại ${stringWhere[where]}`
+        text = text + `\n 
+        ${createListPremiumJob(where, null, job, industry, postId)} `
     }
 }
 
@@ -1926,6 +1925,7 @@ app.get('/api/job', function (req, res) {
     var salaryfilter = newfilter.salary
     var distancefilter = newfilter.distance
     var apply = newfilter.apply
+    var like = newfilter.like
 
     var sort = newfilter.sort
     var show = newfilter.show
@@ -1945,7 +1945,6 @@ app.get('/api/job', function (req, res) {
             var mylat = userData.location.lat;
             var mylng = userData.location.lng;
         }
-
 
         console.log('typefilter', typefilter)
         if (typefilter == 'google') {
@@ -2025,16 +2024,21 @@ app.get('/api/job', function (req, res) {
             for (var i in dataJob) {
 
                 var job = dataJob[i]
-                if (apply) {
-                    job.apply = _.where(likeActivity, {jobId: job.jobId})
-                }
                 if (dataStore[job.storeId] && dataStore[job.storeId].storeName) {
 
                     var store = dataStore[job.storeId];
                     var user = dataUser[store.createdBy];
-                    var stat = dataStatic[job.jobId];
+                    var stat = dataStatic[job.storeId];
 
-                    var card = Object.assign({}, store, job, user);
+                    var card = Object.assign({}, store, job, user, stat);
+
+                    if (sort == "apply") {
+                        card.liked = _.where(likeActivity, {storeId: card.storeId, type: 2})
+                        card.apply = card.liked.length
+                    } else if (sort == "active") {
+                        card.like = _.where(likeActivity, {storeId: card.storeId, type: 1})
+                        card.active = card.like.length
+                    }
 
                     if (userData) {
                         card.act = _.findWhere(likeActivity, {jobId: card.jobId, userId: userId})
@@ -2043,7 +2047,7 @@ app.get('/api/job', function (req, res) {
                         card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                     }
                     if (card.package != 'premium')
-                        card.package = 'basic'
+                        card.package = 'basic';
 
                     if (
                         (card.job == jobfilter || !jobfilter)
@@ -2069,7 +2073,7 @@ app.get('/api/job', function (req, res) {
                 sort = 'createdAt'
                 newfilter.sort = 'createdAt'
             }
-            if (sort == 'viewed' || sort == 'rate' || sort == 'createdAt') {
+            if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") {
                 sorded = _.sortBy(joblist, function (card) {
                     return -card[sort]
                 });
