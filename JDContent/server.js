@@ -192,7 +192,7 @@ ${salary}${hourly_wages}${experience}${sex}
 Môi trường làm việc trẻ trung và được giúp đỡ tạo điều kiện rất nhiều
 Có chế độ thưởng, lương, BHXH (nếu làm lâu dài có BHXH ,...)\n\n
 Các bạn muốn hỏi thêm liên hệ ${contact} nhé\n
-Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
+Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì bên mình tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
   return text;
 }
 
@@ -222,7 +222,7 @@ ${timeStr}${figure}${unit}
 ${salary}${hourly_wages}${experience}${sex}
 Sẽ tạo điều kiện cho sinh viên muốn đi làm kiếm thêm thu nhập vì mình biết các bạn vừa học, vừa làm rất khó xếp lịch\n\n
 Các bạn muốn hỏi thêm liên hệ ${contact} nhé\n
-Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi mình liên hệ đi làm ngay nhé vì nhà hàng tuyển gấp.\n
+Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi mình liên hệ đi làm ngay nhé vì đang tuyển gấp.\n
 Các bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
   return text;
 }
