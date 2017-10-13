@@ -1642,7 +1642,7 @@ app.get('/api/dashboard', function (req, res) {
     var dashboard = {}
     dashboard.jobseeker = _.where(dataProfile, {feature: true})
     dashboard.employer = _.where(dataStore, {feature: true})
-    res.send(dashboard)
+    res.send(JSON.stringify(dashboard,circular()))
 
 })
 // function createdUserFromCC() {
@@ -2046,8 +2046,7 @@ app.get('/api/job', function (req, res) {
                     if (mylat && mylng && card.location) {
                         card.distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                     }
-                    if (card.package != 'premium')
-                        card.package = 'basic';
+                    if (card.package != 'premium') card.package = 'basic';
 
                     if (
                         (card.job == jobfilter || !jobfilter)
@@ -2056,11 +2055,9 @@ app.get('/api/job', function (req, res) {
                         && (card.industry == industryfilter || !industryfilter)
                         && (card.salary > salaryfilter || !salaryfilter)
                         && (card.package == typefilter || !typefilter)
-                    ) {
+                    ) joblist.push(card)
 
-                        joblist.push(card)
 
-                    }
                 }
             }
             resolve(joblist)
@@ -2073,6 +2070,7 @@ app.get('/api/job', function (req, res) {
                 sort = 'createdAt'
                 newfilter.sort = 'createdAt'
             }
+
             if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") {
                 sorded = _.sortBy(joblist, function (card) {
                     return -card[sort]
@@ -5075,19 +5073,19 @@ app.get('/PostStore', function (req, res) {
     var jobId = req.param('jobId');
     var where = req.param('where');
 
-    PostStore(storeId, jobId, groupId, job, where, poster)
-    res.status(200).json({code: 'success'})
+    PostStore(storeId, jobId, groupId, job, where, poster).then(result => res.send(result))
+        .catch(err => res.status(500).json({err}))
+
 });
 
 
 function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
     return new Promise((resolve, reject) => {
-        if (!where && storeId) {
-            where = isWhere(storeId)
-        }
+
         if (jobId) {
             var Job = dataJob[jobId]
             job = Job.job
+            storeId = Job.storeId
         } else if (storeId) {
             var jobData = _.filter(dataJob, function (card) {
                 if (card.storeId == storeId && card.deadline > Date.now()) return true
@@ -5097,10 +5095,12 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 Job = jobData[0]
                 job = Job.job
                 jobId = Job.jobId
-            } else resolve(null)
+                storeId = Job.storeId
+            } else reject({err:'no job'})
         }
-        console.log(storeId, jobId, groupId, job, where, poster, time, content)
-
+        if (!where && storeId) {
+            where = isWhere(storeId)
+        }
         if (content) {
             var authenic_content = true
         } else {
@@ -5108,9 +5108,24 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         }
         if (poster) {
             var authenic_poster = true
+
+            var evens = _.filter(facebookUser['vn'], function (num) {
+                var arr = num.match(poster)
+                if(arr.length > 0) return true
+                else return false
+            });
+
+            if (evens.length > 0) {
+                poster = _.sample(evens)
+            } else {
+                reject({err:'no poster'})
+            }
+
         } else {
             authenic_poster = false
         }
+        console.log(storeId, jobId, groupId, job, where, poster, time, content)
+
         if (groupId) {
             for (var a in groupId) {
 
@@ -5142,9 +5157,8 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 })
                     .then(function (result) {
                         console.log('PostStore', postId)
-                        resolve(result)
                     })
-                    .catch(err => reject(err));
+                    .catch(err => console.log(err));
             }
         } else {
             for (var i in groupData) {
@@ -5182,14 +5196,13 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     })
                         .then(result => {
                             console.log('PostStore', postId)
-                            resolve(result)
                         })
-                        .catch(err => reject(err));
+                        .catch(err => console.log(err));
                 }
 
             }
-
         }
+        resolve({code:'success'})
 
     });
 }
