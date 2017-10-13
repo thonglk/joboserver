@@ -703,13 +703,14 @@ function scheduleJobPushEveryday() {
         linktoaction: 'https://www.messenger.com/t/979190235520989',
         image: ''
     }
-    // var time = Date.now()
-    // for (var i in dataUser) {
-    //     if (dataUser[i].admin == true) {
-    //         time = time + 5000
-    //         sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
-    //     }
-    // }
+    var time = Date.now()
+    for (var i in dataUser) {
+        if (dataUser[i].admin == true) {
+            time = time + 5000
+            sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
+        }
+    }
+    return {code:'success'}
 
 
 }
