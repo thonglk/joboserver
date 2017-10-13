@@ -5110,17 +5110,17 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         if (poster) {
             var authenic_poster = true
 
-            var evens = _.filter(facebookUser['vn'], function (num) {
-                var arr = num.match(poster)
-                if(arr.length > 0) return true
-                else return false
-            });
-
-            if (evens.length > 0) {
-                poster = _.sample(evens)
-            } else {
-                reject({err:'no poster'})
-            }
+            // var evens = _.filter(facebookUser['vn'], function (num) {
+            //     var arr = num.match(poster)
+            //     if(arr.length > 0) return true
+            //     else return false
+            // });
+            //
+            // if (evens.length > 0) {
+            //     poster = _.sample(evens)
+            // } else {
+            //     reject({err:'no poster'})
+            // }
 
         } else {
             authenic_poster = false
