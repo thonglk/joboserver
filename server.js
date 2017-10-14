@@ -2182,6 +2182,12 @@ app.get('/api/employer', function (req, res) {
 
 });
 
+function calculateAge(birthday) { // birthday is a date
+    var ageDifMs = Date.now() - new Date(birthday).getTime();
+    var ageDate = new Date(ageDifMs); // miliseconds from epoch
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+}
+
 app.get('/api/users', function (req, res) {
     var userId = req.param('userId')
     var jobfilter = req.param('job');
@@ -2190,6 +2196,10 @@ app.get('/api/users', function (req, res) {
     var sexfilter = req.param('sex');
     var expfilter = req.param('experience');
     var figurefilter = req.param('figure');
+    var langfilter = req.param('languages');
+    var age1filter = req.param('age1');
+    var age2filter = req.param('age2');
+
     var urgentfilter = req.param('urgent');
     var adminNotefilter = req.param('note')
     var type = req.param('type')
@@ -2222,6 +2232,10 @@ app.get('/api/users', function (req, res) {
             && (card.figure || !figurefilter)
             && (card.figure || !figurefilter)
             && (card.adminNote || !adminNotefilter)
+            && ((card.languages && card.languages[langfilter])|| !langfilter)
+            && (!age1filter || (card.birth && calculateAge(card.birth) > age1filter))
+            && (!age2filter || (card.birth && calculateAge(card.birth) < age2filter))
+
         ) {
             if (mylat && mylng && card.location) {
 
