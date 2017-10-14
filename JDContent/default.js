@@ -9,7 +9,7 @@ JD[0] = function ({ storeName, address = '', jobName = '', salary = '', hourly_w
    ${figure}
    Số lượng: ${unit}\n
    ${experience}${sex}${description}
-Nhanh tay ứng tuyển tại: ${jobUrl}.\n
+Nhanh tay ứng tuyển tại: ${jobUrl}\n
 Liên hệ ${contact}.\n\n${deadline}`;
   return text;
 }

@@ -918,7 +918,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         hourly_wages,
         working_type,
         work_time,
-        jobUrl: addTrackingEmail(postId, link, 'c', 'f'),
+        jobUrl: link,
         storeUrl: storeData.Url,
         figure,
         unit,
@@ -5092,6 +5092,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 if (card.storeId == storeId && card.deadline > Date.now()) return true
                 else return false
             })
+
             if (jobData[0]) {
                 Job = jobData[0]
                 job = Job.job
@@ -5099,9 +5100,8 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 storeId = Job.storeId
             } else reject({err:'no job'})
         }
-        if (!where && storeId) {
-            where = isWhere(storeId)
-        }
+        if (!where && storeId) where = isWhere(storeId)
+
         if (content) {
             var authenic_content = true
         } else {
