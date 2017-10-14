@@ -110,26 +110,25 @@ MongoClient.connect(uri, function (err, db) {
 
 var db = joboTest.database();
 var db2 = joboPxl.database();
+var db3 = secondary.database();
+
 var auth = firebase.auth()
-var messaging = firebase.messaging();
 
 var configRef = db.ref('config');
 var staticRef = db.ref('static');
-var userRef = db.ref('user');
-var profileRef = db.ref('profile');
-var storeRef = db.ref('store');
-var jobRef = db.ref('job');
-var leadRef = db.ref('lead');
-var googleJobRef = db.ref('googleJob');
-var likeActivityRef = db.ref('activity/like');
 
+var userRef = db3.ref('user');
+var profileRef = db3.ref('profile');
+var storeRef = db3.ref('store');
+var jobRef = db3.ref('job');
+var likeActivityRef = db3.ref('activity/like');
+
+var langRef = db.ref('tran/vi');
+
+var googleJobRef = db.ref('googleJob');
 var logRef = db2.ref('log');
 var actRef = db2.ref('act');
-var notificationRef = db2.ref('notihihi')
 
-var ratingRef = db.ref('activity/rating');
-var langRef = db.ref('tran/vi');
-var buyRef = db.ref('activity/buy');
 
 
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
@@ -215,6 +214,14 @@ var publishChannel = {
     }
 };
 
+app.get('/convert',function (req,res) {
+    var col = req.param('col')
+
+    db.ref(col).once('value',function (snap) {
+        db3.ref(col).update(snap.val()).then(()=> res.send({'code':'success'})).catch(err => res.send({err}))
+    })
+
+})
 
 app.get('/sendStoretoPage', function (req, res) {
     var storeId = req.param('storeId')
