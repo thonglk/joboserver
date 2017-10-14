@@ -2315,7 +2315,7 @@ app.get('/on/job', function (req, res) {
     const storeId = jobData.storeId
     var storeData = dataStore[storeId]
     var all = Object.assign({}, jobData, {storeData})
-    res.send(all)
+    res.send(JSON.stringify(all,circular()))
 
 
 });
