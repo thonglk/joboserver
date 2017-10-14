@@ -121,7 +121,7 @@ var userRef = db3.ref('user');
 var profileRef = db3.ref('profile');
 var storeRef = db3.ref('store');
 var jobRef = db3.ref('job');
-var likeActivityRef = db3.ref('activity/like');
+var likeActivityRef = db.ref('activity/like');
 
 var langRef = db.ref('tran/vi');
 
