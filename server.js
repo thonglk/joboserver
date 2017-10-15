@@ -667,9 +667,9 @@ app.get('/createListGoogleJob', function (req, res) {
 app.get('/scheduleJobPushEveryday', function (req, res) {
     res.send(scheduleJobPushEveryday())
 })
-schedule.scheduleJob({hour: 11, minute: 48}, function () {
-    scheduleJobPushEveryday()
-})
+// schedule.scheduleJob({hour: 11, minute: 48}, function () {
+//     scheduleJobPushEveryday()
+// })
 var stringWhere = {
     hn: 'Hà Nội',
     hcm: 'Sài Gòn'
