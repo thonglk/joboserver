@@ -152,14 +152,17 @@ app.use(function (req, res, next) {
 // PXL FOR Emails initialize
 
 app.get('/sendNotification', function (req, res) {
+    var email = req.param('email') || 'thonglk.mac@gmail.com'
+    var address = req.param('address')
 
     console.log('asd');
-    sendNotification({email: 'thonglk.mac@gmail.com'}, {
+    sendNotification({email}, {
         title: 'thông',
         body: 'haha',
         description1: 'huhu',
         linktoaction: 'https://google.com',
-        calltoaction: 'Hihi'
+        calltoaction: 'Hihi',
+        address
 
     }).then(dt => res.status(200).json(dt))
         .catch(err => res.status(500).send(err));
@@ -2038,7 +2041,7 @@ app.get('/api/job', function (req, res) {
                     var user = dataUser[store.createdBy];
                     var stat = dataStatic[job.storeId];
 
-                    var card = Object.assign({}, store, job, user, stat);
+                    var card = Object.assign({},store, user, stat,job);
 
                     if (sort == "apply") {
                         card.liked = _.where(likeActivity, {storeId: card.storeId, type: 2})
@@ -2079,15 +2082,13 @@ app.get('/api/job', function (req, res) {
                 newfilter.sort = 'createdAt'
             }
 
-            if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") {
-                sorded = _.sortBy(joblist, function (card) {
+            if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
                     return -card[sort]
                 });
-            } else if (sort == 'distance') {
-                sorded = _.sortBy(joblist, function (card) {
+             else if (sort == 'distance') sorded = _.sortBy(joblist, function (card) {
                     return card[sort]
                 })
-            }
+
 
             var sendData = getPaginatedItems(sorded, page)
             sendData.newfilter = newfilter
