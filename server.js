@@ -162,8 +162,7 @@ app.get('/sendNotification', function (req, res) {
         description1: 'huhu',
         linktoaction: 'https://google.com',
         calltoaction: 'Hihi',
-        address
-
+        address : address
     }).then(dt => res.status(200).json(dt))
         .catch(err => res.status(500).send(err));
 })
