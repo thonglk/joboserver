@@ -130,7 +130,6 @@ var logRef = db2.ref('log');
 var actRef = db2.ref('act');
 
 
-
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
     keyListData, datagoogleJob;
 
@@ -152,18 +151,19 @@ app.use(function (req, res, next) {
 // PXL FOR Emails initialize
 
 app.get('/sendNotification', function (req, res) {
-    var email = req.param('email') || 'thonglk.mac@gmail.com'
-    var address = req.param('address')
+    var email = req.param('email') || 'thonglk.mac@gmail.com';
 
-    console.log('asd');
-    sendNotification({email}, {
-        title: 'thông',
-        body: 'haha',
-        description1: 'huhu',
-        linktoaction: 'https://google.com',
-        calltoaction: 'Hihi',
-        address : address
-    }).then(dt => res.status(200).json(dt))
+    var mail = {
+        title: "Chỉ còn 1 bước nữa là bạn có thể tìm được việc phù hợp",
+        body: "Hãy tạo hồ sợ và chọn công việc phù hợp với bạn nhé, nếu gặp khó khăn thì bạn gọi vào số 0968 269 860 để được hỗ trợ nhé!",
+        description1: 'Dear ',
+        description2: 'Hãy tạo hồ sợ và chọn công việc phù hợp với bạn nhé, nếu gặp khó khăn thì bạn gọi vào số 0968 269 860 để được hỗ trợ nhé!',
+        description3: 'Đặc biệt, các bạn đăng video giới thiệu bản thân có tỉ lệ xin việc thành công cao hơn 20% so với những bạn không. Hãy đăng nhập vào tài khoản và xin việc ngay thôi nào: joboapp.com',
+        calltoaction: 'Cật nhật ngay!',
+        linktoaction: CONFIG.WEBURL,
+        description4: ''
+    };
+    sendNotification({email}, mail).then(dt => res.status(200).json(dt))
         .catch(err => res.status(500).send(err));
 })
 
@@ -216,11 +216,11 @@ var publishChannel = {
     }
 };
 
-app.get('/convert',function (req,res) {
+app.get('/convert', function (req, res) {
     var col = req.param('col')
 
-    db.ref(col).once('value',function (snap) {
-        db3.ref(col).update(snap.val()).then(()=> res.send({'code':'success'})).catch(err => res.send({err}))
+    db.ref(col).once('value', function (snap) {
+        db3.ref(col).update(snap.val()).then(() => res.send({'code': 'success'})).catch(err => res.send({err}))
     })
 
 })
@@ -295,23 +295,33 @@ function PublishPhoto(userId, text, accessToken) {
 }
 
 function PublishComment(postId, text, accessToken) {
-    if (postId && text && accessToken) {
-        graph.post(postId + "/comments?access_token=" + accessToken,
-            {
-                "message": text
-            },
-            function (err, res) {
-                // returns the post id
-                console.log(res, err);
-            }
-        )
+    return new Promise(function (resolve,reject) {
+        if (postId && text && accessToken) {
+            graph.post(postId + "/comments?access_token=" + accessToken,
+                {
+                    "message": text
+                },
+                function (err, result) {
+                    // returns the post id
+                    console.log(result, err);
+                    if(err){
+                        reject(err)
+                    } else {
+                        resolve(result)
+                    }
+                }
+            )
 
-    } else {
-        console.log('PublishComment error')
-    }
+        } else {
+            console.log('PublishComment error')
+            reject({err:'PublishComment error'})
+
+        }
+    })
+
 }
 
-var facebookUser
+var facebookUser,facebookAccount;
 var popularJob = {}
 
 function init() {
@@ -323,8 +333,8 @@ function init() {
         facebookUser = {
             vn: [],
         }
-
-        for (var i in CONFIG.facebookAccount) {
+        facebookAccount = CONFIG.facebookAccount
+        for (var i in facebookAccount) {
             var facebook = CONFIG.facebookAccount[i]
 
 
@@ -604,9 +614,10 @@ function createListPremiumJob(where, type, job, industry, postId) {
         if (jobData.createdBy
             && jobData.storeId
             && dataUser[jobData.createdBy]
-            && dataUser[jobData.createdBy].package == 'premium'
 
             && dataStore[jobData.storeId]
+            && dataStore[jobData.storeId].level == 'premium'
+
             && jobData.deadline > Date.now()
 
             && (jobData.job == job || !job)
@@ -719,7 +730,7 @@ function scheduleJobPushEveryday() {
             sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
         }
     }
-    return {code:'success'}
+    return {code: 'success'}
 
 
 }
@@ -1652,7 +1663,7 @@ app.get('/api/dashboard', function (req, res) {
     var dashboard = {}
     dashboard.jobseeker = _.where(dataProfile, {feature: true})
     dashboard.employer = _.where(dataStore, {feature: true})
-    res.send(JSON.stringify(dashboard,circular()))
+    res.send(JSON.stringify(dashboard, circular()))
 
 })
 // function createdUserFromCC() {
@@ -2040,7 +2051,7 @@ app.get('/api/job', function (req, res) {
                     var user = dataUser[store.createdBy];
                     var stat = dataStatic[job.storeId];
 
-                    var card = Object.assign({},store, user, stat,job);
+                    var card = Object.assign({}, store, user, stat, job);
 
                     if (sort == "apply") {
                         card.liked = _.where(likeActivity, {storeId: card.storeId, type: 2})
@@ -2082,11 +2093,11 @@ app.get('/api/job', function (req, res) {
             }
 
             if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
-                    return -card[sort]
-                });
-             else if (sort == 'distance') sorded = _.sortBy(joblist, function (card) {
-                    return card[sort]
-                })
+                return -card[sort]
+            });
+            else if (sort == 'distance') sorded = _.sortBy(joblist, function (card) {
+                return card[sort]
+            })
 
 
             var sendData = getPaginatedItems(sorded, page)
@@ -2239,7 +2250,7 @@ app.get('/api/users', function (req, res) {
             && (card.figure || !figurefilter)
             && (card.figure || !figurefilter)
             && (card.adminNote || !adminNotefilter)
-            && ((card.languages && card.languages[langfilter])|| !langfilter)
+            && ((card.languages && card.languages[langfilter]) || !langfilter)
             && (!age1filter || (card.birth && calculateAge(card.birth) > age1filter))
             && (!age2filter || (card.birth && calculateAge(card.birth) < age2filter))
 
@@ -2315,7 +2326,7 @@ app.get('/on/job', function (req, res) {
     const storeId = jobData.storeId
     var storeData = dataStore[storeId]
     var all = Object.assign({}, jobData, {storeData})
-    res.send(JSON.stringify(all,circular()))
+    res.send(JSON.stringify(all, circular()))
 
 
 });
@@ -5087,6 +5098,14 @@ app.route('/PostFacebook')
             .catch(err => res.status(500).json(err));
     });
 
+app.post('/PostComment',function (req,res) {
+    let {id,poster,text} = req.body
+    var accessToken = facebookAccount[poster].access_token
+    console.log(req.body,accessToken )
+    PublishComment(id,text,accessToken).then(result => res.send(result))
+        .catch(err => res.status(500).json(err))
+})
+
 app.get('/PostStore', function (req, res) {
     var storeId = req.param('storeId');
     var groupId = req.param('groupId');
@@ -5119,7 +5138,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 job = Job.job
                 jobId = Job.jobId
                 storeId = Job.storeId
-            } else reject({err:'no job'})
+            } else reject({err: 'no job'})
         }
         if (!where && storeId) where = isWhere(storeId)
 
@@ -5224,7 +5243,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
 
             }
         }
-        resolve({code:'success'})
+        resolve({code: 'success'})
 
     });
 }
@@ -5363,7 +5382,7 @@ app.post('/unsubscribe', (req, res, next) => {
 
 
 app.get('/getFbPost', function (req, res) {
-    let {p: page, poster, to, jobId, id, still_alive, schedule, sort} = req.query
+    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment} = req.query
     var query = {}
     if (poster) {
         query.poster = poster
@@ -5384,9 +5403,10 @@ app.get('/getFbPost', function (req, res) {
 
     }
     if (still_alive) {
-        query.id = {$ne: null};
         query.still_alive = true
-
+    }
+    if (comment) {
+        query.comment = {$ne: null}
     }
 
     getPaginatedItemss(facebookPostCol, query, sort, page)
