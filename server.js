@@ -910,7 +910,9 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
     var link = '';
 
     if (jobId) {
-        link = CONFIG.WEBURL + '/signup/2?job=' + jobId + '#ref=' + postId;
+        link = 'https://m.me/jobo.asia?ref=' + jobId;
+
+        // link = CONFIG.WEBURL + '/signup/2?job=' + jobId + '#ref=' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
