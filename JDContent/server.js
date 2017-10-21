@@ -86,7 +86,7 @@ JD[2] = function ({storeName, address = '', jobName = '', salary = '', hourly_wa
 
     const text = `Có bạn nào quanh khu vực ${address}, mình cần tuyển GẤP nhân viên ${jobName} tại ${storeName}\n
    ${salary}${hourly_wages}${working_type}${timeStr}${description}${figure}${unit}${experience}${sex}
-Nếu chưa rõ các bạn có thể xem cụ thể tại đây ${jobUrl}    và ứng tuyển theo link đó để mình xem trước thông tin và hẹn lịch đi phỏng vấn và đi làm ngay.\n
+Nếu chưa rõ các bạn có thể xem cụ thể tại đây ${jobUrl} và ứng tuyển theo link đó để mình xem trước thông tin và hẹn lịch đi phỏng vấn và đi làm ngay.\n
 Mình cần tuyển rất gấp , bạn nào có bạn bè cần tìm việc ở ${address} thì giới thiệu, tag vào giúp mình với nha. Mình cảm ơn.\n
 Liên hệ ${contact}.\n\n    `;
     return text;
@@ -121,7 +121,7 @@ Hy vọng tin này đến được các bạn cần tìm việc!\n\n
 ${salary}${hourly_wages}
 ${timeStr}\n${experience}${sex}
 Môi trường làm việc của Nhà hàng mình nhiều bạn trẻ, vui vẻ và năng động nên luôn luôn chào đón các bạn mới gia nhập đội ngũ nhé!\n
-Các bạn có thể liên hệ ${contact}  để trao đổi hoặc nếu có thể thì hoàn thành đơn ứng tuyển tại link này ${jobUrl}    để tiết kiệm thời gian cho cả hai luôn!\n\n
+Các bạn có thể liên hệ ${contact}  để trao đổi hoặc nếu có thể thì hoàn thành đơn ứng tuyển tại link này ${jobUrl} để tiết kiệm thời gian cho cả hai luôn!\n\n
 Mình còn tuyển cho nhiều cơ sở nữa trên hầu hết quận ở Hà Nội nên nếu cơ sở này không phù hợp để đi lại thì vẫn có thể điền link trên rồi mình xếp vào vị trí phù hợp gần nhà bạn.\n\n
 Mình cảm ơn nhé!\n    `;
     return text;
@@ -192,7 +192,7 @@ ${salary}${hourly_wages}${experience}${sex}
 Môi trường làm việc trẻ trung và được giúp đỡ tạo điều kiện rất nhiều
 Có chế độ thưởng, lương, BHXH (nếu làm lâu dài có BHXH ,...)\n\n
 Các bạn muốn hỏi thêm liên hệ ${contact} nhé\n
-Mình ghi thông tin chi tiết tại link: ${jobUrl}   , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì bên mình tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
+Mình ghi thông tin chi tiết tại link: ${jobUrl} , các bạn xem kĩ và nhấn ứng tuyển luôn ở đó ,lập hồ sơ rồi chị quản lý liên hệ đi làm ngay nhé vì bên mình tuyển gấp.\nCác bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n    `;
     return text;
 }
 

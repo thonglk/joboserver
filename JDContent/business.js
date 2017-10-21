@@ -69,7 +69,7 @@ Hãy ra nhập với chúng tôi, ${storeName} tuyển dụng:
 ${salary}
 ${description}${figure}${experience}${sex}${unit}
 Đừng để suy nghĩ của người khác khiến bạn mất đi một cơ hội phát triển bản thân.
-Truy cập vào đường link: ${jobUrl} 
+Chat trực tiếp với nhà tuyển dụng tại: ${jobUrl} 
 Hoặc liên hệ số điện thoại: ${contact}
 Để được tư vấn trực tiếp từ nhà tuyển dụng của chúng tôi.\n${deadline}`;
   return text;
