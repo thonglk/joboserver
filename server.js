@@ -859,6 +859,8 @@ function createJDJob(jobId) {
     }
 }
 
+
+
 app.get('/createJDStore', function (req, res) {
     var storeId = req.param('storeId')
     var jobId = req.param('jobId')
@@ -2318,7 +2320,7 @@ app.get('/on/profile', function (req, res) {
         userData.userInfo = dataUser[userId]
         res.send(userData)
     } else {
-        res.send({err: 'No Data'})
+        res.status(500).json({err: 'No Data'})
     }
 });
 
@@ -2329,8 +2331,6 @@ app.get('/on/job', function (req, res) {
     var storeData = dataStore[storeId]
     var all = Object.assign({}, jobData, {storeData})
     res.send(JSON.stringify(all, circular()))
-
-
 });
 app.get('/on/store', function (req, res) {
     var storeId = req.param('storeId');
@@ -3088,7 +3088,7 @@ app.get('/view/profile', function (req, res) {
 
         res.send(JSON.stringify(profileData, circular()))
     } else {
-        res.send({err: 'No data'})
+        res.status(500).json({err: 'No data'})
 
     }
 
@@ -5189,7 +5189,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
 
                 var to = groupData[i].groupId;
 
-                axios.post('https://joboana.herokuapp.com/newPost', {
+                axios.post(CONFIG.AnaURL+'/newPost', {
                     postId,
                     storeId,
                     jobId,
@@ -5205,7 +5205,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
             }
         } else {
             for (var i in groupData) {
-                console.log('data', groupData[i].area, where, groupData[i].job, job)
+
                 if (groupData[i].groupId
                     && (groupData[i].area == where || !where)
                     && (groupData[i].job && groupData[i].job.match(job) || !job )
@@ -5228,7 +5228,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     var to = groupData[i].groupId
 
 
-                    axios.post('https://joboana.herokuapp.com/newPost', {
+                    axios.post(CONFIG.AnaURL+'/newPost', {
                         postId,
                         storeId,
                         jobId,
