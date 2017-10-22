@@ -680,9 +680,9 @@ app.get('/createListGoogleJob', function (req, res) {
 app.get('/scheduleJobPushEveryday', function (req, res) {
     res.send(scheduleJobPushEveryday())
 })
-// schedule.scheduleJob({hour: 11, minute: 48}, function () {
-//     scheduleJobPushEveryday()
-// })
+schedule.scheduleJob({hour: 11, minute: 48}, function () {
+    scheduleJobPushEveryday()
+})
 var stringWhere = {
     hn: 'Hà Nội',
     hcm: 'Sài Gòn'
@@ -5172,7 +5172,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         if (groupId) {
             for (var a in groupId) {
 
-                var i = groupId[a]
+                var i = groupId[a];
                 if (!authenic_poster) {
                     poster = _.sample(facebookUser[where]);
                 }
