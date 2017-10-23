@@ -3002,7 +3002,7 @@ app.post('/update/log', function (req, res) {
 app.get('/update/log', function (req, res) {
     var userId = req.param('userId')
     var key = req.param('key')
-    var log = JSON.parse(req.param('log'))
+    var log = req.param('log')
 
 
     if (userId) {
