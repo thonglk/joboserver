@@ -295,7 +295,7 @@ function PublishPhoto(userId, text, accessToken) {
 }
 
 function PublishComment(postId, text, accessToken) {
-    return new Promise(function (resolve,reject) {
+    return new Promise(function (resolve, reject) {
         if (postId && text && accessToken) {
             graph.post(postId + "/comments?access_token=" + accessToken,
                 {
@@ -304,7 +304,7 @@ function PublishComment(postId, text, accessToken) {
                 function (err, result) {
                     // returns the post id
                     console.log(result, err);
-                    if(err){
+                    if (err) {
                         reject(err)
                     } else {
                         resolve(result)
@@ -314,14 +314,14 @@ function PublishComment(postId, text, accessToken) {
 
         } else {
             console.log('PublishComment error')
-            reject({err:'PublishComment error'})
+            reject({err: 'PublishComment error'})
 
         }
     })
 
 }
 
-var facebookUser,facebookAccount;
+var facebookUser, facebookAccount;
 var popularJob = {}
 
 function init() {
@@ -858,7 +858,6 @@ function createJDJob(jobId) {
         return text
     }
 }
-
 
 
 app.get('/createJDStore', function (req, res) {
@@ -5092,19 +5091,19 @@ function isWhere(storeId) {
 
 app.route('/PostFacebook')
     .post(function (req, res) {
-        var {text, image, poster, groupId, job, where, time} = req.body;
-        console.log('req.body', req.body)
-        var content = {text, image}
+        var {text, image, poster, groupId, job, where, time, type} = req.body;
+        console.log('req.body', req.body);
+        var content = {text, image, type};
         PostStore(null, null, groupId, job, where, poster, time, content)
             .then(result => res.status(200).json(result))
             .catch(err => res.status(500).json(err));
     });
 
-app.post('/PostComment',function (req,res) {
-    let {id,poster,text} = req.body
+app.post('/PostComment', function (req, res) {
+    let {id, poster, text} = req.body
     var accessToken = facebookAccount[poster].access_token
-    console.log(req.body,accessToken )
-    PublishComment(id,text,accessToken).then(result => res.send(result))
+    console.log(req.body, accessToken)
+    PublishComment(id, text, accessToken).then(result => res.send(result))
         .catch(err => res.status(500).json(err))
 })
 
@@ -5189,7 +5188,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
 
                 var to = groupData[i].groupId;
 
-                axios.post(CONFIG.AnaURL+'/newPost', {
+                axios.post(CONFIG.AnaURL + '/newPost', {
                     postId,
                     storeId,
                     jobId,
@@ -5228,7 +5227,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     var to = groupData[i].groupId
 
 
-                    axios.post(CONFIG.AnaURL+'/newPost', {
+                    axios.post(CONFIG.AnaURL + '/newPost', {
                         postId,
                         storeId,
                         jobId,
