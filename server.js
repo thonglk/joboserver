@@ -3108,17 +3108,19 @@ app.get('/view/profile', function (req, res) {
 function getInterviewOption(interviewTime) {
 
     var now = new Date()
-    now.setHours(interviewTime.hour)
+    if(interviewTime.hour){
+        now.setHours(interviewTime.hour)
+    } else {
+        now.setHours(14)
+    }
     now.setMinutes(0)
-
-    if (interviewTime.daily) {
-
-        var interviewOption = {
+    var interviewOption = {}
+    if (interviewTime.daily)  interviewOption = {
             1: now.getTime() + 86400 * 1000,
             2: now.getTime() + 2 * 86400 * 1000,
             3: now.getTime() + 3 * 86400 * 1000
         }
-    } else {
+    else if(interviewTime.day){
         var daytoset = interviewTime.day
         var currentDay = new Date().getDay()
         var dis = (daytoset + 7 - currentDay) % 7
@@ -3127,6 +3129,10 @@ function getInterviewOption(interviewTime) {
             2: now.getTime() + dis * 86400 * 1000 + 7 * 86400 * 1000,
             3: now.getTime() + dis * 86400 * 1000 + 2 * 7 * 86400 * 1000
         }
+    } else interviewOption = {
+        1: now.getTime() + 86400 * 1000,
+        2: now.getTime() + 2 * 86400 * 1000,
+        3: now.getTime() + 3 * 86400 * 1000
     }
 
     return interviewOption
