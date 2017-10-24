@@ -2337,6 +2337,10 @@ app.get('/on/job', function (req, res) {
     var jobData = dataJob[jobId]
     const storeId = jobData.storeId
     var storeData = dataStore[storeId]
+    if(storeData.interviewTime){
+        storeData.interviewOption = getInterviewOption(storeData.interviewTime)
+    }
+
     var all = Object.assign({}, jobData, {storeData})
     res.send(JSON.stringify(all, circular()))
 });
@@ -3101,6 +3105,32 @@ app.get('/view/profile', function (req, res) {
     }
 
 });
+function getInterviewOption(interviewTime) {
+
+    var now = new Date()
+    now.setHours(interviewTime.hour)
+    now.setMinutes(0)
+
+    if (interviewTime.daily) {
+
+        var interviewOption = {
+            1: now.getTime() + 86400 * 1000,
+            2: now.getTime() + 2 * 86400 * 1000,
+            3: now.getTime() + 3 * 86400 * 1000
+        }
+    } else {
+        var daytoset = interviewTime.day
+        var currentDay = new Date().getDay()
+        var dis = (daytoset + 7 - currentDay) % 7
+        interviewOption = {
+            1: now.getTime() + dis * 86400 * 1000,
+            2: now.getTime() + dis * 86400 * 1000 + 7 * 86400 * 1000,
+            3: now.getTime() + dis * 86400 * 1000 + 2 * 7 * 86400 * 1000
+        }
+    }
+
+    return interviewOption
+}
 
 app.get('/view/store', function (req, res) {
     var userId = req.param('userId');
@@ -3111,27 +3141,7 @@ app.get('/view/store', function (req, res) {
         var storeData = dataStore[storeId]
         console.log('storeData', storeData)
         if (storeData.interviewTime) {
-            var now = new Date()
-            now.setHours(storeData.interviewTime.hour)
-            now.setMinutes(0)
-
-            if (storeData.interviewTime.daily) {
-
-                storeData.interviewOption = {
-                    1: now.getTime() + 86400 * 1000,
-                    2: now.getTime() + 2 * 86400 * 1000,
-                    3: now.getTime() + 3 * 86400 * 1000
-                }
-            } else {
-                var daytoset = storeData.interviewTime.day
-                var currentDay = new Date().getDay()
-                var dis = (daytoset + 7 - currentDay) % 7
-                storeData.interviewOption = {
-                    1: now.getTime() + dis * 86400 * 1000,
-                    2: now.getTime() + dis * 86400 * 1000 + 7 * 86400 * 1000,
-                    3: now.getTime() + dis * 86400 * 1000 + 2 * 7 * 86400 * 1000
-                }
-            }
+            storeData.interviewOption = getInterviewOption(storeData.interviewTime)
         }
         storeData.jobData = _.where(dataJob, {storeId: storeId});
         storeData.actData = {}
