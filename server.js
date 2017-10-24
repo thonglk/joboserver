@@ -864,12 +864,20 @@ app.get('/createJDStore', function (req, res) {
     var storeId = req.param('storeId')
     var jobId = req.param('jobId')
     var a = req.param('a');
-    createJDStore(storeId, a, jobId)
-        .then(text => res.status(200).json(text))
-        .catch(err => res.status(500).json(err));
-})
+    res.send(createJDStore(storeId, a, jobId))
+});
 
 const JD = require('./JDContent');
+
+function callToAction({link=''},type) {
+    var cta = []
+    cta[0] = `Chat trực tiếp với nhà tuyển dụng để đặt lịch phỏng vấn tại ${link}`
+    cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${link}`
+    cta[2] = `Đặt lịch phỏng vấn ngay tại: ${link}`
+    cta[3] = `Ứng tuyển tại: ${link} (Không cần CV)`
+    return _.sample(cta)
+
+}
 
 function createJDStore(storeId, random, jobId, postId, typejob) {
     // return new Promise((resolve, reject) => {
@@ -949,7 +957,8 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         sex,
         deadline,
         description,
-        contact
+        contact,
+        callToAction:callToAction({link})
     });
 
     if (storeData.photo) {
