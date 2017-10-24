@@ -1,4 +1,5 @@
 var fs = require('fs');
+var _ = require("underscore");
 
 fs.readdirSync(__dirname).forEach((file) => {
     if (file !== 'index.js') {

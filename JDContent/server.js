@@ -1,5 +1,15 @@
 const JD = [];
 
+function callToAction({url = ''}, type) {
+    var cta = []
+    cta[0] = `Chat trực tiếp với nhà tuyển dụng để đặt lịch phỏng vấn tại ${url}`
+    cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${url}`
+    cta[2] = `Đặt lịch phỏng vấn ngay tại: ${url}`
+    cta[3] = `Ứng tuyển tại: ${url} (Không cần CV)`
+    return _.sample(cta)
+
+}
+
 JD[0] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
@@ -24,7 +34,7 @@ JD[0] = function ({storeName, address = '', jobName = '', salary = '', hourly_wa
 JOBO nhận được thông báo khẩn "nhắn tìm đồng đội" từ biệt đội ${storeName}:\n
    Vị trí: ${jobName}\n
    ${salary}${hourly_wages}${working_type}${timeStr}${description}\n${figure}${unit}${experience}${sex}
-Bỏ ra 1 phút để tìm hiểu thêm thông tin và gia nhập đồng đội ngay hôm nay tại: ${jobUrl}   \n
+${callToAction({jobUrl})}  \n
 Các bạn chỉ cần hoàn thành hồ sơ tại link trên, ${storeName} sẽ liên hệ lại ngay và đi làm luôn!\n
 Nếu khó khăn cứ cmt ngay dưới hoặc liên hệ ${contact} nhé!\n\n
 ------------------------------------\n

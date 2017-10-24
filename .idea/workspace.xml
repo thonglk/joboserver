@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="25183a39-9abd-466e-8eff-c50a5bf19b42" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
-    </list>
+    <list default="true" id="25183a39-9abd-466e-8eff-c50a5bf19b42" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -49,11 +47,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="server.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="245">
-              <caret line="3004" column="30" lean-forward="false" selection-start-line="3004" selection-start-column="30" selection-end-line="3004" selection-end-column="30" />
+            <state relative-caret-position="201">
+              <caret line="2329" column="38" lean-forward="true" selection-start-line="2329" selection-start-column="38" selection-end-line="2329" selection-end-column="38" />
               <folding>
                 <element signature="e#10487#10520#0" expanded="false" />
                 <element signature="e#11551#12088#0" expanded="false" />
@@ -95,6 +93,16 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/JDContent/server.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4519">
+              <caret line="307" column="30" lean-forward="false" selection-start-line="307" selection-start-column="30" selection-end-line="307" selection-end-column="30" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="sale.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/JDContent/sale.js">
           <provider selected="true" editor-type-id="text-editor">
@@ -108,8 +116,8 @@
       <file leaf-file-name="business.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/JDContent/business.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="73" column="16" lean-forward="false" selection-start-line="73" selection-start-column="16" selection-end-line="73" selection-end-column="16" />
+            <state relative-caret-position="180">
+              <caret line="12" column="40" lean-forward="true" selection-start-line="12" selection-start-column="40" selection-end-line="12" selection-end-column="40" />
               <folding />
             </state>
           </provider>
@@ -128,8 +136,8 @@
       <file leaf-file-name="default.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/JDContent/default.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
-              <caret line="23" column="19" lean-forward="false" selection-start-line="23" selection-start-column="19" selection-end-line="23" selection-end-column="19" />
+            <state relative-caret-position="232">
+              <caret line="22" column="20" lean-forward="true" selection-start-line="22" selection-start-column="20" selection-end-line="22" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -148,8 +156,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>PostStore</find>
-      <find>/l/</find>
       <find>`</find>
       <find>stringW</find>
       <find>service</find>
@@ -160,7 +166,6 @@
       <find>${jobUrl}</find>
       <find>Nhanh tay ứng tuyển tại</find>
       <find>Nhanh tay ứng tuyển tại:</find>
-      <find>createJD</find>
       <find>api/job</find>
       <find>schedu</find>
       <find>/sendNotification</find>
@@ -178,6 +183,9 @@
       <find>jobUrl</find>
       <find>{err: 'No</find>
       <find>scheduleJobPush</find>
+      <find>createJD</find>
+      <find>ca</find>
+      <find>on/job</find>
     </findStrings>
     <replaceStrings>
       <replace>Col</replace>
@@ -303,6 +311,11 @@
             <path>
               <item name="joboserver" type="b2602c69:ProjectViewProjectNode" />
               <item name="joboserver" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="joboserver" type="b2602c69:ProjectViewProjectNode" />
+              <item name="joboserver" type="462c0819:PsiDirectoryNode" />
+              <item name="api" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="joboserver" type="b2602c69:ProjectViewProjectNode" />
@@ -512,17 +525,18 @@
       <workItem from="1507703946950" duration="10891000" />
       <workItem from="1507880652172" duration="16111000" />
       <workItem from="1483230919153" duration="20000" />
-      <workItem from="1508385552028" duration="17666000" />
+      <workItem from="1508385552028" duration="23542000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1550486000" />
+    <option name="totallyTimeSpent" value="1556362000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16420014" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16420014" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3314993" sideWeight="0.50913423" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -788,22 +802,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/JDStore.js" />
     <entry file="file:///private/var/folders/41/_s7bwphx5fn4r9ld69pgc2qh0000gn/T/31879c48-ee4b-4331-8d71-6e84e5902d8e/joboapp.com/cbac7e9f87e2.html" />
-    <entry file="file://$PROJECT_DIR$/JDContent/default.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="23" column="19" lean-forward="false" selection-start-line="23" selection-start-column="19" selection-end-line="23" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/business.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="73" column="16" lean-forward="false" selection-start-line="73" selection-start-column="16" selection-end-line="73" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/JDContent/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
@@ -820,18 +818,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/JDContent/server.js">
+    <entry file="file://$PROJECT_DIR$/JDContent/default.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="157">
-          <caret line="309" column="0" lean-forward="true" selection-start-line="309" selection-start-column="0" selection-end-line="309" selection-end-column="0" />
+        <state relative-caret-position="232">
+          <caret line="22" column="20" lean-forward="true" selection-start-line="22" selection-start-column="20" selection-end-line="22" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/business.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="12" column="40" lean-forward="true" selection-start-line="12" selection-start-column="40" selection-end-line="12" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="245">
-          <caret line="3004" column="30" lean-forward="false" selection-start-line="3004" selection-start-column="30" selection-end-line="3004" selection-end-column="30" />
+        <state relative-caret-position="201">
+          <caret line="2329" column="38" lean-forward="true" selection-start-line="2329" selection-start-column="38" selection-end-line="2329" selection-end-column="38" />
           <folding>
             <element signature="e#10487#10520#0" expanded="false" />
             <element signature="e#11551#12088#0" expanded="false" />
@@ -869,6 +875,14 @@
             <element signature="e#172484#172620#0" expanded="false" />
             <element signature="e#173700#174712#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/JDContent/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4519">
+          <caret line="307" column="30" lean-forward="false" selection-start-line="307" selection-start-column="30" selection-end-line="307" selection-end-column="30" />
+          <folding />
         </state>
       </provider>
     </entry>
