@@ -185,18 +185,21 @@ function sendNotification(userData, mail, channel, time, notiId) {
             notiId = keygen()
         }
 
+        if (!mail.from) mail.from = CONFIG.email
+
+
         var notification = {
-            userData: userData,
-            mail: mail,
+            userData,
+            mail,
             notiId,
-            time: time,
+            time,
             createdAt: Date.now(),
-            channel: channel
-        }
+            channel
+        };
 
         db2.ref('tempNoti/' + notiId)
             .set(notification)
-            .then(function (result) {
+            .then(function () {
                 console.log('sendNotification', notiId);
                 resolve(notification);
             })
@@ -869,20 +872,24 @@ app.get('/createJDStore', function (req, res) {
 
 const JD = require('./JDContent');
 
-function callToAction({link=''},type) {
-    var cta = []
-    cta[0] = `Chat trực tiếp với nhà tuyển dụng để đặt lịch phỏng vấn tại ${link}`
-    cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${link}`
-    cta[2] = `Đặt lịch phỏng vấn ngay tại: ${link}`
-    cta[3] = `Ứng tuyển tại: ${link} (Không cần CV)`
+function callToAction({link = ''}, type) {
+    var cta = [];
+    cta[0] = `Chat trực tiếp với nhà tuyển dụng để đặt lịch phỏng vấn tại ${link}`;
+    cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${link}`;
+    cta[2] = `Đặt lịch phỏng vấn ngay tại: ${link}`;
+    cta[3] = `Ứng tuyển tại: ${link} (Không cần CV)`;
+
     return _.sample(cta)
 
 }
 
 function createJDStore(storeId, random, jobId, postId, typejob) {
     // return new Promise((resolve, reject) => {
-    var storeData = dataStore[storeId];
     var Job = dataJob[jobId];
+    var storeData = {}
+    if (storeId) storeData = dataStore[storeId];
+    else if (Job.storeId) storeData = dataStore[Job.storeId]
+
     var text = '',
         working_type = '',
         work_time = '',
@@ -897,7 +904,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         description = '',
         job = 'default';
     const contact = CONFIG.contact[isWhere(storeId)].phone;
-    const address = shortAddress(storeData.address).replace(/\s\s/g, ' ');
+    const address = shortAddress(storeData.address);
     const storeName = storeData.storeName;
     const jobName = Job.jobName;
 
@@ -958,7 +965,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
         deadline,
         description,
         contact,
-        callToAction:callToAction({link})
+        callToAction: callToAction({link})
     });
 
     if (storeData.photo) {
@@ -2337,7 +2344,7 @@ app.get('/on/job', function (req, res) {
     var jobData = dataJob[jobId]
     const storeId = jobData.storeId
     var storeData = dataStore[storeId]
-    if(storeData.interviewTime){
+    if (storeData.interviewTime) {
         storeData.interviewOption = getInterviewOption(storeData.interviewTime)
     }
 
@@ -3105,22 +3112,23 @@ app.get('/view/profile', function (req, res) {
     }
 
 });
+
 function getInterviewOption(interviewTime) {
 
     var now = new Date()
-    if(interviewTime.hour){
+    if (interviewTime.hour) {
         now.setHours(interviewTime.hour)
     } else {
         now.setHours(14)
     }
     now.setMinutes(0)
     var interviewOption = {}
-    if (interviewTime.daily)  interviewOption = {
-            1: now.getTime() + 86400 * 1000,
-            2: now.getTime() + 2 * 86400 * 1000,
-            3: now.getTime() + 3 * 86400 * 1000
-        }
-    else if(interviewTime.day){
+    if (interviewTime.daily) interviewOption = {
+        1: now.getTime() + 86400 * 1000,
+        2: now.getTime() + 2 * 86400 * 1000,
+        3: now.getTime() + 3 * 86400 * 1000
+    }
+    else if (interviewTime.day) {
         var daytoset = interviewTime.day
         var currentDay = new Date().getDay()
         var dis = (daytoset + 7 - currentDay) % 7
@@ -3629,9 +3637,9 @@ app.get('/initStore', function (req, res) {
     var storeId = req.param('storeId');
     var jobId = req.param('jobId');
 
-    var storeData = dataStore[storeId]
+    var storeData = dataStore[storeId];
 
-    sendWelcomeEmailToStore(storeId)
+    sendWelcomeEmailToStore(storeId);
     if (storeData.job) {
         setTimeout(function () {
             sendStoretoPage(storeId)
@@ -5229,11 +5237,12 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
             }
         } else {
             for (var i in groupData) {
-
+                console.log('groupData[i].groupId', groupData[i].groupId)
                 if (groupData[i].groupId
                     && (groupData[i].area == where || !where)
                     && (groupData[i].job && groupData[i].job.match(job) || !job )
                 ) {
+                    console.log('groupData[i].name', groupData[i].name)
 
                     if (!authenic_poster) {
                         poster = _.sample(facebookUser[where]);
@@ -5251,6 +5260,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
 
                     var to = groupData[i].groupId
 
+                    console.log('prePost', groupData[i].name)
 
                     axios.post(CONFIG.AnaURL + '/newPost', {
                         postId,

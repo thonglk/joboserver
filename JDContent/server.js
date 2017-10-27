@@ -1,7 +1,7 @@
 const JD = [];
 
 
-JD[0] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)', callToAction = ''}) {
+JD[0] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)', callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -33,7 +33,7 @@ Nếu cơ sở đó không thuận tiện cho bạn đi lại, tham khảo các 
     return text;
 }
 
-JD[1] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[1] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -65,7 +65,7 @@ Liên hệ : ${contact}\n\n    `;
     return text;
 }
 
-JD[2] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[2] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -93,7 +93,7 @@ Liên hệ ${contact}.\n\n    `;
     return text;
 };
 
-JD[3] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[3] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -128,7 +128,7 @@ Mình cảm ơn nhé!\n    `;
     return text;
 };
 
-JD[4] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[4] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -160,7 +160,7 @@ Lưu ý ghi đúng số điện thoại và địa chỉ để mình sắp xếp
     return text;
 }
 
-JD[5] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[5] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -196,7 +196,7 @@ Mình ghi thông tin chi tiết tại link: ${jobUrl} , các bạn xem kĩ và n
     return text;
 }
 
-JD[6] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[6] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -227,7 +227,7 @@ Các bạn đi qua giúp mình chấm cho đỡ bài nhé, mình cảm ơn.\n\n 
     return text;
 }
 
-JD[7] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[7] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -258,13 +258,13 @@ Bên mình sẽ liên lạc và tư vấn trực tiếp cho các bạn nhé!\n\n
     return text;
 }
 
-JD[8] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[8] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     const text = `${storeName} tại ${address}, tuyển phục vụ với lương cứng. Bạn nào quan tâm thì liên hệ với SĐT ${contact} nhé!\n
       ${callToAction}   `;
     return text;
 }
 
-JD[9] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[9] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương: ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương: ${hourly_wages} k/h + thưởng hấp dẫn\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -289,7 +289,7 @@ Nếu bạn muốn nằm trong nhóm "người hiếm" muốn thử sức với 
     return text;
 }
 
-JD[10] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[10] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `😍Lương cứng ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `😍Lương theo giờ: ${hourly_wages} k/h + cơm + TIP 600-800 + thưởng Target\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -320,7 +320,7 @@ Bạn nào quan tâm mời liên hệ SĐT ${contact} hoặc inbox mình nhé!!\
     return text;
 }
 
-JD[11] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[11] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `Lương cứng ${salary} triệu/tháng\n`;
     if (hourly_wages) hourly_wages = `Lương theo giờ: ${hourly_wages} k/h + cơm + TIP 600-800 + thưởng Target\n`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
@@ -349,7 +349,7 @@ JD[11] = function ({storeName, address = '', jobName = '', salary = '', hourly_w
     return text;
 }
 
-JD[12] = function ({storeName, address = '', jobName = 'nhân viên', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[12] = function ({storeName, address = '', jobName = 'nhân viên', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
 
     if (salary) salary = `lương cứng ${salary} triệu/tháng`;
     if (hourly_wages) hourly_wages = `lương theo giờ: ${hourly_wages} k/h + cơm + TIP 600-800 + thưởng Target`;
@@ -374,7 +374,7 @@ JD[12] = function ({storeName, address = '', jobName = 'nhân viên', salary = '
     return text;
 }
 
-JD[13] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)'}) {
+JD[13] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
     if (salary) salary = `lương cứng ${salary} triệu/tháng`;
     if (hourly_wages) hourly_wages = `lương theo giờ: ${hourly_wages} k/h + cơm + TIP 600-800 + thưởng Target`;
     if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
