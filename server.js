@@ -1583,7 +1583,7 @@ app.get('/api/notification', (req, res) => {
     if (letter_click == 'true') {
         pipeline.letter_click = {$ne: null}
     }
-    if(from){
+    if (from) {
         pipeline.time = {$ne: null}
 
     }
@@ -5424,21 +5424,25 @@ app.post('/unsubscribe', (req, res, next) => {
 
 
 app.get('/getFbPost', function (req, res) {
-    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment,time_from,time_to} = req.query
+    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment, time_from, time_to} = req.query
     var query = {}
-    console.log('req.query',req.query)
+    console.log('req.query', req.query)
     if (schedule == 'true') {
         query.time = {$gt: new Date()}
     } else {
         query.time = {$lt: new Date()}
 
     }
-    if(time_from){
+    if (time_from) {
         query.time = {$gt: new Date(time_from)}
     }
 
-    if(time_to){
-        query.time = {$lt: new Date(time_to)}
+    if (time_to) {
+        if (!query.time) {
+            query.time = {}
+        }
+        query.time.$lt = new Date(time_to)
+
     }
 
     if (poster) {
@@ -5461,7 +5465,7 @@ app.get('/getFbPost', function (req, res) {
     if (comment == 'true') {
         query.comments = {$ne: null}
     }
-    console.log('query',query)
+    console.log('query', query)
     getPaginatedItemss(facebookPostCol, query, sort, page)
         .then(posts => res.send(posts))
         .catch(err => res.status(500).json(err));
