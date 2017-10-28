@@ -1563,7 +1563,9 @@ app.get('/api/notification', (req, res) => {
         email,
         p: page,
         letter_open,
-        letter_click
+        letter_click,
+        from,
+        to
     } = req.query;
 
 
@@ -1580,6 +1582,10 @@ app.get('/api/notification', (req, res) => {
     }
     if (letter_click == 'true') {
         pipeline.letter_click = {$ne: null}
+    }
+    if(from){
+        pipeline.time = {$ne: null}
+
     }
     console.log(pipeline)
     getPaginatedItemss(notificationCol, pipeline, null, page).then(result => res.send(result))
@@ -5418,9 +5424,17 @@ app.post('/unsubscribe', (req, res, next) => {
 
 
 app.get('/getFbPost', function (req, res) {
-    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment} = req.query
+    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment,time_from,time_to} = req.query
     var query = {}
     console.log('req.query',req.query)
+    if(time_from){
+        query.time = {$gt: new Date(time_from)}
+    }
+
+    if(time_to){
+        query.time = {$lt: new Date(time_to)}
+    }
+
     if (poster) {
         query.poster = poster
     }
