@@ -5427,6 +5427,12 @@ app.get('/getFbPost', function (req, res) {
     let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment,time_from,time_to} = req.query
     var query = {}
     console.log('req.query',req.query)
+    if (schedule == 'true') {
+        query.time = {$gt: new Date()}
+    } else {
+        query.time = {$lt: new Date()}
+
+    }
     if(time_from){
         query.time = {$gt: new Date(time_from)}
     }
@@ -5447,12 +5453,7 @@ app.get('/getFbPost', function (req, res) {
     if (id == 'true') {
         query.id = {$ne: null}
     }
-    if (schedule == 'true') {
-        query.time = {$gt: new Date()}
-    } else {
-        query.time = {$lt: new Date()}
 
-    }
     if (still_alive == 'true') {
         console.log(still_alive)
         query.still_alive = true
@@ -5460,7 +5461,7 @@ app.get('/getFbPost', function (req, res) {
     if (comment == 'true') {
         query.comments = {$ne: null}
     }
-
+    console.log('query',query)
     getPaginatedItemss(facebookPostCol, query, sort, page)
         .then(posts => res.send(posts))
         .catch(err => res.status(500).json(err));
