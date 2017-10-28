@@ -1575,10 +1575,10 @@ app.get('/api/notification', (req, res) => {
     if (title) {
         pipeline['mail.title'] = title
     }
-    if (letter_open == true) {
+    if (letter_open == 'true') {
         pipeline.letter_open = {$ne: null}
     }
-    if (letter_click == true) {
+    if (letter_click == 'true') {
         pipeline.letter_click = {$ne: null}
     }
     console.log(pipeline)
