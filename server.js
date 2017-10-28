@@ -1473,12 +1473,13 @@ app.get('/api/lead', (req, res) => {
     })
 });
 
-function getPaginatedItemss(collection, query, sort, page = 1, per_page = 15) {
+function getPaginatedItemss(collection, query, page = 1, per_page = 15) {
     return new Promise((resolve, reject) => {
         if (!collection) reject('Mongoose collection is required!');
 
         const offset = (page - 1) * per_page;
         var typesort = {};
+        var sort = query.sort
         if (sort) {
             typesort[sort] = -1
         } else {
@@ -1588,7 +1589,7 @@ app.get('/api/notification', (req, res) => {
 
     }
     console.log(pipeline)
-    getPaginatedItemss(notificationCol, pipeline, null, page).then(result => res.send(result))
+    getPaginatedItemss(notificationCol, pipeline, page).then(result => res.send(result))
     // notificationCol.find(pipeline)
     //     .skip(15)
     //     .limit(15)
@@ -5472,13 +5473,17 @@ function getQueryFB(req) {
     if (comment == 'true') {
         query.comments = {$ne: null}
     }
+    if (sort) {
+        query.sort = sort
+    }
     console.log('query', query)
     return query
 }
 
 app.get('/getFbPost', function (req, res) {
-    var query = getQueryFB(req)
-    getPaginatedItemss(facebookPostCol, query, sort, page)
+    var queryData = req.query
+    var query = getQueryFB(queryData)
+    getPaginatedItemss(facebookPostCol, query, queryData.page)
         .then(posts => res.send(posts))
         .catch(err => res.status(500).json(err));
 
