@@ -5422,9 +5422,16 @@ app.post('/unsubscribe', (req, res, next) => {
         });
 });
 
+app.delete('/removePost', (req, res, next) => {
+    var query = getQueryFB(req)
+    FacebookPost.remove(query)
+        .then(result => res.status(200).json(result))
+        .catch(err => res.status(500).send(err));
 
-app.get('/getFbPost', function (req, res) {
-    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment, time_from, time_to} = req.query
+});
+
+function getQueryFB(req) {
+    let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment, time_from, time_to} = req
     var query = {}
     console.log('req.query', req.query)
     if (schedule == 'true') {
@@ -5466,6 +5473,11 @@ app.get('/getFbPost', function (req, res) {
         query.comments = {$ne: null}
     }
     console.log('query', query)
+    return query
+}
+
+app.get('/getFbPost', function (req, res) {
+    var query = getQueryFB(req)
     getPaginatedItemss(facebookPostCol, query, sort, page)
         .then(posts => res.send(posts))
         .catch(err => res.status(500).json(err));
