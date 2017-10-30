@@ -585,8 +585,8 @@ function getShortPremiumJob(ref) {
 }
 
 app.get('/PremiumJob', function (req, res) {
-    let {where, type, job, industry, postId} = req.query
-    res.send(createListPremiumJob(where, type, job, industry, postId))
+    let {where, type, job, industry, postId, level} = req.query
+    res.send(createListPremiumJob(where, type, job, industry, postId, level))
 });
 app.get('/googleJob', function (req, res) {
     var list = []
@@ -601,7 +601,7 @@ app.get('/googleJob', function (req, res) {
     res.send(send)
 });
 
-function createListPremiumJob(where, type, job, industry, postId) {
+function createListPremiumJob(where, type, job, industry, postId, level) {
     var jobHN = "";
     var jobHNArray = []
     var jobHCM = "";
@@ -619,7 +619,9 @@ function createListPremiumJob(where, type, job, industry, postId) {
             && dataUser[jobData.createdBy]
 
             && dataStore[jobData.storeId]
-            && dataStore[jobData.storeId].level == 'premium'
+            && dataStore[jobData.storeId].level
+
+            && dataStore[jobData.storeId].level == level || !level
 
             && jobData.deadline > Date.now()
 
@@ -2349,7 +2351,7 @@ app.get('/on/profile', function (req, res) {
 app.get('/on/job', function (req, res) {
     var jobId = req.param('jobId');
     var jobData = dataJob[jobId]
-    if(jobData){
+    if (jobData) {
         const storeId = jobData.storeId
         var storeData = dataStore[storeId]
         if (storeData.interviewTime) {
@@ -2359,7 +2361,7 @@ app.get('/on/job', function (req, res) {
         var all = Object.assign({}, jobData, {storeData})
         res.send(JSON.stringify(all, circular()))
     } else {
-        res.status(500).json({err:'No data'})
+        res.status(500).json({err: 'No data'})
     }
 
 });
