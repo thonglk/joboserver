@@ -2349,14 +2349,19 @@ app.get('/on/profile', function (req, res) {
 app.get('/on/job', function (req, res) {
     var jobId = req.param('jobId');
     var jobData = dataJob[jobId]
-    const storeId = jobData.storeId
-    var storeData = dataStore[storeId]
-    if (storeData.interviewTime) {
-        storeData.interviewOption = getInterviewOption(storeData.interviewTime)
+    if(jobData){
+        const storeId = jobData.storeId
+        var storeData = dataStore[storeId]
+        if (storeData.interviewTime) {
+            storeData.interviewOption = getInterviewOption(storeData.interviewTime)
+        }
+
+        var all = Object.assign({}, jobData, {storeData})
+        res.send(JSON.stringify(all, circular()))
+    } else {
+        res.status(500).json({err:'No data'})
     }
 
-    var all = Object.assign({}, jobData, {storeData})
-    res.send(JSON.stringify(all, circular()))
 });
 app.get('/on/store', function (req, res) {
     var storeId = req.param('storeId');
@@ -5425,7 +5430,7 @@ app.post('/unsubscribe', (req, res, next) => {
 
 app.delete('/removePost', (req, res, next) => {
     var query = getQueryFB(req)
-    FacebookPost.remove(query)
+    facebookPostCol.remove(query)
         .then(result => res.status(200).json(result))
         .catch(err => res.status(500).send(err));
 
