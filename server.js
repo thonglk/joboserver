@@ -619,8 +619,8 @@ function createListPremiumJob(where, type, job, industry, postId, level) {
             && dataUser[jobData.createdBy]
 
             && dataStore[jobData.storeId]
+            && dataStore[jobData.storeId].location
             && dataStore[jobData.storeId].level
-
             && dataStore[jobData.storeId].level == level || !level
 
             && jobData.deadline > Date.now()
