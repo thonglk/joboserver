@@ -926,7 +926,7 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
     var link = '';
 
     if (jobId) {
-        link = 'https://m.me/jobo.asia?ref=' + jobId;
+        link = 'https://m.me/385066561884380?ref=' + jobId;
 
         // link = CONFIG.WEBURL + '/signup/2?job=' + jobId + '#ref=' + postId;
     } else {
