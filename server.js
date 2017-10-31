@@ -884,7 +884,7 @@ function callToAction({link = ''}, type) {
 
 }
 
-function createJDStore(storeId, random, jobId, postId, typejob) {
+function createJDStore(storeId, random, jobId, postId, typejob, type) {
     // return new Promise((resolve, reject) => {
     var Job = dataJob[jobId];
     var storeData = {}
@@ -976,10 +976,14 @@ function createJDStore(storeId, random, jobId, postId, typejob) {
     }
 
     var randomphoto = _.random(0, storeData.photo.length - 1)
+    if (!type) {
+        type = _.sample(['image', 'text'])
+    }
     return {
-        text: text,
-        link: link,
-        image: storeData.photo[randomphoto]
+        text,
+        link,
+        image: storeData.photo[randomphoto],
+        type
     };
 }
 
@@ -1591,14 +1595,63 @@ app.get('/api/notification', (req, res) => {
     }
     console.log(pipeline)
     getPaginatedItemss(notificationCol, pipeline, page).then(result => res.send(result))
-    // notificationCol.find(pipeline)
-    //     .skip(15)
-    //     .limit(15)
-    //     .sort({'createdAt' : -1}).toArray(function (err, result) {
-    //     if (err) throw err;
-    //     res.send(result)
-    //
-    // });
+
+
+});
+
+app.get('/send/notification', (req, res) => {
+    let {
+        title,
+        email,
+        p: page,
+        letter_open,
+        letter_click,
+        from,
+        mail
+    } = req.query;
+
+
+    var pipeline = {}
+    if (email) {
+        pipeline['userData.email'] = email
+    }
+
+    if (title) {
+        pipeline['mail.title'] = title
+    }
+    if (letter_open == 'true') {
+        pipeline.letter_open = {$ne: null}
+    }
+    if (letter_click == 'true') {
+        pipeline.letter_click = {$ne: null}
+    }
+    if (from) {
+        pipeline['mail.from'] = from
+    }
+    console.log(pipeline)
+
+    notificationCol.find(pipeline).toArray(function (err, posts) {
+        if (err) res.status(500).json(err)
+        var sendEmailData = {}
+        posts.forEach(post => {
+            if (!mail.time) {
+                mail.time = Date.now() + 2000
+            } else {
+                mail.time = mail.time + 100
+            }
+            var emailData = post.userData.email.split('@')
+            var keyEmail = emailData[0]
+            if(!sendEmailData[keyEmail]){
+                sendNotification(post.userData, mail, null, mail.time)
+                sendEmailData[keyEmail] = true
+            }
+
+        })
+        res.send({code: 'success', numberSent: posts.length, data: posts})
+
+
+    });
+
 
 });
 
@@ -5233,7 +5286,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 }
 
                 var to = groupData[i].groupId;
-
+                console.log('content', content)
                 axios.post(CONFIG.AnaURL + '/newPost', {
                     postId,
                     storeId,
@@ -5242,10 +5295,9 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     content,
                     time,
                     to
+                }).then(function (result) {
+                    console.log('PostStore', postId)
                 })
-                    .then(function (result) {
-                        console.log('PostStore', postId)
-                    })
                     .catch(err => console.log(err));
             }
         } else {
