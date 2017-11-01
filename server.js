@@ -1641,7 +1641,7 @@ app.get('/send/notification', (req, res) => {
             }
             var emailData = post.userData.email.split('@')
             var keyEmail = emailData[0]
-            if(!sendEmailData[keyEmail]){
+            if (!sendEmailData[keyEmail]) {
                 sendNotification(post.userData, mail, null, mail.time)
                 sendEmailData[keyEmail] = true
             }
@@ -2031,6 +2031,8 @@ app.get('/api/job', function (req, res) {
     var sort = newfilter.sort
     var show = newfilter.show
     var page = newfilter.page
+    var per_page = newfilter.per_page
+
     var joblist = []
 
 
@@ -2179,8 +2181,7 @@ app.get('/api/job', function (req, res) {
                 return card[sort]
             })
 
-
-            var sendData = getPaginatedItems(sorded, page)
+            var sendData = getPaginatedItems(sorded, page, per_page)
             sendData.newfilter = newfilter
             res.send(JSON.stringify(sendData, circular()))
         }
@@ -3459,11 +3460,14 @@ app.get('/lang', function (req, res) {
 })
 
 
-function getPaginatedItems(items, page) {
+function getPaginatedItems(items, page, per_page) {
     var page = page || 1,
-        per_page = 15,
         offset = (page - 1) * per_page,
         paginatedItems = _.rest(items, offset).slice(0, per_page);
+    if (!per_page) {
+        per_page = 15
+    }
+
     return {
         page: page,
         per_page: per_page,
