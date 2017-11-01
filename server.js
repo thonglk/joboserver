@@ -179,7 +179,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
             }
         }
         if (!time) {
-            time = Date.now() + 5000
+            time = Date.now() + 10000
         }
         if (!notiId) {
             notiId = keygen()
