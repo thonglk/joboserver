@@ -229,7 +229,7 @@ app.get('/convert', function (req, res) {
 })
 
 app.get('/sendStoretoPage', function (req, res) {
-    var storeId = req.param('storeId')
+    var storeId = req.param('storeId');
     sendStoretoPage(storeId)
     res.send(storeId)
 })
@@ -241,16 +241,14 @@ function sendStoretoPage(storeId) {
         if (storeData.createdBy
             && dataUser[storeData.createdBy]) {
 
-            storeData.userInfo = dataUser[storeData.createdBy]
+            storeData.userInfo = dataUser[storeData.createdBy];
             if (storeData.avatar) {
                 PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2, storeData.jobData[0].jobId), publishChannel.Jobo.token)
             } else {
                 PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2, storeData.jobData[0].jobId), publishChannel.Jobo.token)
             }
         }
-
     }
-
 }
 
 app.get('/PublishPost', function (req, res) {
@@ -271,8 +269,6 @@ function PublishPost(userId, text, accessToken) {
             function (err, res) {
                 // returns the post id
                 console.log(res, err);
-
-
             });
     } else {
         console.log('PublishPost error')
@@ -2031,7 +2027,7 @@ app.get('/api/job', function (req, res) {
     var sort = newfilter.sort
     var show = newfilter.show
     var page = newfilter.page
-    var per_page = newfilter.per_page
+    var per_page = newfilter.per_page || 15
 
     var joblist = []
 
