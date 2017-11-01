@@ -3456,13 +3456,11 @@ app.get('/lang', function (req, res) {
 })
 
 
-function getPaginatedItems(items, page, per_page) {
+function getPaginatedItems(items, page, per_page = 15) {
     var page = page || 1,
         offset = (page - 1) * per_page,
         paginatedItems = _.rest(items, offset).slice(0, per_page);
-    if (!per_page) {
-        per_page = 15
-    }
+
 
     return {
         page: page,
