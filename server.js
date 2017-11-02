@@ -970,14 +970,14 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
         image.push(storeData.avatar)
     }
 
-    var randomphoto = _.random(0, storeData.photo.length - 1)
+
     if (!type) {
         type = _.sample(['image', 'text'])
     }
     return {
         text,
         link,
-        image: storeData.photo[randomphoto],
+        image: _.sample(image),
         type
     };
 }
