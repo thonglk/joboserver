@@ -964,11 +964,10 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
         contact,
         callToAction: callToAction({link})
     });
+    var image = Object.assign([],storeData.photo)
 
-    if (storeData.photo) {
-        storeData.photo.push(storeData.avatar)
-    } else {
-        storeData.photo = [storeData.avatar]
+    if (storeData.avatar) {
+        image.push(storeData.avatar)
     }
 
     var randomphoto = _.random(0, storeData.photo.length - 1)
