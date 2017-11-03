@@ -393,16 +393,19 @@ function init() {
 
     profileRef.on('child_added', function (snap) {
         dataProfile[snap.key] = snap.val()
-
+        checkProfileAlone(dataProfile[snap.key],snap.key)
     });
     profileRef.on('child_changed', function (snap) {
 
         dataProfile[snap.key] = snap.val()
+        checkProfileAlone(dataProfile[snap.key],snap.key)
+
     });
 
     jobRef.on('child_added', function (snap) {
 
         dataJob[snap.key] = snap.val()
+        checkJobAlone(dataJob[snap.key],snap.key)
         var job = dataJob[snap.key]
 
         if (!popularJob[job.job]) {
@@ -424,13 +427,18 @@ function init() {
     });
     jobRef.on('child_changed', function (snap) {
         dataJob[snap.key] = snap.val()
+        checkJobAlone(dataJob[snap.key],snap.key)
+
     });
     storeRef.on('child_added', function (snap) {
 
         dataStore[snap.key] = snap.val()
+        checkStoreAlone(dataStore[snap.key],snap.key)
+
     });
     storeRef.on('child_changed', function (snap) {
         dataStore[snap.key] = snap.val()
+        checkStoreAlone(dataStore[snap.key],snap.key)
     });
     likeActivityRef.on('child_added', function (snap) {
         likeActivity[snap.key] = snap.val()
@@ -964,7 +972,7 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
         contact,
         callToAction: callToAction({link})
     });
-    var image = Object.assign([],storeData.photo)
+    var image = Object.assign([], storeData.photo)
 
     if (storeData.avatar) {
         image.push(storeData.avatar)
@@ -1144,6 +1152,135 @@ function checkStore() {
     })
 }
 
+function checkJobAlone(jobData,i) {
+    return new Promise(function (resolve, reject) {
+        var job = Object.assign({}, jobData);
+
+        if (job.act) {
+            console.log('job.act remove', i)
+            delete job.act
+        }
+        if (job.distance) {
+            console.log('job.distance remove', i)
+            delete job.distance
+        }
+        if (!job.createdAt) {
+            console.log('job.createdAt ', i)
+
+            job.createdAt = Date.now()
+
+        }
+        if (!job.updatedAt) {
+            console.log('job.updatedAt ', i)
+            job.updatedAt = Date.now()
+        }
+        if (JSON.stringify(job) != JSON.stringify(jobData)) {
+            jobRef.child(job.jobId).set(job)
+                .then(result => resolve(result))
+                .catch(err => reject(err))
+
+        } else resolve({result: 'OK'})
+    })
+
+
+}
+
+function checkProfileAlone(profileData,i) {
+    return new Promise(function (resolve, reject) {
+        var profile = Object.assign({}, profileData);
+        console.log(profile.name);
+
+        if (profile.act) {
+            console.log('profile.act remove', i)
+            delete profile.act
+        }
+        if (profile.distance) {
+            console.log('profile.distance remove', i)
+            delete profile.distance
+        }
+        if (profile.static) {
+            console.log('profile.static remove', i)
+            delete profile.static
+        }
+        if (profile.presence) {
+            console.log('profile.presence remove', i)
+            delete profile.presence
+        }
+        if (profile.err) {
+            console.log('profile.err remove', i)
+            delete profile.err
+        }
+
+        if (!profile.createdAt) {
+            console.log('profile.createdAt ', i)
+
+            profile.createdAt = Date.now()
+        }
+        if (!profile.updatedAt) {
+            console.log('profile.updatedAt ', i)
+            profile.updatedAt = Date.now()
+        }
+        if (!profile.userId) {
+            console.log('profile.userId ', i)
+            profile.userId = i
+        }
+
+        if (JSON.stringify(profile) != JSON.stringify(profileData)) {
+            profileRef.child(profile.userId).set(profile)
+                .then(result => resolve(result))
+                .catch(err => reject(err))
+        } else resolve({result: 'OK'})
+    })
+
+
+}
+
+function checkStoreAlone(storeData, i) {
+    return new Promise(function (resolve, reject) {
+        var store = Object.assign({}, storeData);
+        console.log(store.storeName)
+
+
+        if (store.act) {
+            console.log('store.act remove', i)
+            delete store.act
+        }
+        if (store.distance) {
+            console.log('store.distance remove', i)
+            delete store.distance
+        }
+        if (store.static) {
+            console.log('store.static remove', i)
+            delete store.static
+        }
+        if (store.presence) {
+            console.log('store.presence remove', i)
+            delete store.presence
+        }
+
+        if (!store.storeId) {
+            store.storeId = i
+            console.log('store.presence remove', i)
+
+        }
+
+        if (!store.createdAt) {
+            console.log('store.createdAt ', i)
+            store.createdAt = Date.now()
+        }
+
+        if (JSON.stringify(store) != JSON.stringify(storeData)) {
+            storeRef.child(i).set(store)
+                .then(result => resolve(result))
+                .catch(err => reject(err))
+
+        } else resolve({result: 'OK'})
+    })
+
+
+}
+
+
 function checkProfile() {
     return new Promise(function (resolve, reject) {
 
@@ -1182,7 +1319,6 @@ function checkProfile() {
                     console.log('profile.createdAt ', i)
 
                     profile.createdAt = Date.now()
-
                 }
                 if (!profile.updatedAt) {
                     console.log('profile.updatedAt ', i)
@@ -2391,9 +2527,8 @@ app.get('/on/profile', function (req, res) {
         var userData = Object.assign({}, dataProfile[userId])
         userData.userInfo = dataUser[userId]
         res.send(userData)
-    } else {
-        res.status(500).json({err: 'No Data'})
-    }
+
+    } else res.status(500).json({err: 'No Data'})
 });
 
 app.get('/on/job', function (req, res) {
@@ -2408,9 +2543,9 @@ app.get('/on/job', function (req, res) {
 
         var all = Object.assign({}, jobData, {storeData})
         res.send(JSON.stringify(all, circular()))
-    } else {
-        res.status(500).json({err: 'No data'})
-    }
+
+    } else res.status(500).json({err: 'No data'})
+
 
 });
 app.get('/on/store', function (req, res) {
@@ -3041,6 +3176,9 @@ function createKey(fullname) {
     }
 }
 
+app.get('/api/log', function () {
+
+})
 
 app.post('/update/log', function (req, res) {
         var userId = req.param('userId')
@@ -3117,13 +3255,11 @@ app.get('/update/log', function (req, res) {
         actRef.child(key).set(log)
         console.log("Jobo act", log);
     }
-
-
 });
 
 app.get('/initData', function (req, res) {
     var userId = req.param('userId')
-    var user = {}
+    var user = {};
     if (dataUser[userId]) {
 
         user.userData = dataUser[userId]
@@ -3140,7 +3276,6 @@ app.get('/initData', function (req, res) {
         if (dataUser[userId].type == 2) {
             if (dataProfile[userId]) {
                 user.userData = Object.assign({}, dataProfile[userId], dataUser[userId]);
-
             }
             user.reactList = {}
             user.reactList.match = _.where(likeActivity, {userId: userId, status: 1});
@@ -3148,10 +3283,11 @@ app.get('/initData', function (req, res) {
             user.reactList.liked = _.where(likeActivity, {userId: userId, status: 0, type: 1});
         }
 
-        res.send(JSON.stringify(user, circular()))
+        res.send(JSON.stringify(user))
     } else {
         res.send({err: 'Kiểm tra lại thông tin tài khoản'})
     }
+
 });
 
 app.get('/view/profile', function (req, res) {
@@ -3165,13 +3301,13 @@ app.get('/view/profile', function (req, res) {
         profileData.actData.like = _.where(likeActivity, {userId: profileId, status: 0, type: 2});
         profileData.actData.liked = _.where(likeActivity, {userId: profileId, status: 0, type: 1});
         profileData.static = dataStatic[profileId]
-        if (userId) profileData.act = _.where(likeActivity, {userId: profileId, storeId: userId});
-
+        if (userId) {
+            var act = _.where(likeActivity, {userId: profileId, storeId: userId});
+            if (act.length > 0) profileData.act = act
+        }
         res.send(JSON.stringify(profileData, circular()))
-    } else {
-        res.status(500).json({err: 'No data'})
 
-    }
+    } else res.status(500).json({err: 'No data'})
 
 });
 
@@ -3239,10 +3375,10 @@ app.get('/view/store', function (req, res) {
             storeData.currentJobData = Object.assign({}, dataJob[jobId])
         }
 
-        res.send(JSON.stringify(storeData, circular()))
+        res.send(JSON.stringify(storeData))
     } else if (datagoogleJob[storeId]) {
         var storeData = datagoogleJob[storeId]
-        res.send(JSON.stringify(storeData, circular()))
+        res.send(JSON.stringify(storeData))
     } else {
         res.send({code: 'error'})
     }
@@ -3280,18 +3416,7 @@ app.get('/log/job', function (req, res) {
     var listJob = []
     for (var i in dataJob) {
         var job = dataJob[i]
-        if (job.storeId && dataStore[job.storeId] && dataStore[job.storeId].storeName) {
-            job.storeName = dataStore[job.storeId].storeName
-        } else {
-            if (!job.storeId) {
-                var a = i.split(':')
-                var storeId = a[0]
-                jobRef.child(i).update({storeId: storeId})
-                console.log('done')
-            }
-        }
         listJob.push(job)
-
     }
     return new Promise(function (resolve, reject) {
         resolve(listJob)
@@ -5244,20 +5369,9 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         } else {
             authenic_content = false
         }
+
         if (poster) {
             var authenic_poster = true
-
-            // var evens = _.filter(facebookUser['vn'], function (num) {
-            //     var arr = num.match(poster)
-            //     if(arr.length > 0) return true
-            //     else return false
-            // });
-            //
-            // if (evens.length > 0) {
-            //     poster = _.sample(evens)
-            // } else {
-            //     reject({err:'no poster'})
-            // }
 
         } else {
             authenic_poster = false
