@@ -393,19 +393,19 @@ function init() {
 
     profileRef.on('child_added', function (snap) {
         dataProfile[snap.key] = snap.val()
-        checkProfileAlone(dataProfile[snap.key],snap.key)
+        checkProfileAlone(dataProfile[snap.key], snap.key)
     });
     profileRef.on('child_changed', function (snap) {
 
         dataProfile[snap.key] = snap.val()
-        checkProfileAlone(dataProfile[snap.key],snap.key)
+        checkProfileAlone(dataProfile[snap.key], snap.key)
 
     });
 
     jobRef.on('child_added', function (snap) {
 
         dataJob[snap.key] = snap.val()
-        checkJobAlone(dataJob[snap.key],snap.key)
+        checkJobAlone(dataJob[snap.key], snap.key)
         var job = dataJob[snap.key]
 
         if (!popularJob[job.job]) {
@@ -427,19 +427,21 @@ function init() {
     });
     jobRef.on('child_changed', function (snap) {
         dataJob[snap.key] = snap.val()
-        checkJobAlone(dataJob[snap.key],snap.key)
+        checkJobAlone(dataJob[snap.key], snap.key)
 
     });
+
     storeRef.on('child_added', function (snap) {
 
         dataStore[snap.key] = snap.val()
-        checkStoreAlone(dataStore[snap.key],snap.key)
+        checkStoreAlone(dataStore[snap.key], snap.key)
 
     });
     storeRef.on('child_changed', function (snap) {
         dataStore[snap.key] = snap.val()
-        checkStoreAlone(dataStore[snap.key],snap.key)
+        checkStoreAlone(dataStore[snap.key], snap.key)
     });
+
     likeActivityRef.on('child_added', function (snap) {
         likeActivity[snap.key] = snap.val()
     });
@@ -991,7 +993,7 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
 }
 
 app.get('/check', function (req, res) {
-    checkProfile().then(result => res.send(result))
+    checkStore().then(result => res.send(result))
 })
 
 function checkJob() {
@@ -1071,7 +1073,6 @@ function checkJob() {
 
             }
 
-
         })
 
     })
@@ -1087,64 +1088,10 @@ function checkStore() {
 
             function loop(i) {
                 console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
-
-                var store = Object.assign({}, arrayJob[i]);
-                console.log(store.storeName)
-
-
-                if (!store.storeId) {
-                    console.log('storeId')
+                checkStoreAlone(arrayJob[i],arrayJob[i].storeId).then(result => {
                     i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    } else {
-                        resolve('done')
-                    }
-                    return
-                }
-                if (store.act) {
-                    console.log('store.act remove', i)
-                    delete store.act
-                }
-                if (store.distance) {
-                    console.log('store.distance remove', i)
-                    delete store.distance
-                }
-                if (store.static) {
-                    console.log('store.static remove', i)
-                    delete store.static
-                }
-                if (store.presence) {
-                    console.log('store.presence remove', i)
-                    delete store.presence
-                }
-
-
-                if (!store.createdAt) {
-                    console.log('store.createdAt ', i)
-                    store.createdAt = Date.now()
-                }
-
-                if (JSON.stringify(store) != JSON.stringify(arrayJob[i])) {
-                    storeRef.child(store.storeId).set(store).then(function () {
-                        console.log('job done', i)
-
-                        i++
-                        if (i < arrayJob.length) {
-                            loop(i)
-                        } else {
-                            resolve('done')
-                        }
-                    })
-
-                } else {
-                    i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    } else {
-                        resolve('done')
-                    }
-                }
+                    loop(i)
+                })
 
             }
         })
@@ -1152,24 +1099,40 @@ function checkStore() {
     })
 }
 
-function checkJobAlone(jobData,i) {
+function checkJobAlone(jobData, i) {
     return new Promise(function (resolve, reject) {
         var job = Object.assign({}, jobData);
+
+        if (job.storeName) {
+            console.log('job.storeName remove', i)
+            delete job.storeName
+        }
+
+        if (job.address) {
+            console.log('job.address remove', i)
+            delete job.address
+        }
+
+        if (job.location) {
+            console.log('job.location remove', i)
+            delete job.location
+        }
 
         if (job.act) {
             console.log('job.act remove', i)
             delete job.act
         }
+
         if (job.distance) {
             console.log('job.distance remove', i)
             delete job.distance
         }
+
         if (!job.createdAt) {
             console.log('job.createdAt ', i)
-
             job.createdAt = Date.now()
-
         }
+
         if (!job.updatedAt) {
             console.log('job.updatedAt ', i)
             job.updatedAt = Date.now()
@@ -1185,10 +1148,11 @@ function checkJobAlone(jobData,i) {
 
 }
 
-function checkProfileAlone(profileData,i) {
+function checkProfileAlone(profileData, i) {
     return new Promise(function (resolve, reject) {
         var profile = Object.assign({}, profileData);
         console.log(profile.name);
+
 
         if (profile.act) {
             console.log('profile.act remove', i)
@@ -1238,8 +1202,10 @@ function checkProfileAlone(profileData,i) {
 function checkStoreAlone(storeData, i) {
     return new Promise(function (resolve, reject) {
         var store = Object.assign({}, storeData);
-        console.log(store.storeName)
-
+        console.log(store.storeName,i)
+        if (!store.storeId) {
+            store.storeId = i
+        }
 
         if (store.act) {
             console.log('store.act remove', i)
@@ -1253,6 +1219,11 @@ function checkStoreAlone(storeData, i) {
             console.log('store.static remove', i)
             delete store.static
         }
+
+        if (store.interviewOption) {
+            console.log('store.interviewOption remove', i)
+            delete store.interviewOption
+        }
         if (store.presence) {
             console.log('store.presence remove', i)
             delete store.presence
@@ -1261,12 +1232,21 @@ function checkStoreAlone(storeData, i) {
         if (!store.storeId) {
             store.storeId = i
             console.log('store.presence remove', i)
-
         }
 
         if (!store.createdAt) {
             console.log('store.createdAt ', i)
             store.createdAt = Date.now()
+        }
+        if (store.job) {
+            var newJob = {}
+            for (var i in store.job) {
+                var job = dataJob[i]
+                if (job && job.job) {
+                    newJob[job.job] = job.jobName || job.job
+                }
+            }
+            store.job = newJob
         }
 
         if (JSON.stringify(store) != JSON.stringify(storeData)) {
