@@ -133,8 +133,6 @@ var actRef = db2.ref('act');
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
     keyListData, datagoogleJob;
 
-var groupRef = db.ref('groupData');
-
 var groupData, groupArray;
 
 
@@ -327,7 +325,8 @@ function init() {
     console.log('listenDatabase')
     configRef.on('value', function (snap) {
         CONFIG = snap.val()
-
+        groupData = CONFIG.groupData
+        groupArray = _.toArray(groupData)
         console.log('CONFIG.APIURL', CONFIG.APIURL)
         facebookUser = {
             vn: [],
@@ -417,12 +416,6 @@ function init() {
             return -job.unit
         })
 
-        groupRef.once('value', function (snap) {
-            groupData = snap.val();
-            groupArray = _.toArray(groupData)
-            CONFIG.groupData = groupData
-        });
-
 
     });
     jobRef.on('child_changed', function (snap) {
@@ -479,56 +472,9 @@ process.on('uncaughtException', function (err) {
     };
     axios.post('https://jobobot.herokuapp.com/noti', data);
 });
-app.get('/lookalike', function (req, res) {
-    var job = req.param('job')
-
-    var fields = ['name', 'phone', 'email', 'type'];
-    var myUser = [];
-    var a = 0;
-
-    for (var i in dataProfile) {
-        var profile = dataProfile[i]
-        if (profile.job && profile.job[job] && dataUser[i]) {
-            var user = dataUser[i]
-            a++
-            if (user.phone) {
-                var phoneStr = user.phone.toString()
-                if (phoneStr.charAt(0) == '0') {
-                    phoneStr = phoneStr.replace("0", "84");
-                } else {
-                    phoneStr = "84" + phoneStr
-                }
-            } else {
-                var phoneStr = ''
-            }
-
-            if (user.type == 2) {
-                myUser.push({
-                    name: user.name || '',
-                    phone: phoneStr,
-                    email: user.email || '',
-                    type: user.type || ''
-                })
-            }
 
 
-        }
-    }
-    return new Promise(function (resolve, reject) {
-        resolve(myUser)
-    }).then(function (myUser) {
-        var csv = json2csv({data: myUser, fields: fields});
 
-        fs.writeFile('jobseeker_' + job + '.csv', csv, function (err) {
-            if (err) throw err;
-            console.log('file saved');
-            res.send('file saved ' + a)
-
-        });
-
-    })
-
-})
 
 app.get('/updateDeadline', function (req, res) {
 
@@ -5678,6 +5624,34 @@ app.post('/addFacebookAccount', function (req, res) {
             .then(result => res.send(result))
             .catch(err => res.status(500).json({err}))
     }
+});
+app.get('/accountFB', function (req, res) {
+    let {card,key,action} = req.query
+    if (action == 'delete') {
+        configRef.child('facebookAccount').child(key)
+            .remove(result => res.send(result))
+            .catch(err => res.status(500).json({err}))
+    }
+});
+
+app.post('/addGroupFB', function (req, res) {
+    let group = req.body
+    if (group.groupId) {
+        configRef.child('groupData').child(group.groupId)
+            .update(group)
+            .then(result => res.send(result))
+            .catch(err => res.status(500).json({err}))
+    }
+});
+
+app.get('/groupFB', function (req, res) {
+    let {card,key,action} = req.query
+    console.log('req.query',req.query)
+    if (action == 'delete' && key) {
+        configRef.child('groupData').child(key)
+            .remove(result =>res.send(result))
+            .catch(err => res.status(500).json({err}))
+    } else res.status(500).json({err:'No data'})
 });
 
 
