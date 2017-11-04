@@ -1082,15 +1082,24 @@ function checkStore() {
     return new Promise(function (resolve, reject) {
         storeRef.once('value', function (a) {
 
+
             var arrayJob = _.toArray(a.val())
             var i = 0
+
             loop(i)
 
             function loop(i) {
                 console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
-                checkStoreAlone(arrayJob[i],arrayJob[i].storeId).then(result => {
+                checkStoreAlone(arrayJob[i], arrayJob[i].storeId).then(result => {
                     i++
-                    loop(i)
+                    if(i <arrayJob.length){
+                        loop(i)
+                    }
+                }).catch(err => {
+                    i++
+                    if(i <arrayJob.length){
+                        loop(i)
+                    }
                 })
 
             }
@@ -1107,6 +1116,8 @@ function checkJobAlone(jobData, i) {
             console.log('job.storeName remove', i)
             delete job.storeName
         }
+
+
 
         if (job.address) {
             console.log('job.address remove', i)
@@ -1137,6 +1148,11 @@ function checkJobAlone(jobData, i) {
             console.log('job.updatedAt ', i)
             job.updatedAt = Date.now()
         }
+        if(job.p){
+            console.log('job.p remove', i)
+            delete job.p
+        }
+
         if (JSON.stringify(job) != JSON.stringify(jobData)) {
             jobRef.child(job.jobId).set(job)
                 .then(result => resolve(result))
@@ -1199,45 +1215,55 @@ function checkProfileAlone(profileData, i) {
 
 }
 
-function checkStoreAlone(storeData, i) {
+function checkStoreAlone(storeData, a) {
     return new Promise(function (resolve, reject) {
         var store = Object.assign({}, storeData);
-        console.log(store.storeName,i)
+        console.log(store.storeName, a)
+        if(!a) reject({err:'no a'})
+
+        if(store.storeId != a){
+            console.log(store.storeName, a)
+            storeRef.child(a).remove()
+                .then(result => resolve(result))
+                .catch(err => reject(err))
+        }
+
         if (!store.storeId) {
-            store.storeId = i
+            store.storeId = a
         }
 
         if (store.act) {
-            console.log('store.act remove', i)
+            console.log('store.act remove', a)
             delete store.act
         }
         if (store.distance) {
-            console.log('store.distance remove', i)
+            console.log('store.distance remove', a)
             delete store.distance
         }
         if (store.static) {
-            console.log('store.static remove', i)
+            console.log('store.static remove', a)
             delete store.static
         }
 
         if (store.interviewOption) {
-            console.log('store.interviewOption remove', i)
+            console.log('store.interviewOption remove', a)
             delete store.interviewOption
         }
         if (store.presence) {
-            console.log('store.presence remove', i)
+            console.log('store.presence remove', a)
             delete store.presence
         }
 
         if (!store.storeId) {
             store.storeId = i
-            console.log('store.presence remove', i)
+            console.log('store.presence remove', a)
         }
 
         if (!store.createdAt) {
-            console.log('store.createdAt ', i)
+            console.log('store.createdAt ', a)
             store.createdAt = Date.now()
         }
+
         if (store.job) {
             var newJob = {}
             for (var i in store.job) {
@@ -1250,13 +1276,12 @@ function checkStoreAlone(storeData, i) {
         }
 
         if (JSON.stringify(store) != JSON.stringify(storeData)) {
-            storeRef.child(i).set(store)
+            storeRef.child(store.storeId).set(store)
                 .then(result => resolve(result))
                 .catch(err => reject(err))
 
         } else resolve({result: 'OK'})
     })
-
 
 }
 
@@ -2409,7 +2434,6 @@ app.get('/api/users', function (req, res) {
     var langfilter = req.param('languages');
     var age1filter = req.param('age1');
     var age2filter = req.param('age2');
-
     var urgentfilter = req.param('urgent');
     var adminNotefilter = req.param('note')
     var type = req.param('type')
@@ -2419,6 +2443,9 @@ app.get('/api/users', function (req, res) {
 
     var sort = req.param('sort');
     var page = req.param('p');
+
+    var all = req.param('all')
+
     if (!CONFIG.data.job[jobfilter]) {
         jobfilter = ''
     }
@@ -2469,6 +2496,7 @@ app.get('/api/users', function (req, res) {
     return new Promise(function (resolve, reject) {
         resolve(usercard)
     }).then(function (usercard) {
+
             var sorded
             if (sort == 'match' || sort == 'rate') {
                 sorded = _.sortBy(usercard, function (card) {
@@ -2484,9 +2512,14 @@ app.get('/api/users', function (req, res) {
                     return -card.createdAt
                 })
             }
+        if(all == 'true'){
+            res.send(sorded)
+        } else {
             var sendData = getPaginatedItems(sorded, page)
 
             res.send(sendData)
+        }
+
         }
     )
 
