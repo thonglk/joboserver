@@ -407,15 +407,12 @@ function init() {
         checkJobAlone(dataJob[snap.key], snap.key)
         var job = dataJob[snap.key]
 
-        if (!popularJob[job.job]) {
-            popularJob[job.job] = {job: job.job, unit: 1}
-        } else {
-            popularJob[job.job].unit++
-        }
+        if (!popularJob[job.job]) popularJob[job.job] = {job: job.job, unit: 1}
+        else popularJob[job.job].unit++
+
         CONFIG.popularJob = _.sortBy(popularJob, function (job) {
             return -job.unit
         })
-
 
     });
     jobRef.on('child_changed', function (snap) {
@@ -2241,8 +2238,6 @@ app.get('/api/job', function (req, res) {
                         && (card.salary > salaryfilter || !salaryfilter)
                         && (card.package == typefilter || !typefilter)
                     ) joblist.push(card)
-
-
                 }
             }
             resolve(joblist)
