@@ -405,14 +405,7 @@ function init() {
 
         dataJob[snap.key] = snap.val()
         checkJobAlone(dataJob[snap.key], snap.key)
-        var job = dataJob[snap.key]
 
-        if (!popularJob[job.job]) popularJob[job.job] = {job: job.job, unit: 1}
-        else popularJob[job.job].unit++
-
-        CONFIG.popularJob = _.sortBy(popularJob, function (job) {
-            return -job.unit
-        })
 
     });
     jobRef.on('child_changed', function (snap) {
@@ -471,7 +464,26 @@ process.on('uncaughtException', function (err) {
 });
 
 
+function checkStatic() {
 
+    return Promise.resolve(dataJob.map(job => {
+        if (!popularJob[job.job]) popularJob[job.job] = {job: job.job, unit: 1}
+        else popularJob[job.job].unit++
+    })).then(values => {
+        console.log('getLead', values.length)
+        CONFIG.popularJob = _.sortBy(popularJob, function (job) {
+            return -job.unit
+        });
+    })
+
+
+}
+
+app.get('/checkStatic', function (req, res) {
+
+    checkStatic()
+    res.send('done')
+})
 
 app.get('/updateDeadline', function (req, res) {
 
@@ -1035,12 +1047,12 @@ function checkStore() {
                 console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
                 checkStoreAlone(arrayJob[i], arrayJob[i].storeId).then(result => {
                     i++
-                    if(i <arrayJob.length){
+                    if (i < arrayJob.length) {
                         loop(i)
                     }
                 }).catch(err => {
                     i++
-                    if(i <arrayJob.length){
+                    if (i < arrayJob.length) {
                         loop(i)
                     }
                 })
@@ -1059,7 +1071,6 @@ function checkJobAlone(jobData, i) {
             console.log('job.storeName remove', i)
             delete job.storeName
         }
-
 
 
         if (job.address) {
@@ -1091,7 +1102,7 @@ function checkJobAlone(jobData, i) {
             console.log('job.updatedAt ', i)
             job.updatedAt = Date.now()
         }
-        if(job.p){
+        if (job.p) {
             console.log('job.p remove', i)
             delete job.p
         }
@@ -1162,9 +1173,9 @@ function checkStoreAlone(storeData, a) {
     return new Promise(function (resolve, reject) {
         var store = Object.assign({}, storeData);
         console.log(store.storeName, a)
-        if(!a) reject({err:'no a'})
+        if (!a) reject({err: 'no a'})
 
-        if(store.storeId != a){
+        if (store.storeId != a) {
             console.log(store.storeName, a)
             storeRef.child(a).remove()
                 .then(result => resolve(result))
@@ -2453,13 +2464,13 @@ app.get('/api/users', function (req, res) {
                     return -card.createdAt
                 })
             }
-        if(all == 'true'){
-            res.send(sorded)
-        } else {
-            var sendData = getPaginatedItems(sorded, page)
+            if (all == 'true') {
+                res.send(sorded)
+            } else {
+                var sendData = getPaginatedItems(sorded, page)
 
-            res.send(sendData)
-        }
+                res.send(sendData)
+            }
 
         }
     )
@@ -5621,7 +5632,7 @@ app.post('/addFacebookAccount', function (req, res) {
     }
 });
 app.get('/accountFB', function (req, res) {
-    let {card,key,action} = req.query
+    let {card, key, action} = req.query
     if (action == 'delete') {
         configRef.child('facebookAccount').child(key)
             .remove(result => res.send(result))
@@ -5640,13 +5651,13 @@ app.post('/addGroupFB', function (req, res) {
 });
 
 app.get('/groupFB', function (req, res) {
-    let {card,key,action} = req.query
-    console.log('req.query',req.query)
+    let {card, key, action} = req.query
+    console.log('req.query', req.query)
     if (action == 'delete' && key) {
         configRef.child('groupData').child(key)
-            .remove(result =>res.send(result))
+            .remove(result => res.send(result))
             .catch(err => res.status(500).json({err}))
-    } else res.status(500).json({err:'No data'})
+    } else res.status(500).json({err: 'No data'})
 });
 
 
