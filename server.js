@@ -341,7 +341,7 @@ function PublishComment(postId, text, accessToken) {
 }
 
 var facebookUser, facebookAccount;
-var popularJob = {}
+var popularJob = {}, popular = {}
 
 function init() {
     console.log('listenDatabase')
@@ -493,10 +493,27 @@ function checkStatic() {
         if (!popularJob[job.job]) popularJob[job.job] = {job: job.job, unit: 1}
         else popularJob[job.job].unit++
     }
+    var profileJob = {}
+    for (var i in dataProfile) {
+        var job = dataProfile[i].job
+        if(job){
+            for(var key in job){
+                if (!profileJob[key]) profileJob[key] = {job: key, unit: 1}
+                else profileJob[key].unit++
+            }
+        }
 
-    CONFIG.popularJob = _.sortBy(popularJob, function (job) {
+
+    }
+    popular.profileJob = _.sortBy(profileJob, function (job) {
         return -job.unit
     });
+
+    popular.job = _.sortBy(popularJob, function (job) {
+        return -job.unit
+    });
+    CONFIG.popularJob = popular.job
+    CONFIG.popular = popular
 }
 
 app.get('/checkStatic', function (req, res) {
@@ -1052,6 +1069,37 @@ function checkJobAlone(jobData, i) {
 
 
 }
+
+function checkUserAlone(userData, i) {
+    return new Promise(function (resolve, reject) {
+        var user = Object.assign({}, userData);
+
+        var userStr = 'createdAt,updatedAt,name,type,email,phone,credit,mobileToken,webToken,ref,platform,currentStore,messengerId,storeName'
+        for (var key in user) {
+
+            var res = userStr.match(key);
+            if (res) {
+
+            } else {
+                console.log('delete', key)
+                delete user[key]
+            }
+        }
+
+
+        if (JSON.stringify(user) != JSON.stringify(userData)) {
+            profileRef.child(user.userId).set(user)
+                .then(result => {
+                    console.log('update ', user, user.userId)
+                    resolve(result)
+                })
+                .catch(err => reject(err))
+        } else resolve({result: 'OK'})
+    })
+
+
+}
+
 
 function checkProfileAlone(profileData, i) {
     return new Promise(function (resolve, reject) {
@@ -2450,9 +2498,8 @@ app.get('/on/job', function (req, res) {
     if (jobData) {
         const storeId = jobData.storeId
         var storeData = dataStore[storeId]
-        if (storeData.interviewTime) {
-            storeData.interviewOption = getInterviewOption(storeData.interviewTime)
-        }
+        storeData.interviewOption = getInterviewOption(storeData.interviewTime)
+
 
         var all = Object.assign({}, jobData, {storeData})
         res.send(JSON.stringify(all, circular()))
@@ -3224,7 +3271,7 @@ app.get('/view/profile', function (req, res) {
 
 });
 
-function getInterviewOption(interviewTime) {
+function getInterviewOption(interviewTime = {}) {
 
     var now = new Date()
     if (interviewTime.hour) {
@@ -4987,12 +5034,15 @@ function analyticsRemind() {
             }
         }
     })
+    checkStatic()
+
 
 
 }
 
 app.get('/sendRemind', function (req, res) {
     analyticsRemind();
+
     res.send('sendRemind done')
 })
 schedule.scheduleJob({hour: 18, minute: 0}, function () {
