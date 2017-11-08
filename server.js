@@ -31,8 +31,6 @@ var imgNocache = require('nocache');
 var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
 
-let rawdata = fs.readFileSync('jobotest-15784-job-export.json');
-let jobData_old = JSON.parse(rawdata);
 
 
 var credentials = {key: privateKey, cert: certificate};
