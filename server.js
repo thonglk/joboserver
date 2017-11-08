@@ -466,17 +466,14 @@ process.on('uncaughtException', function (err) {
 
 function checkStatic() {
 
-    return Promise.resolve(dataJob.map(job => {
+    dataJob.forEach(job => {
         if (!popularJob[job.job]) popularJob[job.job] = {job: job.job, unit: 1}
         else popularJob[job.job].unit++
-    })).then(values => {
-        console.log('getLead', values.length)
-        CONFIG.popularJob = _.sortBy(popularJob, function (job) {
-            return -job.unit
-        });
-    })
+    });
 
-
+    CONFIG.popularJob = _.sortBy(popularJob, function (job) {
+        return -job.unit
+    });
 }
 
 app.get('/checkStatic', function (req, res) {
@@ -3340,7 +3337,7 @@ app.get('/view/store', function (req, res) {
             storeData.currentJobData = Object.assign({}, dataJob[jobId])
         }
 
-        res.send(JSON.stringify(storeData))
+        res.send(JSON.stringify(storeData,circular()))
     } else if (datagoogleJob[storeId]) {
         var storeData = datagoogleJob[storeId]
         res.send(JSON.stringify(storeData))
