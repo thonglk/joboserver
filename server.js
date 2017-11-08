@@ -31,6 +31,10 @@ var imgNocache = require('nocache');
 var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
 
+let rawdata = fs.readFileSync('jobotest-15784-job-export.json');
+let jobData_old = JSON.parse(rawdata);
+
+
 var credentials = {key: privateKey, cert: certificate};
 
 var CONFIG;
@@ -82,6 +86,7 @@ var joboTest = firebase.initializeApp({
 
 
 const MongoClient = require('mongodb');
+
 
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
@@ -248,6 +253,28 @@ function sendStoretoPage(storeId) {
         }
     }
 }
+
+app.get('/fix',function () {
+    var line = text.split('◆')
+    for( var i in line){
+        var per = line[i].split(' | ')
+        var storeName = per[1]
+        var jobId = per[3]
+        console.log('storeName',storeName,jobId)
+        var store = _.findWhere(dataStore,{storeName})
+        if(store && store.storeId && jobId){
+            console.log('store',store.storeId,store.storeName)
+            jobRef.child(per[3]).update({storeId:store.storeId}).then(result =>{
+                console.log('done')
+            })
+
+
+        }
+    }
+
+
+
+})
 
 app.get('/PublishPost', function (req, res) {
     let {message, accessToken} = req.query
@@ -420,6 +447,7 @@ function init() {
         checkStoreAlone(dataStore[snap.key], snap.key)
 
     });
+
     storeRef.on('child_changed', function (snap) {
         dataStore[snap.key] = snap.val()
         checkStoreAlone(dataStore[snap.key], snap.key)
@@ -484,7 +512,7 @@ app.get('/checkStatic', function (req, res) {
 
 app.get('/updateDeadline', function (req, res) {
 
-    updateDeadline()
+    updateDeadline();
     res.send('done')
 })
 
@@ -885,9 +913,7 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
     var link = '';
 
     if (jobId) {
-        link = 'https://m.me/385066561884380?ref=' + jobId;
-
-        // link = CONFIG.WEBURL + '/signup/2?job=' + jobId + '#ref=' + postId;
+        link = 'https://m.me/385066561884380?ref=' + jobId+'_'+postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -948,87 +974,7 @@ app.get('/check', function (req, res) {
     checkStore().then(result => res.send(result))
 })
 
-function checkJob() {
-    return new Promise(function (resolve, reject) {
-        jobRef.once('value', function (a) {
-            var arrayJob = _.toArray(a.val())
-            var i = 0;
-            loop(i)
 
-            function loop(i) {
-
-                console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
-
-                var job = Object.assign({}, arrayJob[i]);
-                console.log('job', job.jobName)
-
-                if (!job.jobId) {
-                    console.log('jobId')
-                    i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    } else {
-                        resolve('done')
-                    }
-                } else {
-
-                    if (!job.deadline) {
-                        console.log('job.deadline', i)
-                        job.deadline = Date.now() + 1000 * 60 * 60 * 24 * 7
-                    }
-
-                    if (job.act) {
-                        console.log('job.act remove', i)
-                        delete job.act
-                    }
-                    if (job.distance) {
-                        console.log('job.distance remove', i)
-                        delete job.distance
-                    }
-                    if (!job.createdAt) {
-                        console.log('job.createdAt ', i)
-
-                        job.createdAt = Date.now()
-
-                    }
-                    if (!job.updatedAt) {
-                        console.log('job.updatedAt ', i)
-                        job.updatedAt = Date.now()
-                    }
-                    if (JSON.stringify(job) != JSON.stringify(arrayJob[i])) {
-                        jobRef.child(job.jobId).set(job).then(function () {
-                            console.log('job done', i);
-
-                            i++
-                            if (i < arrayJob.length) {
-                                loop(i)
-                            } else {
-                                resolve('done')
-                            }
-                        }).catch(function (err) {
-                            console.log('job err', i);
-
-                            i++;
-                            if (i < arrayJob.length) {
-                            } else {
-                                resolve('done')
-                            }
-                        })
-
-                    } else {
-                        i++
-                        if (i < arrayJob.length) {
-                            loop(i)
-                        }
-                    }
-                }
-
-            }
-
-        })
-
-    })
-}
 
 function checkStore() {
     return new Promise(function (resolve, reject) {
@@ -1064,31 +1010,7 @@ function checkJobAlone(jobData, i) {
     return new Promise(function (resolve, reject) {
         var job = Object.assign({}, jobData);
 
-        if (job.storeName) {
-            console.log('job.storeName remove', i)
-            delete job.storeName
-        }
 
-
-        if (job.address) {
-            console.log('job.address remove', i)
-            delete job.address
-        }
-
-        if (job.location) {
-            console.log('job.location remove', i)
-            delete job.location
-        }
-
-        if (job.act) {
-            console.log('job.act remove', i)
-            delete job.act
-        }
-
-        if (job.distance) {
-            console.log('job.distance remove', i)
-            delete job.distance
-        }
 
         if (!job.createdAt) {
             console.log('job.createdAt ', i)
@@ -1096,17 +1018,40 @@ function checkJobAlone(jobData, i) {
         }
 
         if (!job.updatedAt) {
-            console.log('job.updatedAt ', i)
+            console.log('job.updatedAt ', i);
             job.updatedAt = Date.now()
         }
-        if (job.p) {
-            console.log('job.p remove', i)
-            delete job.p
+
+        if(!job.storeId){
+            console.log('jobId', i)
+
+            var userID = job.createdBy
+            var userData = dataUser[userID]
+            console.log(userData.currentStore)
+            if(userData.currentStore){
+                job.storeId = userData.currentStore
+
+            }
+        }
+
+        var jobStr = 'jobName,jobId,storeId,deadline,hourly_wages,unit,sex,job,createdAt,createdBy,updatedAt,description,figure,languages,salary,working_type,work_time,experience,adminNote,hide';
+        for (var key in job) {
+
+            var res = jobStr.match(key);
+            if (res) {
+
+            } else {
+                console.log('delete', key)
+                delete job[key]
+            }
         }
 
         if (JSON.stringify(job) != JSON.stringify(jobData)) {
             jobRef.child(job.jobId).set(job)
-                .then(result => resolve(result))
+                .then(result => {
+                    console.log('update',job.jobName)
+                    resolve(result)
+                })
                 .catch(err => reject(err))
 
         } else resolve({result: 'OK'})
@@ -1120,27 +1065,6 @@ function checkProfileAlone(profileData, i) {
         var profile = Object.assign({}, profileData);
         console.log(profile.name);
 
-
-        if (profile.act) {
-            console.log('profile.act remove', i)
-            delete profile.act
-        }
-        if (profile.distance) {
-            console.log('profile.distance remove', i)
-            delete profile.distance
-        }
-        if (profile.static) {
-            console.log('profile.static remove', i)
-            delete profile.static
-        }
-        if (profile.presence) {
-            console.log('profile.presence remove', i)
-            delete profile.presence
-        }
-        if (profile.err) {
-            console.log('profile.err remove', i)
-            delete profile.err
-        }
 
         if (!profile.createdAt) {
             console.log('profile.createdAt ', i)
@@ -1156,9 +1080,25 @@ function checkProfileAlone(profileData, i) {
             profile.userId = i
         }
 
+        var profileStr = 'userId,avatar,name,birthArray,birth,sex,industry,job,address,location,createdAt,createdBy,updatedAt,interview,description,photo,height,weight,figure,school,languages,urgent,expect_salary,working_type,work_time,time,expect_distance,experience,videourl,adminNote,verify,feature,hide'
+        for (var key in profile) {
+
+            var res = profileStr.match(key);
+            if (res) {
+
+            } else {
+                console.log('delete', key)
+                delete profile[key]
+            }
+        }
+
+
         if (JSON.stringify(profile) != JSON.stringify(profileData)) {
             profileRef.child(profile.userId).set(profile)
-                .then(result => resolve(result))
+                .then(result => {
+                    console.log('update ', profile, profile.userId)
+                    resolve(result)
+                })
                 .catch(err => reject(err))
         } else resolve({result: 'OK'})
     })
@@ -1169,8 +1109,13 @@ function checkProfileAlone(profileData, i) {
 function checkStoreAlone(storeData, a) {
     return new Promise(function (resolve, reject) {
         var store = Object.assign({}, storeData);
-        console.log(store.storeName, a)
+
+
         if (!a) reject({err: 'no a'})
+
+        if (!store.storeId) {
+            store.storeId = a
+        }
 
         if (store.storeId != a) {
             console.log(store.storeName, a)
@@ -1179,56 +1124,41 @@ function checkStoreAlone(storeData, a) {
                 .catch(err => reject(err))
         }
 
-        if (!store.storeId) {
-            store.storeId = a
-        }
-
-        if (store.act) {
-            console.log('store.act remove', a)
-            delete store.act
-        }
-        if (store.distance) {
-            console.log('store.distance remove', a)
-            delete store.distance
-        }
-        if (store.static) {
-            console.log('store.static remove', a)
-            delete store.static
-        }
-
-        if (store.interviewOption) {
-            console.log('store.interviewOption remove', a)
-            delete store.interviewOption
-        }
-        if (store.presence) {
-            console.log('store.presence remove', a)
-            delete store.presence
-        }
-
-        if (!store.storeId) {
-            store.storeId = i
-            console.log('store.presence remove', a)
-        }
-
         if (!store.createdAt) {
             console.log('store.createdAt ', a)
             store.createdAt = Date.now()
         }
+        //
+        // if (store.job) {
+        //     var newJob = {}
+        //     for (var i in store.job) {
+        //         var job = dataJob[i]
+        //         if (job && job.job) {
+        //             newJob[job.job] = job.jobName || job.job
+        //         }
+        //     }
+        //     store.job = newJob
+        // }
 
-        if (store.job) {
-            var newJob = {}
-            for (var i in store.job) {
-                var job = dataJob[i]
-                if (job && job.job) {
-                    newJob[job.job] = job.jobName || job.job
-                }
+        var storeStr = 'storeId,avatar,storeName,industry,job,address,location,createdAt,createdBy,updatedAt,interviewTime,description,photo,level,adminNote,verify,feature,hide'
+        for (var key in store) {
+            var res = storeStr.match(key);
+            if (res) {
+
+
+            } else {
+                console.log('delete', key)
+                delete store[key]
             }
-            store.job = newJob
         }
+
 
         if (JSON.stringify(store) != JSON.stringify(storeData)) {
             storeRef.child(store.storeId).set(store)
-                .then(result => resolve(result))
+                .then(result => {
+                    console.log('update ', store, store.storeId)
+                    resolve(result)
+                })
                 .catch(err => reject(err))
 
         } else resolve({result: 'OK'})
@@ -1236,6 +1166,34 @@ function checkStoreAlone(storeData, a) {
 
 }
 
+app.get('/checkstore', function (req, res) {
+    var profileArray = _.toArray(dataProfile)
+    var i = 0
+
+    function loop(i) {
+        if (!profileArray[i].userId) {
+            i++
+            if (i < profileArray.length) {
+                loop(i)
+            } else {
+                res.send('done')
+            }
+        }
+
+        checkProfileAlone(profileArray[i], profileArray[i].userId).then(result => {
+            i++
+            if (i < profileArray.length) {
+                loop(i)
+            } else {
+                res.send('done')
+            }
+        })
+            .catch(err => res.status(500).json(err))
+    }
+
+    loop(i)
+
+})
 
 function checkProfile() {
     return new Promise(function (resolve, reject) {
@@ -3337,7 +3295,7 @@ app.get('/view/store', function (req, res) {
             storeData.currentJobData = Object.assign({}, dataJob[jobId])
         }
 
-        res.send(JSON.stringify(storeData,circular()))
+        res.send(JSON.stringify(storeData, circular()))
     } else if (datagoogleJob[storeId]) {
         var storeData = datagoogleJob[storeId]
         res.send(JSON.stringify(storeData))
@@ -5256,6 +5214,44 @@ app.get('/admin/analytics', function (req, res) {
 // schedule.scheduleJob({hour: 9, minute: 5, dayOfWeek: 6}, function () {
 //     ReminderCreateProfile()
 // });
+
+
+app.get('/remind_Interview', function (req, res) {
+    remind_Interview()
+});
+
+function remind_Interview() {
+    for (var i in likeActivity) {
+        var likeData = likeActivity[i]
+        if (likeData.interviewTime) {
+            if (likeData.interviewTime > Date.now()) {
+
+                var profile = dataProfile[likeData.userId]
+                var job = dataProfile[likeData.jobId]
+                var store = dataStore[job.storeId]
+console.log('profile',profile.name, store.storeName)
+                var mail = {
+                    title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                    body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                    subtitle: '',
+                    description1: profile.name +' ơi!',
+                    description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                    description3: '',
+                    image: ''
+                };
+                sendNotification(dataUser[likeData.userId], mail)
+
+
+            } else {
+
+
+
+            }
+        }
+
+
+    }
+}
 
 function isWhere(storeId) {
     var storeData = dataStore[storeId]
