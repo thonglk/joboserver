@@ -32,7 +32,6 @@ var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
 
 
-
 var credentials = {key: privateKey, cert: certificate};
 
 var CONFIG;
@@ -84,7 +83,6 @@ var joboTest = firebase.initializeApp({
 
 
 const MongoClient = require('mongodb');
-
 
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
@@ -252,24 +250,23 @@ function sendStoretoPage(storeId) {
     }
 }
 
-app.get('/fix',function () {
+app.get('/fix', function () {
     var line = text.split('◆')
-    for( var i in line){
+    for (var i in line) {
         var per = line[i].split(' | ')
         var storeName = per[1]
         var jobId = per[3]
-        console.log('storeName',storeName,jobId)
-        var store = _.findWhere(dataStore,{storeName})
-        if(store && store.storeId && jobId){
-            console.log('store',store.storeId,store.storeName)
-            jobRef.child(per[3]).update({storeId:store.storeId}).then(result =>{
+        console.log('storeName', storeName, jobId)
+        var store = _.findWhere(dataStore, {storeName})
+        if (store && store.storeId && jobId) {
+            console.log('store', store.storeId, store.storeName)
+            jobRef.child(per[3]).update({storeId: store.storeId}).then(result => {
                 console.log('done')
             })
 
 
         }
     }
-
 
 
 })
@@ -491,11 +488,11 @@ process.on('uncaughtException', function (err) {
 
 
 function checkStatic() {
-
-    dataJob.forEach(job => {
+    for (var i in dataJob) {
+        var job = dataJob[i]
         if (!popularJob[job.job]) popularJob[job.job] = {job: job.job, unit: 1}
         else popularJob[job.job].unit++
-    });
+    }
 
     CONFIG.popularJob = _.sortBy(popularJob, function (job) {
         return -job.unit
@@ -911,7 +908,7 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
     var link = '';
 
     if (jobId) {
-        link = 'https://m.me/385066561884380?ref=' + jobId+'_'+postId;
+        link = 'https://m.me/385066561884380?ref=' + jobId + '_' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -973,7 +970,6 @@ app.get('/check', function (req, res) {
 })
 
 
-
 function checkStore() {
     return new Promise(function (resolve, reject) {
         storeRef.once('value', function (a) {
@@ -1009,7 +1005,6 @@ function checkJobAlone(jobData, i) {
         var job = Object.assign({}, jobData);
 
 
-
         if (!job.createdAt) {
             console.log('job.createdAt ', i)
             job.createdAt = Date.now()
@@ -1020,13 +1015,13 @@ function checkJobAlone(jobData, i) {
             job.updatedAt = Date.now()
         }
 
-        if(!job.storeId){
+        if (!job.storeId) {
             console.log('jobId', i)
 
             var userID = job.createdBy
             var userData = dataUser[userID]
             console.log(userData.currentStore)
-            if(userData.currentStore){
+            if (userData.currentStore) {
                 job.storeId = userData.currentStore
 
             }
@@ -1047,7 +1042,7 @@ function checkJobAlone(jobData, i) {
         if (JSON.stringify(job) != JSON.stringify(jobData)) {
             jobRef.child(job.jobId).set(job)
                 .then(result => {
-                    console.log('update',job.jobName)
+                    console.log('update', job.jobName)
                     resolve(result)
                 })
                 .catch(err => reject(err))
@@ -4981,17 +4976,19 @@ function analyticsRemind() {
             description2: long,
             description3: 'Keep up guys! We can do it <3',
             calltoaction: 'Hello the world',
-            linktoaction: 'https://www.messenger.com/t/979190235520989',
+            linktoaction: 'https://m.me/t/979190235520989',
             image: ''
         }
         var time = Date.now()
         for (var i in dataUser) {
             if (dataUser[i].admin == true) {
                 time = time + 5000
-                sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
+                sendNotification(dataUser[i], mail, null, time)
             }
         }
     })
+
+
 }
 
 app.get('/sendRemind', function (req, res) {
@@ -5227,12 +5224,12 @@ function remind_Interview() {
                 var profile = dataProfile[likeData.userId]
                 var job = dataProfile[likeData.jobId]
                 var store = dataStore[job.storeId]
-console.log('profile',profile.name, store.storeName)
+                console.log('profile', profile.name, store.storeName)
                 var mail = {
                     title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
                     body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
                     subtitle: '',
-                    description1: profile.name +' ơi!',
+                    description1: profile.name + ' ơi!',
                     description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
                     description3: '',
                     image: ''
@@ -5241,7 +5238,6 @@ console.log('profile',profile.name, store.storeName)
 
 
             } else {
-
 
 
             }
