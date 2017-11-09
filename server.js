@@ -236,41 +236,21 @@ app.get('/sendStoretoPage', function (req, res) {
 
 function sendStoretoPage(storeId) {
     var storeData = dataStore[storeId];
-    storeData.jobData = _.where(dataJob, {storeId: storeId});
+    storeData.jobData = _.where(dataJob, {storeId});
     if (storeData.jobData) {
         if (storeData.createdBy
             && dataUser[storeData.createdBy]) {
 
             storeData.userInfo = dataUser[storeData.createdBy];
-            if (storeData.avatar) {
-                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 2, storeData.jobData[0].jobId), publishChannel.Jobo.token)
+            if (storeData.avatar == 1) {
+                PublishPhoto(publishChannel.Jobo.pageId, createJDStore(storeId, 0, storeData.jobData[0].jobId), publishChannel.Jobo.token)
             } else {
-                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 2, storeData.jobData[0].jobId), publishChannel.Jobo.token)
+                PublishPost(publishChannel.Jobo.pageId, createJDStore(storeId, 0, storeData.jobData[0].jobId), publishChannel.Jobo.token)
             }
         }
     }
 }
 
-app.get('/fix', function () {
-    var line = text.split('◆')
-    for (var i in line) {
-        var per = line[i].split(' | ')
-        var storeName = per[1]
-        var jobId = per[3]
-        console.log('storeName', storeName, jobId)
-        var store = _.findWhere(dataStore, {storeName})
-        if (store && store.storeId && jobId) {
-            console.log('store', store.storeId, store.storeName)
-            jobRef.child(per[3]).update({storeId: store.storeId}).then(result => {
-                console.log('done')
-            })
-
-
-        }
-    }
-
-
-})
 
 app.get('/PublishPost', function (req, res) {
     let {message, accessToken} = req.query
@@ -3784,12 +3764,13 @@ function sendFirstEmailToTotalStore() {
 
 
 app.get('/initStore', function (req, res) {
-    var storeId = req.param('storeId');
     var jobId = req.param('jobId');
+    var jobData = dataJob[jobId];
 
-    var storeData = dataStore[storeId];
+    var storeData = dataStore[jobData.storeId];
+    var storeId = storeData.storeId;
 
-    sendWelcomeEmailToStore(storeId);
+    // sendWelcomeEmailToStore(storeId);
     if (storeData.job) {
         setTimeout(function () {
             sendStoretoPage(storeId)
@@ -4403,7 +4384,7 @@ function sendWelcomeEmailToProfile(userData, profileData) {
 app.get('/sendWelcomeEmailToStore', function (req, res) {
     var storeId = req.param('storeId')
     var userId = req.param('userId')
-    sendWelcomeEmailToStore(storeId, userId)
+    sendWelcomeEmailToStore(storeId, userId);
     res.send(storeId + userId)
 })
 
@@ -4592,20 +4573,13 @@ function sendNotiNewJobSubcribleToProfile(jobId) {
                             title,
                             mailId: title.simplify() + keygen(),
                             body: text,
-                            data:
-                                [{
-                                    title: storeData.storeName,
-                                    image: storeData.avatar || '',
-                                    body: Job.jobName + ' cách ' + dis + ' km',
-                                    calltoaction: 'Xem chi tiết',
-                                    linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
-                                }],
+                            calltoaction: 'Xem chi tiết',
+                            linktoaction: CONFIG.WEBURL + '/view/store/' + storeData.storeId + '?jobId=' + jobId + '#ref=sendNotiNewJobSubcribleToProfile_' + jobId,
                             description1: 'Dear ' + getLastName(card.name),
                             description2: text,
                             description4: `Nếu cần hỏi gì thì bạn cứ gọi điện vào số ${CONFIG.contact[isWhere(storeId)].phone}  nếu bạn muốn đi làm ngay nha \n
                        Happy working! \n
                         Thảo - Jobo`,
-                            outtro: true
                         };
                         time = time + 3000;
                         sendNotification(dataUser[card.userId], mail, null, time, notiId)
@@ -5649,7 +5623,7 @@ function getQueryFB(req) {
 app.get('/getFbPost', function (req, res) {
     var queryData = req.query
     var query = getQueryFB(queryData)
-    getPaginatedItemss(facebookPostCol, query, queryData.page)
+    getPaginatedItemss(facebookPostCol, query, queryData.p)
         .then(posts => res.send(posts))
         .catch(err => res.status(500).json(err));
 
