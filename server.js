@@ -117,12 +117,12 @@ var auth = firebase.auth()
 
 var configRef = db.ref('config');
 var staticRef = db.ref('static');
+var likeActivityRef = db.ref('activity/like');
 
 var userRef = db3.ref('user');
 var profileRef = db3.ref('profile');
 var storeRef = db3.ref('store');
 var jobRef = db3.ref('job');
-var likeActivityRef = db.ref('activity/like');
 
 var langRef = db.ref('tran/vi');
 
@@ -5594,13 +5594,7 @@ app.post('/unsubscribe', (req, res, next) => {
         });
 });
 
-app.delete('/removePost', (req, res, next) => {
-    var query = getQueryFB(req)
-    facebookPostCol.remove(query)
-        .then(result => res.status(200).json(result))
-        .catch(err => res.status(500).send(err));
 
-});
 
 function getQueryFB(req) {
     let {p: page, poster, to, jobId, id, still_alive, schedule, sort, comment, time_from, time_to} = req
@@ -5659,6 +5653,17 @@ app.get('/getFbPost', function (req, res) {
         .catch(err => res.status(500).json(err));
 
 });
+
+app.delete('/removePost', (req, res, next) => {
+    var queryData = req.query
+
+    var query = getQueryFB(queryData)
+    facebookPostCol.remove(query)
+        .then(result => res.status(200).json(result))
+        .catch(err => res.status(500).send(err));
+
+});
+
 app.post('/addFacebookAccount', function (req, res) {
     let account = req.body
     if (account.key) {
