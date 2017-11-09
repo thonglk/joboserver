@@ -180,6 +180,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
         if (!time) {
             time = Date.now() + 10000
         }
+
         if (!notiId) {
             notiId = keygen()
         }
@@ -1756,6 +1757,7 @@ app.post('/sendEmailMarketing', function (req, res) {
     var query = req.body
     var param = query.newfilter;
     var mail = query.mail;
+    var channel = query.channel;
 
     const promiseDEmail = new Promise((resolve, reject) => {
         if (param.dataEmail) {
@@ -1807,7 +1809,7 @@ app.post('/sendEmailMarketing', function (req, res) {
                     } else {
                         mail.time = mail.time + 100
                     }
-                    sendNotification(data, mail, null, mail.time)
+                    sendNotification(data, mail, channel, mail.time)
                 }
 
                 res.send({code: 'success', numberSent: sendingList.length, data: sendingList})
@@ -5272,7 +5274,7 @@ function remind_Interview() {
             if (likeData.interviewTime > Date.now()) {
 
                 var profile = dataProfile[likeData.userId]
-                var job = dataProfile[likeData.jobId]
+                var job = dataJob[likeData.jobId]
                 var store = dataStore[job.storeId]
                 console.log('profile', profile.name, store.storeName)
                 var mail = {
@@ -5285,7 +5287,6 @@ function remind_Interview() {
                     image: ''
                 };
                 sendNotification(dataUser[likeData.userId], mail)
-
 
             } else {
 
@@ -5395,7 +5396,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                 if (!time) {
                     time = Date.now() + 4 * 1000
                 } else {
-                    time = time + 11 * 60 * 1000
+                    time = time + 16 * 60 * 1000
                 }
 
                 var to = groupData[i].groupId;
