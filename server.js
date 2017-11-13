@@ -382,6 +382,10 @@ function init() {
 
     userRef.on('child_added', function (snap) {
         dataUser[snap.key] = snap.val()
+        if(!dataUser[snap.key].userId){
+            console.log('thieu userId,',snap.key)
+            userRef.child(snap.key).update({userId: snap.key})
+        }
     });
     userRef.on('child_changed', function (snap) {
         dataUser[snap.key] = snap.val()
@@ -3179,7 +3183,6 @@ app.get('/update/log', function (req, res) {
                 res.send('err:' + err)
 
             })
-
         }
     }
     var action = log.action
@@ -3448,13 +3451,16 @@ app.get('/query', function (req, res) {
 
 app.get('/checkUser', function (req, res) {
     var q = req.param('q');
+    var type = req.param('type');
     if (q) {
         var qr = S(q.toLowerCase()).latinise().s
         var result = []
 
         for (var i in dataUser) {
-            if ((dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr))
-                || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr))
+            if (
+                (type && (dataUser[i][type] && dataUser[i][type].toString().match(qr))) ||
+
+                (!type && (dataUser[i] && dataUser[i].phone && dataUser[i].phone.toString().match(qr)) || (dataUser[i] && dataUser[i].email && dataUser[i].email.match(qr)))
             ) {
                 result.push(dataUser[i])
             }
@@ -3465,7 +3471,7 @@ app.get('/checkUser', function (req, res) {
             res.send(result)
         })
     } else {
-        res.send({
+        res.status(500).json({
             code: -1,
             msg: 'No query'
         })
