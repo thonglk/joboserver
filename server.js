@@ -3161,6 +3161,10 @@ app.post('/update/log', function (req, res) {
     }
 );
 
+function isObject(a) {
+    return (!!a) && (a.constructor === Object);
+};
+
 app.get('/update/log', function (req, res) {
     var userId = req.param('userId')
     var key = req.param('key')
@@ -3168,7 +3172,7 @@ app.get('/update/log', function (req, res) {
 
 
     if (userId) {
-        if (log && key) {
+        if (log && isObject(log) && key) {
             logRef.child(key).update(log).then(function () {
                 res.send('result')
             }, function (err) {

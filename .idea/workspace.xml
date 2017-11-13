@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="25183a39-9abd-466e-8eff-c50a5bf19b42" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server.js" afterPath="$PROJECT_DIR$/server.js" />
-    </list>
+    <list default="true" id="25183a39-9abd-466e-8eff-c50a5bf19b42" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
     <ignored path="$PROJECT_DIR$/tmp/" />
@@ -62,8 +60,8 @@
       <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="5614" column="5" lean-forward="true" selection-start-line="5614" selection-start-column="5" selection-end-line="5614" selection-end-column="5" />
+            <state relative-caret-position="257">
+              <caret line="3170" column="25" lean-forward="true" selection-start-line="3170" selection-start-column="25" selection-end-line="3170" selection-end-column="25" />
               <folding>
                 <element signature="e#10555#10588#0" expanded="false" />
                 <element signature="n#!!block;n#checkStore#0" expanded="false" />
@@ -100,7 +98,6 @@
                 <element signature="n#!!block;n#keygen#0" expanded="false" />
                 <element signature="n#!!block;n#createKey#0" expanded="false" />
                 <element signature="e#99531#100553#0" expanded="false" />
-                <element signature="e#100601#101511#0" expanded="false" />
                 <element signature="e#108096#108299#0" expanded="false" />
                 <element signature="e#108346#108576#0" expanded="false" />
                 <element signature="e#108617#109684#0" expanded="false" />
@@ -288,8 +285,8 @@
     <handled-path value="$PROJECT_DIR$/node_modules" />
   </component>
   <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="width" value="1440" />
-    <option name="height" value="900" />
+    <option name="width" value="1280" />
+    <option name="height" value="800" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -526,12 +523,12 @@
       <workItem from="1508385552028" duration="52194000" />
       <workItem from="1509354909194" duration="4232000" />
       <workItem from="1509435369666" duration="40333000" />
-      <workItem from="1510028509871" duration="30680000" />
+      <workItem from="1510028509871" duration="31194000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1660259000" />
+    <option name="totallyTimeSpent" value="1660773000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
@@ -846,8 +843,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="5614" column="5" lean-forward="true" selection-start-line="5614" selection-start-column="5" selection-end-line="5614" selection-end-column="5" />
+        <state relative-caret-position="257">
+          <caret line="3170" column="25" lean-forward="true" selection-start-line="3170" selection-start-column="25" selection-end-line="3170" selection-end-column="25" />
           <folding>
             <element signature="e#10555#10588#0" expanded="false" />
             <element signature="n#!!block;n#checkStore#0" expanded="false" />
@@ -884,7 +881,6 @@
             <element signature="n#!!block;n#keygen#0" expanded="false" />
             <element signature="n#!!block;n#createKey#0" expanded="false" />
             <element signature="e#99531#100553#0" expanded="false" />
-            <element signature="e#100601#101511#0" expanded="false" />
             <element signature="e#108096#108299#0" expanded="false" />
             <element signature="e#108346#108576#0" expanded="false" />
             <element signature="e#108617#109684#0" expanded="false" />
