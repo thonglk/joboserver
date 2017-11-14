@@ -473,15 +473,13 @@ function checkStatic() {
     }
     var profileJob = {}
     for (var i in dataProfile) {
-        var job = dataProfile[i].job
+        var job = dataProfile[i].job;
         if (job) {
             for (var key in job) {
                 if (!profileJob[key]) profileJob[key] = {job: key, unit: 1}
                 else profileJob[key].unit++
             }
         }
-
-
     }
     popular.profileJob = _.sortBy(profileJob, function (job) {
         return -job.unit
@@ -493,12 +491,32 @@ function checkStatic() {
     CONFIG.popularJob = popular.job
     CONFIG.popular = popular
 }
+//do work everyday
+schedule.scheduleJob({hour: 7, minute: 0}, function () {
+
+    scheduleJobPushEveryday()
+
+   setTimeout(function () {
+       checkStatic()
+   },60000)
+
+    setTimeout(function () {
+        getMoreJobEveryDay()
+    },2*60000)
+
+    setTimeout(function () {
+        analyticsRemind()
+    },3*60000)
+
+
+})
 
 app.get('/checkStatic', function (req, res) {
 
     checkStatic()
     res.send('done')
 })
+
 
 app.get('/updateDeadline', function (req, res) {
 
@@ -604,7 +622,7 @@ function createListPremiumJob(where, type, job, industry, postId, level) {
             && (jobData.industry == industry || !industry)
         ) {
             var storeData = dataStore[jobData.storeId]
-            jobData = Object.assign(jobData, storeData)
+            jobData = Object.assign({},jobData, storeData)
 
             var jobArray = {
                 storeId: jobData.storeId,
@@ -660,9 +678,7 @@ app.get('/createListGoogleJob', function (req, res) {
 app.get('/scheduleJobPushEveryday', function (req, res) {
     res.send(scheduleJobPushEveryday())
 })
-schedule.scheduleJob({hour: 11, minute: 48}, function () {
-    scheduleJobPushEveryday()
-})
+
 var stringWhere = {
     hn: 'Hà Nội',
     hcm: 'Sài Gòn'
@@ -1541,9 +1557,6 @@ app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 // routes will go here
 
 
-schedule.scheduleJob({hour: 12, minute: 30}, function () {
-});
-
 app.get('/', function (req, res) {
     res.send('Jobo Homepage');
 });
@@ -2017,10 +2030,7 @@ function getMoreJobEveryDay() {
 
 }
 
-schedule.scheduleJob({hour: 5, minute: 0}, function () {
-    console.log('schedule_getMoreJobEveryDay_run')
-    getMoreJobEveryDay()
-})
+
 
 function getGoogleJob(mylat, mylng, industry) {
     if (!mylat || !mylng) return
@@ -2110,7 +2120,7 @@ app.get('/dash/job', function (req, res) {
                 storeData.package = dataUser[store.createdBy].package
             }
 
-            var card = Object.assign(obj, storeData);
+            var card = Object.assign({},obj, storeData);
             if (card.location) {
 
                 var yourlat = card.location.lat;
@@ -2241,7 +2251,7 @@ app.get('/api/job', function (req, res) {
                 if (user.type == 1 && user.package != 'premium') {
                     var store = _.findWhere(dataStore, {createdBy: user.userId})
                     var job = _.findWhere(dataJob, {createdBy: user.userId})
-                    var card = Object.assign(user, store, job)
+                    var card = Object.assign({},user, store, job)
                     joblist.push(card)
                 }
             }
@@ -5097,9 +5107,7 @@ app.get('/sendRemind', function (req, res) {
 
     res.send('sendRemind done')
 })
-schedule.scheduleJob({hour: 18, minute: 0}, function () {
-    analyticsRemind()
-});
+
 
 app.get('/admin/analyticsUser', function (req, res) {
         var dateStart = new Date()
