@@ -374,8 +374,8 @@ function init() {
 
     userRef.on('child_added', function (snap) {
         dataUser[snap.key] = snap.val()
-        if(!dataUser[snap.key].userId){
-            console.log('thieu userId,',snap.key)
+        if (!dataUser[snap.key].userId) {
+            console.log('thieu userId,', snap.key)
             userRef.child(snap.key).update({userId: snap.key})
         }
     });
@@ -474,8 +474,8 @@ function checkStatic() {
     var profileJob = {}
     for (var i in dataProfile) {
         var job = dataProfile[i].job
-        if(job){
-            for(var key in job){
+        if (job) {
+            for (var key in job) {
                 if (!profileJob[key]) profileJob[key] = {job: key, unit: 1}
                 else profileJob[key].unit++
             }
@@ -2538,9 +2538,9 @@ app.get('/on/job', function (req, res) {
         const storeId = jobData.storeId
         var storeData = dataStore[storeId]
         storeData.interviewOption = getInterviewOption(storeData.interviewTime)
+        var userInfo = dataUser[storeData.createdBy]
 
-
-        var all = Object.assign({}, jobData, {storeData})
+        var all = Object.assign({}, jobData, {storeData},{userInfo})
         res.send(JSON.stringify(all, circular()))
 
     } else res.status(500).json({err: 'No data'})
@@ -5090,7 +5090,6 @@ function analyticsRemind() {
     checkStatic()
 
 
-
 }
 
 app.get('/sendRemind', function (req, res) {
@@ -5316,28 +5315,40 @@ app.get('/admin/analytics', function (req, res) {
 
 app.get('/remind_Interview', function (req, res) {
     remind_Interview()
+    res.send('done')
 });
 
 function remind_Interview() {
     for (var i in likeActivity) {
         var likeData = likeActivity[i]
         if (likeData.interviewTime) {
-            if (likeData.interviewTime > Date.now()) {
+            if (likeData.interviewTime > Date.now() && likeData.interviewTime < Date.now() + 86400*1000) {
 
                 var profile = dataProfile[likeData.userId]
                 var job = dataJob[likeData.jobId]
                 var store = dataStore[job.storeId]
                 console.log('profile', profile.name, store.storeName)
+                //nhắc đầu ngày!
+                // var mail = {
+                //     title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                //     body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`,
+                //     description1: profile.name + ' ơi!',
+                //     description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                //
+                // };
+                // sendNotification(dataUser[likeData.userId], mail)
+                //
+//nhắc trước 30 phút
+                var remind = `Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+
                 var mail = {
-                    title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
-                    body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
-                    subtitle: '',
+                    title: `Nhắc lịch phỏng vấn`,
+                    body: remind,
                     description1: profile.name + ' ơi!',
-                    description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
-                    description3: '',
-                    image: ''
+                    description2: remind,
                 };
-                sendNotification(dataUser[likeData.userId], mail)
+                var time = likeData.interviewTime - 30*60*1000
+                sendNotification(dataUser[likeData.userId], mail,null,time)
 
             } else {
 
@@ -5645,7 +5656,6 @@ app.post('/unsubscribe', (req, res, next) => {
             res.status(400).json({err: JSON.stringify(err), message: 'Lỗi không xác định, vui lòng thử lại sau!'})
         });
 });
-
 
 
 function getQueryFB(req) {
