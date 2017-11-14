@@ -5388,26 +5388,16 @@ function remind_Interview() {
                 var store = dataStore[job.storeId]
                 console.log('profile', profile.name, store.storeName)
                 //nhắc đầu ngày!
-                // var mail = {
-                //     title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
-                //     body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`,
-                //     description1: profile.name + ' ơi!',
-                //     description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
-                //
-                // };
-                // sendNotification(dataUser[likeData.userId], mail)
-                //
-//nhắc trước 30 phút
-                var remind = `Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
-
                 var mail = {
-                    title: `Nhắc lịch phỏng vấn`,
-                    body: remind,
+                    title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                    body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`,
                     description1: profile.name + ' ơi!',
-                    description2: remind,
+                    description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+
                 };
-                var time = likeData.interviewTime - 30 * 60 * 1000
-                sendNotification(dataUser[likeData.userId], mail, null, time)
+                sendNotification(dataUser[likeData.userId], mail)
+
+
 
             } else {
 
