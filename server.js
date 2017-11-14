@@ -2543,7 +2543,7 @@ app.post('/update/user', function (req, res) {
             userRef.child(userId).update(user).then(result => {
                 var user_new = Object.assign({}, user, user_old)
 
-                if (user_new.ref && user_new.type && (!user_old.ref || !user_old.type)) {
+                if (user_new.ref && !user_old.ref) {
 
                     sendNotificationToAdmin({
                         title: 'Jobo| New User',
