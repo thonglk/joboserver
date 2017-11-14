@@ -3562,8 +3562,9 @@ app.get('/checkUser', function (req, res) {
 
 app.get('/admin/createuser', function (req, res) {
     var userId = req.param('uid')
+    var phone = req.param('phone')
     var email = req.param('uid') + '@jobo.asia'
-    var password = req.param('pass')
+    var password = 'tuyendungjobo'
     secondary.auth().createUser({
         uid: userId,
         email: email,
@@ -3575,7 +3576,8 @@ app.get('/admin/createuser', function (req, res) {
             var userData = {
                 userId: userRecord.uid,
                 name: userRecord.uid,
-                email: email,
+                email,
+                phone,
                 createdAt: new Date().getTime(),
                 type: 1,
                 admin: true
