@@ -434,7 +434,6 @@ function init() {
         checkActivityAlone(likeActivity[snap.key], snap.key)
 
 
-
     });
     likeActivityRef.on('child_changed', function (snap) {
         likeActivity[snap.key] = snap.val()
@@ -1276,7 +1275,6 @@ app.get('/checkstore', function (req, res) {
     loop(i)
 
 })
-
 
 
 function shortAddress(fullAddress) {
@@ -2541,42 +2539,23 @@ app.post('/update/user', function (req, res) {
     if (userId) {
 
         if (user) {
-            if (dataUser[userId]) {
-                //update
-                userRef.child(userId).update(user)
-            } else {
-                userRef.child(userId).update(user)
+            var user_old = dataUser[userId] || {}
+            userRef.child(userId).update(user).then(result => {
+                var user_new = Object.assign({}, user, user_old)
 
-                //create
-                if (user.type == 1) {
+                if (user_new.ref && user_new.type && (!user_old.ref || !user_old.type)) {
 
-                    setTimeout(function () {
-                        var mail = {
-                            title: 'Jobo_Sale| New employer register',
-                            body: JSON.stringify(user),
-                            description1: 'Dear friend,',
-                            description2: JSON.stringify(user),
-                            description3: 'Keep up guys! We can do it <3',
-                        }
-                        if (userData.phone) {
-                            mail.calltoaction = 'Gọi tư vấn';
-                            mail.linktoaction = 'tel:' + user.phone;
-                        } else {
-                            mail.calltoaction = 'Email chào hàng';
-                            mail.linktoaction = CONFIG.WEBURL + '/admin/lead';
-                        }
-                        sendNotificationToAdmin(mail)
-
-                    }, 60000)
-
-                } else {
                     sendNotificationToAdmin({
-                        title:'Jobo_Recruit| New jobseeker',
-                        body: `Name: ${user.name} \n Ref: ${user.ref}`
+                        title: 'Jobo| New User',
+                        body: `Name: ${user_new.name} \n Type: ${user_new.type} \n Ref: ${user_new.ref}`
                     })
 
                 }
-            }
+
+
+            })
+
+
         }
         if (profile) {
             profile.updatedAt = Date.now()
