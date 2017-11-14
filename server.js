@@ -219,14 +219,6 @@ var publishChannel = {
     }
 };
 
-app.get('/convert', function (req, res) {
-    var col = req.param('col')
-
-    db.ref(col).once('value', function (snap) {
-        db3.ref(col).update(snap.val()).then(() => res.send({'code': 'success'})).catch(err => res.send({err}))
-    })
-
-})
 
 app.get('/sendStoretoPage', function (req, res) {
     var storeId = req.param('storeId');
@@ -435,6 +427,7 @@ function init() {
 
     likeActivityRef.on('child_added', function (snap) {
         likeActivity[snap.key] = snap.val()
+
     });
     likeActivityRef.on('child_changed', function (snap) {
         likeActivity[snap.key] = snap.val()
