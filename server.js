@@ -1192,6 +1192,66 @@ function checkStoreAlone(storeData, a) {
 
 }
 
+function checkActivityAlone(like, a) {
+    return new Promise(function (resolve, reject) {
+        var store = Object.assign({}, storeData);
+
+
+        if (!a) reject({err: 'no a'})
+
+        if (!store.storeId) {
+            store.storeId = a
+        }
+
+        if (store.storeId != a) {
+            console.log(store.storeName, a)
+            storeRef.child(a).remove()
+                .then(result => resolve(result))
+                .catch(err => reject(err))
+        }
+
+        if (!store.createdAt) {
+            console.log('store.createdAt ', a)
+            store.createdAt = Date.now()
+        }
+        //
+        // if (store.job) {
+        //     var newJob = {}
+        //     for (var i in store.job) {
+        //         var job = dataJob[i]
+        //         if (job && job.job) {
+        //             newJob[job.job] = job.jobName || job.job
+        //         }
+        //     }
+        //     store.job = newJob
+        // }
+
+        var storeStr = 'storeId,avatar,storeName,industry,job,address,location,createdAt,createdBy,updatedAt,interviewTime,description,photo,level,adminNote,verify,feature,hide'
+        for (var key in store) {
+            var res = storeStr.match(key);
+            if (res) {
+
+
+            } else {
+                console.log('delete', key)
+                delete store[key]
+            }
+        }
+
+
+        if (JSON.stringify(store) != JSON.stringify(storeData)) {
+            storeRef.child(store.storeId).set(store)
+                .then(result => {
+                    console.log('update ', store, store.storeId)
+                    resolve(result)
+                })
+                .catch(err => reject(err))
+
+        } else resolve({result: 'OK'})
+    })
+
+}
+
 app.get('/checkstore', function (req, res) {
     var profileArray = _.toArray(dataProfile)
     var i = 0
@@ -3339,6 +3399,19 @@ app.get('/log/activity', function (req, res) {
     var sorded = _.sortBy(dataLike, function (card) {
         return -card.likeAt
     });
+
+    var cards = getPaginatedItems(sorded, page);
+
+    res.send(JSON.stringify(cards, circular()))
+});
+
+
+app.get('/newfeed', function (req, res) {
+    var page = req.param('page') || 1
+    var dataLike = Object.assign({}, likeActivity);
+    var sorded = _.sortBy(dataLike, function (card) {
+        return -card.likeAt
+    });
     var dataAdd = _.map(sorded, function (card) {
         var profileData = Object.assign({}, dataProfile[card.userId])
         card.profile = profileData
@@ -3350,6 +3423,7 @@ app.get('/log/activity', function (req, res) {
 
     res.send(JSON.stringify(cards, circular()))
 });
+
 
 app.get('/log/profile', function (req, res) {
     var page = req.param('page') || 1
