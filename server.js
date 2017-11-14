@@ -187,7 +187,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
 
         if (!mail.from) mail.from = CONFIG.email
 
-        if(!mail.description1 && !mail.description2 && !mail.description3){
+        if (!mail.description1 && !mail.description2 && !mail.description3) {
             mail.description1 = mail.body
         }
 
@@ -411,7 +411,7 @@ function init() {
 
     });
     jobRef.on('child_changed', function (snap) {
-        dataJob[snap.key] = snap.val()
+        dataJob[snap.key] = snap.val();
         checkJobAlone(dataJob[snap.key], snap.key)
 
     });
@@ -427,19 +427,27 @@ function init() {
         dataStore[snap.key] = snap.val()
         checkStoreAlone(dataStore[snap.key], snap.key)
     });
-
+    var l = 0
     likeActivityRef.on('child_added', function (snap) {
         likeActivity[snap.key] = snap.val()
+        l++
+        checkActivityAlone(likeActivity[snap.key], snap.key)
+
+
 
     });
     likeActivityRef.on('child_changed', function (snap) {
         likeActivity[snap.key] = snap.val()
+        checkActivityAlone(likeActivity[snap.key], snap.key)
+
     });
     db.ref('keyList').on('child_added', function (snap) {
         keyListData[snap.key] = snap.val()
     })
-    setTimeout(startList, 15000)
-
+    setTimeout(function () {
+        startList()
+        checkStatic()
+    }, 15000)
 
 }
 
@@ -1205,57 +1213,32 @@ function checkStoreAlone(storeData, a) {
 
 }
 
-function checkActivityAlone(like, a) {
+
+function checkActivityAlone(likeData, a) {
     return new Promise(function (resolve, reject) {
-        var store = Object.assign({}, storeData);
+        var like = Object.assign({}, likeData);
 
 
         if (!a) reject({err: 'no a'})
 
-        if (!store.storeId) {
-            store.storeId = a
+        if (!like.actId) {
+            like.actId = a
         }
 
-        if (store.storeId != a) {
-            console.log(store.storeName, a)
-            storeRef.child(a).remove()
-                .then(result => resolve(result))
-                .catch(err => reject(err))
+        if (!like.storeId) {
+            like.storeId = dataJob[like.jobId].storeId
         }
 
-        if (!store.createdAt) {
+        if (!like.likeAt) {
             console.log('store.createdAt ', a)
-            store.createdAt = Date.now()
-        }
-        //
-        // if (store.job) {
-        //     var newJob = {}
-        //     for (var i in store.job) {
-        //         var job = dataJob[i]
-        //         if (job && job.job) {
-        //             newJob[job.job] = job.jobName || job.job
-        //         }
-        //     }
-        //     store.job = newJob
-        // }
-
-        var storeStr = 'storeId,avatar,storeName,industry,job,address,location,createdAt,createdBy,updatedAt,interviewTime,description,photo,level,adminNote,verify,feature,hide'
-        for (var key in store) {
-            var res = storeStr.match(key);
-            if (res) {
-
-
-            } else {
-                console.log('delete', key)
-                delete store[key]
-            }
+            like.likeAt = Date.now()
         }
 
 
-        if (JSON.stringify(store) != JSON.stringify(storeData)) {
-            storeRef.child(store.storeId).set(store)
+        if (JSON.stringify(like) != JSON.stringify(likeData)) {
+            likeActivityRef.child(like.actId).set(like)
                 .then(result => {
-                    console.log('update ', store, store.storeId)
+                    console.log('update ', like, like.actId)
                     resolve(result)
                 })
                 .catch(err => reject(err))
@@ -1294,130 +1277,6 @@ app.get('/checkstore', function (req, res) {
 
 })
 
-function checkProfile() {
-    return new Promise(function (resolve, reject) {
-
-        profileRef.once('value', function (a) {
-            var arrayJob = _.toArray(a.val())
-            var i = 0
-            loop(i)
-
-            function loop(i) {
-                var profile = Object.assign({}, arrayJob[i]);
-                console.log(profile.name);
-
-                if (profile.act) {
-                    console.log('profile.act remove', i)
-                    delete profile.act
-                }
-                if (profile.distance) {
-                    console.log('profile.distance remove', i)
-                    delete profile.distance
-                }
-                if (profile.static) {
-                    console.log('profile.static remove', i)
-                    delete profile.static
-                }
-                if (profile.presence) {
-                    console.log('profile.presence remove', i)
-                    delete profile.presence
-                }
-                if (profile.err) {
-                    console.log('profile.err remove', i)
-                    delete profile.err
-                }
-
-
-                if (!profile.createdAt) {
-                    console.log('profile.createdAt ', i)
-
-                    profile.createdAt = Date.now()
-                }
-                if (!profile.updatedAt) {
-                    console.log('profile.updatedAt ', i)
-                    profile.updatedAt = Date.now()
-                }
-
-                if (JSON.stringify(profile) != JSON.stringify(arrayJob[i])) {
-                    profileRef.child(profile.userId).set(profile).then(function () {
-                        console.log('job done', i)
-
-                        i++
-                        if (i < arrayJob.length) {
-                            loop(i)
-                        } else {
-                            resolve('done')
-                        }
-                    })
-
-                } else {
-                    i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    } else {
-                        resolve('done')
-                    }
-                }
-
-            }
-
-        })
-    })
-}
-
-function checkUser() {
-    return new Promise(function (resolve, reject) {
-
-        userRef.once('value', function (a) {
-            var arrayJob = _.toArray(a.val())
-            var i = 0
-            loop(i)
-
-            function loop(i) {
-                var user = Object.assign({}, arrayJob[i]);
-                console.log(user.name);
-                if (user.email && user.email.length < 4) {
-                    auth.getUser(user.userId)
-                        .then(function (userRecord) {
-                            // See the UserRecord reference doc for the contents of userRecord.
-                            if (userRecord.email) {
-                                console.log('email update')
-                                userRef.child(userRecord.userId).update({email: userRecord.email}).then(function () {
-                                    i++
-                                    if (i < arrayJob.length) {
-                                        loop(i)
-                                    } else {
-                                        resolve('done')
-                                    }
-                                })
-                            } else {
-                                i++
-                                if (i < arrayJob.length) {
-                                    loop(i)
-                                } else {
-                                    resolve('done')
-                                }
-                            }
-                        })
-                        .catch(function (error) {
-                            console.log("Error fetching user data:", error);
-                        });
-                } else {
-                    i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    } else {
-                        resolve('done')
-                    }
-                }
-
-
-            }
-
-
-        })
-    })
-}
 
 
 function shortAddress(fullAddress) {
@@ -1597,7 +1456,7 @@ app.post('/like', function (req, res, next) {
 
             sendNotificationToAdmin({
                 title: 'Nhắc lịch phỏng vấn',
-                body: `${dataProfile[like_new.userId].name} ơi, \n bạn chưa đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+                body: `${dataProfile[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
             })
 
         })
@@ -1607,8 +1466,8 @@ app.post('/like', function (req, res, next) {
 
 function sendNotificationToAdmin(noti) {
 
-    var adminList = _.where(dataUser,{admin:true})
-    var sended = _.map(adminList,function (admin) {
+    var adminList = _.where(dataUser, {admin: true})
+    var sended = _.map(adminList, function (admin) {
         sendNotification(admin, noti).then(result => {
             admin.send = 'sucess'
         })
@@ -1621,9 +1480,9 @@ function sendNotificationToAdmin(noti) {
 
 }
 
-app.get('/sendNotificationToAdmin',function (req,res) {
+app.get('/sendNotificationToAdmin', function (req, res) {
     var body = req.param('body')
-    res.send(sendNotificationToAdmin({title:'test',body}))
+    res.send(sendNotificationToAdmin({title: 'test', body}))
 })
 
 app.get('/api/lead', (req, res) => {
@@ -2706,14 +2565,15 @@ app.post('/update/user', function (req, res) {
                             mail.calltoaction = 'Email chào hàng';
                             mail.linktoaction = CONFIG.WEBURL + '/admin/lead';
                         }
-                        var time = Date.now()
-                        for (var i in dataUser) {
-                            if (dataUser[i].admin == true) {
-                                time = time + 5000
-                                sendNotification(dataUser[i], mail, null, time)
-                            }
-                        }
+                        sendNotificationToAdmin(mail)
+
                     }, 60000)
+
+                } else {
+                    sendNotificationToAdmin({
+                        title:'Jobo_Recruit| New jobseeker',
+                        body: `Name: ${user.name} \n Ref: ${user.ref}`
+                    })
 
                 }
             }
@@ -5396,7 +5256,6 @@ function remind_Interview() {
 
                 };
                 sendNotification(dataUser[likeData.userId], mail)
-
 
 
             } else {
