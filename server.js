@@ -187,6 +187,9 @@ function sendNotification(userData, mail, channel, time, notiId) {
 
         if (!mail.from) mail.from = CONFIG.email
 
+        if(!mail.description1 && !mail.description2 && !mail.description3){
+            mail.description1 = mail.body
+        }
 
         var notification = {
             userData,
@@ -491,22 +494,23 @@ function checkStatic() {
     CONFIG.popularJob = popular.job
     CONFIG.popular = popular
 }
+
 //do work everyday
 schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
     scheduleJobPushEveryday()
 
-   setTimeout(function () {
-       checkStatic()
-   },60000)
+    setTimeout(function () {
+        checkStatic()
+    }, 60000)
 
     setTimeout(function () {
         getMoreJobEveryDay()
-    },2*60000)
+    }, 2 * 60000)
 
     setTimeout(function () {
         analyticsRemind()
-    },3*60000)
+    }, 3 * 60000)
 
 
 })
@@ -622,7 +626,7 @@ function createListPremiumJob(where, type, job, industry, postId, level) {
             && (jobData.industry == industry || !industry)
         ) {
             var storeData = dataStore[jobData.storeId]
-            jobData = Object.assign({},jobData, storeData)
+            jobData = Object.assign({}, jobData, storeData)
 
             var jobArray = {
                 storeId: jobData.storeId,
@@ -1569,8 +1573,57 @@ app.post('/like', function (req, res, next) {
     console.log(likeData)
     likeActivityRef.child(likeData.actId)
         .update(likeData)
+        .then(result => {
+            var like_new = likeActivity[likeData.actId]
+            if (like_new.interviewTime) {
+                // set remind
+                sendNotification(dataUser[like_new.userId], {
+                    title: 'Nhắc lịch phỏng vấn',
+                    body: `${dataProfile[like_new.userId].name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+                }, null, like_new.interviewTime - 30 * 60000)
+
+                sendNotification(dataUser[like_new.userId], {
+                    title: 'Nhắc lịch phỏng vấn',
+                    body: `${dataProfile[like_new.userId].name} ơi, \n Bắt đầu buổi phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
+                }, null, like_new.interviewTime)
+
+            } else {
+                sendNotification(dataUser[like_new.userId], {
+                    title: 'Nhắc lịch phỏng vấn',
+                    body: `${dataProfile[like_new.userId].name} ơi, \n bạn chưa đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+                }, null, Date.now() + 30 * 60000)
+
+            }
+
+            sendNotificationToAdmin({
+                title: 'Nhắc lịch phỏng vấn',
+                body: `${dataProfile[like_new.userId].name} ơi, \n bạn chưa đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+            })
+
+        })
         .then(result => res.send(result))
         .catch(err => res.send(err))
+})
+
+function sendNotificationToAdmin(noti) {
+
+    var adminList = _.where(dataUser,{admin:true})
+    var sended = _.map(adminList,function (admin) {
+        sendNotification(admin, noti).then(result => {
+            admin.send = 'sucess'
+        })
+        return admin
+
+
+    })
+    return sended
+
+
+}
+
+app.get('/sendNotificationToAdmin',function (req,res) {
+    var body = req.param('body')
+    res.send(sendNotificationToAdmin({title:'test',body}))
 })
 
 app.get('/api/lead', (req, res) => {
@@ -2031,7 +2084,6 @@ function getMoreJobEveryDay() {
 }
 
 
-
 function getGoogleJob(mylat, mylng, industry) {
     if (!mylat || !mylng) return
     if (!industry) industry = _.sample(["restaurant", "cafe", "lodging", "store"])
@@ -2120,7 +2172,7 @@ app.get('/dash/job', function (req, res) {
                 storeData.package = dataUser[store.createdBy].package
             }
 
-            var card = Object.assign({},obj, storeData);
+            var card = Object.assign({}, obj, storeData);
             if (card.location) {
 
                 var yourlat = card.location.lat;
@@ -2251,7 +2303,7 @@ app.get('/api/job', function (req, res) {
                 if (user.type == 1 && user.package != 'premium') {
                     var store = _.findWhere(dataStore, {createdBy: user.userId})
                     var job = _.findWhere(dataJob, {createdBy: user.userId})
-                    var card = Object.assign({},user, store, job)
+                    var card = Object.assign({}, user, store, job)
                     joblist.push(card)
                 }
             }
@@ -2484,7 +2536,6 @@ app.get('/api/users', function (req, res) {
             } else {
                 var obj = Object.assign({}, dataProfile[i], dataUser[i])
                 usercard.push(obj)
-
             }
 
 
@@ -2550,7 +2601,7 @@ app.get('/on/job', function (req, res) {
         storeData.interviewOption = getInterviewOption(storeData.interviewTime)
         var userInfo = dataUser[storeData.createdBy]
 
-        var all = Object.assign({}, jobData, {storeData},{userInfo})
+        var all = Object.assign({}, jobData, {storeData}, {userInfo})
         res.send(JSON.stringify(all, circular()))
 
     } else res.status(500).json({err: 'No data'})
@@ -3563,7 +3614,7 @@ app.get('/checkUser', function (req, res) {
 app.get('/admin/createuser', function (req, res) {
     var userId = req.param('uid')
     var phone = req.param('phone')
-    var email = req.param('uid') + '@jobo.asia'
+    var email = userId + '@jobo.asia'
     var password = 'tuyendungjobo'
     secondary.auth().createUser({
         uid: userId,
@@ -3591,7 +3642,6 @@ app.get('/admin/createuser', function (req, res) {
 
         });
 })
-
 
 app.get('/admin/storeEmail', function (req, res) {
     var send = ''
@@ -4285,7 +4335,6 @@ function startList() {
                             description3: '',
                             calltoaction: 'Trả lời!',
                             linktoaction: CONFIG.WEBURL + '/view/store/' + card.data.sender,
-                            description4: '',
                             image: ''
                         };
                         sendNotification(dataUser[card.data.to], notification, {
@@ -5332,7 +5381,7 @@ function remind_Interview() {
     for (var i in likeActivity) {
         var likeData = likeActivity[i]
         if (likeData.interviewTime) {
-            if (likeData.interviewTime > Date.now() && likeData.interviewTime < Date.now() + 86400*1000) {
+            if (likeData.interviewTime > Date.now() && likeData.interviewTime < Date.now() + 86400 * 1000) {
 
                 var profile = dataProfile[likeData.userId]
                 var job = dataJob[likeData.jobId]
@@ -5357,8 +5406,8 @@ function remind_Interview() {
                     description1: profile.name + ' ơi!',
                     description2: remind,
                 };
-                var time = likeData.interviewTime - 30*60*1000
-                sendNotification(dataUser[likeData.userId], mail,null,time)
+                var time = likeData.interviewTime - 30 * 60 * 1000
+                sendNotification(dataUser[likeData.userId], mail, null, time)
 
             } else {
 
