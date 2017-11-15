@@ -151,19 +151,127 @@ app.use(function (req, res, next) {
 
 app.get('/sendNotification', function (req, res) {
     var email = req.param('email') || 'thonglk.mac@gmail.com';
+    var i = 0
+    var time = Date.now()
+    var sendList = _.map(dataUser, user => {
+        var name = user.name;
+        var senderID = user.userId;
+        time = time + 200 * i
+        var mail = {
+            title: "Tìm việc cho bạn bè, người thân và nhận hoa hồng!",
+            description1: `Dear ${name}`,
+            description2: 'Giới thiệu việc làm cho bạn bè, nhận hoa hồng từ 50,000đ đến 1,000,000đ cho mỗi người bạn giới thiệu nhận việc thành công!🙌  \n Nhấn "Chia sẻ" để bắt đầu giúp bạn bè tìm việc 👇\'!',
+            calltoaction: 'Cật nhật ngay!',
+            linktoaction: "https://m.me/jobo.asia?ref=start_invitedby:" + senderID,
+            payload: {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic",
+                        "elements": [
+                            {
+                                "title": "Giới thiệu việc làm cho bạn bè!",
+                                "subtitle": "Nhận hoa hồng từ 50,000đ đến 1,000,000đ cho mỗi người bạn giới thiệu nhận việc thành công!🙌. Nhấn \"Chia sẻ\" để bắt đầu giúp bạn bè tìm việc 👇",
+                                "image_url": "https://scontent.fhan1-1.fna.fbcdn.net/v/t31.0-8/15975027_432312730493096_8750211388245957528_o.jpg?oh=4e4f55391114b3b3c8c6e12755cd385b&oe=5AABE512",
+                                "buttons": [
+                                    {
+                                        "type": "element_share",
+                                        "share_contents": {
+                                            "attachment": {
+                                                "type": "template",
+                                                "payload": {
+                                                    "template_type": "generic",
+                                                    "elements": [
+                                                        {
+                                                            "title": "Tìm việc nhanh theo ca xung quanh bạn!",
+                                                            "subtitle": "Hơn 1000+ đối tác nhà hàng, cafe, shop đang tìm bạn trên Jobo nè. Hãy đặt lịch nhận việc và đi làm ngay!.",
+                                                            "image_url": "https://scontent.fhan1-1.fna.fbcdn.net/v/t31.0-8/15975027_432312730493096_8750211388245957528_o.jpg?oh=4e4f55391114b3b3c8c6e12755cd385b&oe=5AABE512",
+                                                            "default_action": {
+                                                                "type": "web_url",
+                                                                "url": "https://m.me/jobo.asia?ref=start_invitedby:" + senderID
+                                                            },
+                                                            "buttons": [
+                                                                {
+                                                                    "type": "web_url",
+                                                                    "url": "https://m.me/jobo.asia?ref=start_invitedby:" + senderID,
+                                                                    "title": "Bắt đầu tìm việc"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+        sendNotification(user, mail, null, time)
 
-    var mail = {
-        title: "Chỉ còn 1 bước nữa là bạn có thể tìm được việc phù hợp",
-        body: "Hãy tạo hồ sợ và chọn công việc phù hợp với bạn nhé, nếu gặp khó khăn thì bạn gọi vào số 0968 269 860 để được hỗ trợ nhé!",
-        description1: 'Dear ',
-        description2: 'Hãy tạo hồ sợ và chọn công việc phù hợp với bạn nhé, nếu gặp khó khăn thì bạn gọi vào số 0968 269 860 để được hỗ trợ nhé!',
-        description3: 'Đặc biệt, các bạn đăng video giới thiệu bản thân có tỉ lệ xin việc thành công cao hơn 20% so với những bạn không. Hãy đăng nhập vào tài khoản và xin việc ngay thôi nào: joboapp.com',
-        calltoaction: 'Cật nhật ngay!',
-        linktoaction: CONFIG.WEBURL,
-        description4: ''
-    };
-    sendNotification({email}, mail).then(dt => res.status(200).json(dt))
-        .catch(err => res.status(500).send(err));
+        return user.name + ' ' + user.userId
+
+    })
+
+    res.send(sendList)
+    // var mail = {
+    //     title: "Tìm việc cho bạn bè, người thân và nhận hoa hồng!",
+    //     description1: `Dear ${name}`,
+    //     description2: 'Giới thiệu việc làm cho bạn bè, nhận hoa hồng từ 50,000đ đến 1,000,000đ cho mỗi người bạn giới thiệu nhận việc thành công!🙌  \n Nhấn "Chia sẻ" để bắt đầu giúp bạn bè tìm việc 👇\'!',
+    //     calltoaction: 'Cật nhật ngay!',
+    //     linktoaction: "https://m.me/jobo.asia?ref=start_invitedby:" + senderID,
+    //     payload: {
+    //         "attachment": {
+    //             "type": "template",
+    //             "payload": {
+    //                 "template_type": "generic",
+    //                 "elements": [
+    //                     {
+    //                         "title": "Giới thiệu việc làm cho bạn bè!",
+    //                         "subtitle": "Nhận hoa hồng từ 50,000đ đến 1,000,000đ cho mỗi người bạn giới thiệu nhận việc thành công!🙌. Nhấn \"Chia sẻ\" để bắt đầu giúp bạn bè tìm việc 👇",
+    //                         "image_url": "https://scontent.fhan1-1.fna.fbcdn.net/v/t31.0-8/15975027_432312730493096_8750211388245957528_o.jpg?oh=4e4f55391114b3b3c8c6e12755cd385b&oe=5AABE512",
+    //                         "buttons": [
+    //                             {
+    //                                 "type": "element_share",
+    //                                 "share_contents": {
+    //                                     "attachment": {
+    //                                         "type": "template",
+    //                                         "payload": {
+    //                                             "template_type": "generic",
+    //                                             "elements": [
+    //                                                 {
+    //                                                     "title": "Tìm việc nhanh theo ca xung quanh bạn!",
+    //                                                     "subtitle": "Hơn 1000+ đối tác nhà hàng, cafe, shop đang tìm bạn trên Jobo nè. Hãy đặt lịch nhận việc và đi làm ngay!.",
+    //                                                     "image_url": "https://scontent.fhan1-1.fna.fbcdn.net/v/t31.0-8/15975027_432312730493096_8750211388245957528_o.jpg?oh=4e4f55391114b3b3c8c6e12755cd385b&oe=5AABE512",
+    //                                                     "default_action": {
+    //                                                         "type": "web_url",
+    //                                                         "url": "https://m.me/jobo.asia?ref=start_invitedby:" + senderID
+    //                                                     },
+    //                                                     "buttons": [
+    //                                                         {
+    //                                                             "type": "web_url",
+    //                                                             "url": "https://m.me/jobo.asia?ref=start_invitedby:" + senderID,
+    //                                                             "title": "Bắt đầu tìm việc"
+    //                                                         }
+    //                                                     ]
+    //                                                 }
+    //                                             ]
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         ]
+    //                     }
+    //                 ]
+    //             }
+    //         }
+    //     }
+    // };
+    // sendNotification({messengerId: '1226124860830528'}, mail).then(dt => res.status(200).json(dt))
+    //     .catch(err => res.status(500).send(err));
 })
 
 function sendNotification(userData, mail, channel, time, notiId) {
@@ -428,24 +536,22 @@ function init() {
         checkStoreAlone(dataStore[snap.key], snap.key)
     });
     var l = 0
-    likeActivityRef.on('child_added', function (snap) {
-        likeActivity[snap.key] = snap.val()
-        l++
-        checkActivityAlone(likeActivity[snap.key], snap.key)
 
-
-    });
-    likeActivityRef.on('child_changed', function (snap) {
-        likeActivity[snap.key] = snap.val()
-        checkActivityAlone(likeActivity[snap.key], snap.key)
-
-    });
     db.ref('keyList').on('child_added', function (snap) {
         keyListData[snap.key] = snap.val()
     })
     setTimeout(function () {
         startList()
         checkStatic()
+        likeActivityRef.on('child_added', function (snap) {
+            likeActivity[snap.key] = snap.val()
+            l++
+            checkActivityAlone(likeActivity[snap.key], snap.key)
+        });
+        likeActivityRef.on('child_changed', function (snap) {
+            likeActivity[snap.key] = snap.val()
+            checkActivityAlone(likeActivity[snap.key], snap.key)
+        });
     }, 15000)
 
 }
@@ -1220,19 +1326,17 @@ function checkActivityAlone(likeData, a) {
 
         if (!a) reject({err: 'no a'})
 
-        if (!like.actId) {
-            like.actId = a
-        }
+        if (!like.actId) like.actId = a;
 
-        if (!like.storeId) {
-            like.storeId = dataJob[like.jobId].storeId
-        }
+        if (!like.storeId) like.storeId = dataJob[like.jobId].storeId;
 
-        if (!like.likeAt) {
-            console.log('store.createdAt ', a)
-            like.likeAt = Date.now()
-        }
+        if (!like.storeName) like.storeName = dataStore[dataJob[like.jobId].storeId].storeName;
 
+        if (!like.userName) like.userName = dataProfile[like.userId].name;
+
+        if (!like.jobName) like.jobName = dataJob[like.jobId].jobName;
+
+        if (!like.likeAt) like.likeAt = Date.now();
 
         if (JSON.stringify(like) != JSON.stringify(likeData)) {
             likeActivityRef.child(like.actId).set(like)
@@ -1463,7 +1567,7 @@ app.post('/like', function (req, res, next) {
 })
 
 function sendNotificationToAdmin(noti) {
-
+    noti.body = noti.body + ' \n P/s: Sent with <3 from JOBO team'
     var adminList = _.where(dataUser, {admin: true})
     var sended = _.map(adminList, function (admin) {
         sendNotification(admin, noti).then(result => {
@@ -3176,9 +3280,8 @@ app.get('/initData', function (req, res) {
             user.reactList.liked = _.where(likeActivity, {storeId: storeId, status: 0, type: 2});
         }
         if (dataUser[userId].type == 2) {
-            if (dataProfile[userId]) {
-                user.userData = Object.assign({}, dataProfile[userId], dataUser[userId]);
-            }
+            if (dataProfile[userId]) user.userData = Object.assign({}, dataProfile[userId], dataUser[userId]);
+
             user.reactList = {}
             user.reactList.match = _.where(likeActivity, {userId: userId, status: 1});
             user.reactList.like = _.where(likeActivity, {userId: userId, status: 0, type: 2});
