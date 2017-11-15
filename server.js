@@ -3269,7 +3269,7 @@ app.get('/initData', function (req, res) {
     var user = {};
     if (dataUser[userId]) {
 
-        user.userData = dataUser[userId]
+        user.userData = Object.assign({}, dataUser[userId])
 
         if (dataUser[userId].type == 1 && dataUser[userId].currentStore) {
             var storeId = dataUser[userId].currentStore
