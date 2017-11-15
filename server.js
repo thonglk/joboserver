@@ -5482,8 +5482,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
         if (groupId) {
-
-
             groupId.push('')
             for (var a in groupId) {
 
