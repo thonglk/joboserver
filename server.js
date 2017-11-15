@@ -163,7 +163,7 @@ app.get('/sendNotification', function (req, res) {
             description1: `Dear ${name}`,
             description2: 'Giới thiệu việc làm cho bạn bè, nhận hoa hồng từ 50,000đ đến 1,000,000đ cho mỗi người bạn giới thiệu nhận việc thành công!🙌  \n Nhấn "Chia sẻ" để bắt đầu giúp bạn bè tìm việc 👇\'!',
             calltoaction: 'Bắt đầu!',
-            linktoaction: "https://m.me/jobo.asia?ref=start_inviter_"+ senderID,
+            linktoaction: "https://m.me/jobo.asia?ref=start_inviter_" + senderID,
             payload: {
                 "attachment": {
                     "type": "template",
@@ -434,6 +434,33 @@ function init() {
         CONFIG = snap.val()
         groupData = CONFIG.groupData
         groupArray = _.toArray(groupData)
+
+        // var mapgroup = _.map(groupData, group => {
+        //     var group_new = Object.assign({}, group)
+        //     var str = 'area,finder,groupId,job,link,name'
+        //     for (var key in group_new) {
+        //
+        //         var res = str.match(key);
+        //         if (res) {
+        //
+        //         } else {
+        //             console.log('delete', key)
+        //             delete group_new[key]
+        //         }
+        //     }
+        //
+        //     if (JSON.stringify(group) != JSON.stringify(group_new)) {
+        //
+        //         if (group_new.groupId) {
+        //             configRef.child('groupData').child(group_new.groupId).set(group_new)
+        //                 .then(result => {
+        //                     console.log('update', group_new.name)
+        //                 })
+        //         }
+        //
+        //
+        //     }
+        // })
         console.log('CONFIG.APIURL', CONFIG.APIURL)
         facebookUser = {
             vn: [],
@@ -501,10 +528,9 @@ function init() {
     userRef.on('child_changed', function (snap) {
         dataUser[snap.key] = snap.val()
     });
-    userRef.on('child_removed', function(snap) {
+    userRef.on('child_removed', function (snap) {
         delete dataUser[snap.key]
     });
-
 
 
     profileRef.on('child_added', function (snap) {
@@ -518,7 +544,7 @@ function init() {
 
     });
 
-    profileRef.on('child_removed', function(snap) {
+    profileRef.on('child_removed', function (snap) {
         delete dataProfile[snap.key]
     });
 
@@ -536,7 +562,7 @@ function init() {
 
     });
 
-    jobRef.on('child_removed', function(snap) {
+    jobRef.on('child_removed', function (snap) {
         delete dataJob[snap.key]
     });
 
@@ -553,7 +579,7 @@ function init() {
         checkStoreAlone(dataStore[snap.key], snap.key)
     });
 
-    storeRef.on('child_removed', function(snap) {
+    storeRef.on('child_removed', function (snap) {
         delete dataStore[snap.key]
     });
 
@@ -5456,6 +5482,17 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
         if (groupId) {
+
+            axios.post(CONFIG.AnaURL + '/newPost', {
+                postId,
+                storeId,
+                jobId,
+                poster:poster || _.sample(facebookUser[where]) ,
+                content: createJDStore(storeId, null, jobId, postId),
+                time: Date.now() + 4 * 1000,
+                to: ''
+            })
+
             for (var a in groupId) {
 
                 var i = groupId[a];
