@@ -648,7 +648,9 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
     setTimeout(function () {
         analyticsRemind()
     }, 3 * 60000)
-
+    setTimeout(function () {
+        remind_Interview()
+    }, 3 * 60000)
 
 })
 
