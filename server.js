@@ -212,7 +212,7 @@ app.get('/sendNotification', function (req, res) {
         };
         sendNotification(user, mail, null, time)
 
-        return user.name + ' ' + user.userId
+        return {id:user.name + ' ' + user.userId}
 
     })
 
