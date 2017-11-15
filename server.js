@@ -5482,13 +5482,13 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
         if (groupId) {
-
+            var postid_n = 'f' + keygen()
             axios.post(CONFIG.AnaURL + '/newPost', {
-                postId,
+                postId: postid_n,
                 storeId,
                 jobId,
-                poster:poster || _.sample(facebookUser[where]) ,
-                content: createJDStore(storeId, null, jobId, postId),
+                poster: poster || _.sample(facebookUser[where]),
+                content: createJDStore(storeId, null, jobId, postid_n),
                 time: Date.now() + 4 * 1000,
                 to: ''
             })
