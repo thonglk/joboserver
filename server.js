@@ -5482,17 +5482,9 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
         if (groupId) {
-            var postid_n = 'f' + keygen()
-            axios.post(CONFIG.AnaURL + '/newPost', {
-                postId: postid_n,
-                storeId,
-                jobId,
-                poster: poster || _.sample(facebookUser[where]),
-                content: createJDStore(storeId, null, jobId, postid_n),
-                time: Date.now() + 4 * 1000,
-                to: ''
-            })
 
+
+            groupId.push('')
             for (var a in groupId) {
 
                 var i = groupId[a];
@@ -5510,7 +5502,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     time = time + 16 * 60 * 1000
                 }
 
-                var to = groupData[i].groupId;
+                var to = i;
                 console.log('content', content)
                 axios.post(CONFIG.AnaURL + '/newPost', {
                     postId,
