@@ -557,6 +557,15 @@ function init() {
         delete dataStore[snap.key]
     });
 
+    likeActivityRef.on('child_added', function (snap) {
+        likeActivity[snap.key] = snap.val()
+        l++
+        checkActivityAlone(likeActivity[snap.key], snap.key)
+    });
+    likeActivityRef.on('child_changed', function (snap) {
+        likeActivity[snap.key] = snap.val()
+        checkActivityAlone(likeActivity[snap.key], snap.key)
+    });
 
     var l = 0
 
@@ -566,15 +575,7 @@ function init() {
     setTimeout(function () {
         startList()
         checkStatic()
-        likeActivityRef.on('child_added', function (snap) {
-            likeActivity[snap.key] = snap.val()
-            l++
-            checkActivityAlone(likeActivity[snap.key], snap.key)
-        });
-        likeActivityRef.on('child_changed', function (snap) {
-            likeActivity[snap.key] = snap.val()
-            checkActivityAlone(likeActivity[snap.key], snap.key)
-        });
+
     }, 15000)
 
 }
@@ -1572,15 +1573,11 @@ app.post('/like', function (req, res, next) {
                 }, null, like_new.interviewTime)
 
             } else {
-                sendNotification(dataUser[like_new.userId], {
-                    title: 'Nhắc lịch phỏng vấn',
-                    body: `${dataProfile[like_new.userId].name} ơi, \n bạn chưa đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
-                }, null, Date.now() + 30 * 60000)
+
 
             }
 
             sendNotificationToAdmin({
-                title: 'Nhắc lịch phỏng vấn',
                 body: `${dataProfile[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
             })
 
