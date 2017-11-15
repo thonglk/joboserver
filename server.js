@@ -1606,7 +1606,7 @@ app.post('/like', function (req, res, next) {
             }
 
             sendNotificationToAdmin({
-                body: `${dataProfile[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
+                body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
             })
 
         })
@@ -2699,6 +2699,14 @@ app.post('/update/user', function (req, res) {
 
                     sendNotificationToAdmin({
                         title: 'Jobo| New User',
+                        body: `Name: ${user_new.name} \n Type: ${user_new.type} \n Ref: ${user_new.ref}`
+                    })
+
+                }
+                if (user_new.type && !user_old.type) {
+
+                    sendNotificationToAdmin({
+                        title: 'Jobo| New User w Type',
                         body: `Name: ${user_new.name} \n Type: ${user_new.type} \n Ref: ${user_new.ref}`
                     })
 
