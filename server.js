@@ -484,6 +484,13 @@ function init() {
         dataStatic[snap.key] = snap.val()
     });
 
+    googleJobRef.on('child_added', function (snap) {
+        datagoogleJob[snap.key] = snap.val()
+    });
+    googleJobRef.on('child_changed', function (snap) {
+        datagoogleJob[snap.key] = snap.val()
+    });
+
     userRef.on('child_added', function (snap) {
         dataUser[snap.key] = snap.val()
         if (!dataUser[snap.key].userId) {
@@ -494,12 +501,11 @@ function init() {
     userRef.on('child_changed', function (snap) {
         dataUser[snap.key] = snap.val()
     });
-    googleJobRef.on('child_added', function (snap) {
-        datagoogleJob[snap.key] = snap.val()
+    userRef.on('child_removed', function(snap) {
+        delete dataUser[snap.key]
     });
-    googleJobRef.on('child_changed', function (snap) {
-        datagoogleJob[snap.key] = snap.val()
-    });
+
+
 
     profileRef.on('child_added', function (snap) {
         dataProfile[snap.key] = snap.val()
@@ -511,6 +517,11 @@ function init() {
         checkProfileAlone(dataProfile[snap.key], snap.key)
 
     });
+
+    profileRef.on('child_removed', function(snap) {
+        delete dataProfile[snap.key]
+    });
+
 
     jobRef.on('child_added', function (snap) {
 
@@ -525,6 +536,11 @@ function init() {
 
     });
 
+    jobRef.on('child_removed', function(snap) {
+        delete dataJob[snap.key]
+    });
+
+
     storeRef.on('child_added', function (snap) {
 
         dataStore[snap.key] = snap.val()
@@ -536,6 +552,12 @@ function init() {
         dataStore[snap.key] = snap.val()
         checkStoreAlone(dataStore[snap.key], snap.key)
     });
+
+    storeRef.on('child_removed', function(snap) {
+        delete dataStore[snap.key]
+    });
+
+
     var l = 0
 
     db.ref('keyList').on('child_added', function (snap) {
