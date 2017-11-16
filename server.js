@@ -1596,7 +1596,7 @@ app.post('/like', function (req, res, next) {
                 }, null, like_new.interviewTime - 30 * 60000)
 
                 sendNotification(dataUser[like_new.userId], {
-                    title: 'Nhắc lịch phỏng vấn',
+                    title: 'Bắt đầu phỏng vấn',
                     body: `${dataProfile[like_new.userId].name} ơi, \n Bắt đầu buổi phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
                 }, null, like_new.interviewTime)
 
@@ -5810,6 +5810,14 @@ app.get('/groupFB', function (req, res) {
             .catch(err => res.status(500).json({err}))
     } else res.status(500).json({err: 'No data'})
 });
+
+
+///
+function sequence_jobseeker(sequence) {
+    if(!sequence.day_1){
+
+    }
+}
 
 
 // start the server
