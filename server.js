@@ -1581,6 +1581,22 @@ app.get('/', function (req, res) {
 app.get('/group', function (req, res) {
     res.send(groupData);
 });
+function strTime(time) {
+    var vietnamDay = {
+        0: 'Chủ nhật',
+        1: 'Thứ 2',
+        2: 'Thứ 3',
+        3: 'Thứ 4',
+        4: 'Thứ 5',
+        5: 'Thứ 6',
+        6: 'Thứ 7',
+        7: 'Chủ nhật'
+    }
+
+    var newtime = new Date(time);
+    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate()+'/' + newtime.getMonth()
+
+}
 
 app.post('/like', function (req, res, next) {
     let likeData = req.body
@@ -1591,6 +1607,43 @@ app.post('/like', function (req, res, next) {
         .then(result => {
             var like_new = likeActivity[likeData.actId]
             if (like_new.interviewTime) {
+                var store = dataStore[like_new.storeId]
+                var profile = dataProfile[like_new.userId]
+                var job = dataJob[like_new.jobId]
+                var user = dataUser[like_new.userId]
+                var employer = dataUser[store.createdBy]
+
+                sendNotification(employer, {
+                    title: 'Ứng viên đặt lịch phỏng vấn',
+                    body: `Có ứng viên mới đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} vào lúc ${strTime(like_new.interviewTime)}`,
+                    payload :{
+                        text: `Có ứng viên mới đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
+                        metadata: JSON.stringify({
+                            type: 'confirmJob',
+                        }),
+                        quick_replies: [
+                            {
+                                "content_type": "text",
+                                "title": "Có tham gia (Y)",
+                                "payload": JSON.stringify({
+                                    type: 'confirmInterview_employer',
+                                    answer: 'yes',
+                                    actId: likeData.actId
+                                })
+                            },
+                            {
+                                "content_type": "text",
+                                "title": "Không",
+                                "payload": JSON.stringify({
+                                    type: 'confirmInterview_employer',
+                                    answer: 'no',
+                                    actId: likeData.actId
+                                })
+                            },
+                        ]
+                    }
+                })
+
                 // set remind
                 sendNotification(dataUser[like_new.userId], {
                     title: 'Nhắc lịch phỏng vấn',
