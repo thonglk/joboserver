@@ -1585,6 +1585,7 @@ app.get('/group', function (req, res) {
 app.post('/like', function (req, res, next) {
     let likeData = req.body
     console.log(likeData)
+
     likeActivityRef.child(likeData.actId)
         .update(likeData)
         .then(result => {
@@ -5385,18 +5386,20 @@ function remind_Interview() {
                 var profile = dataProfile[likeData.userId]
                 var job = dataJob[likeData.jobId]
                 var store = dataStore[job.storeId]
-                console.log('profile', profile.name, store.storeName)
-                //nhắc đầu ngày!
-                var mail = {
-                    title: `Nhắc lịch phỏng vấn`,
-                    body: profile.name + ' ơi!,' + ` Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`,
-                    description1: profile.name + ' ơi!',
-                    description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
+                if(profile && job && store){
 
-                };
-                sendNotification(dataUser[likeData.userId], mail)
-                var str = profile.userName + '=>' + job.jobName + '|' + store.storeName + '\n'
-                liststr = liststr + str
+                    console.log('profile', profile.name, store.storeName)
+                    //nhắc đầu ngày!
+                    var mail = {
+                        title: `Nhắc lịch phỏng vấn`,
+                        body: profile.name + ' ơi!,' + ` Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`
+                    };
+                    sendNotification(dataUser[likeData.userId], mail)
+                    var str = '⚡'+ new Date(likeData.interviewTime).getHours() +'h ' +profile.name + ' => ' + job.jobName + ' | ' + store.storeName + '\n'
+                    liststr = liststr + str
+
+                }
+
 
 
                 return str
