@@ -1581,6 +1581,7 @@ app.get('/', function (req, res) {
 app.get('/group', function (req, res) {
     res.send(groupData);
 });
+
 function strTime(time) {
     var vietnamDay = {
         0: 'Chủ nhật',
@@ -1594,7 +1595,7 @@ function strTime(time) {
     }
 
     var newtime = new Date(time);
-    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate()+'/' + newtime.getMonth()
+    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' + newtime.getMonth()
 
 }
 
@@ -1606,18 +1607,21 @@ app.post('/like', function (req, res, next) {
         .update(likeData)
         .then(result => {
             var like_new = likeActivity[likeData.actId]
+            var store = dataStore[like_new.storeId]
+            var profile = dataProfile[like_new.userId]
+            var job = dataJob[like_new.jobId]
+            var user = dataUser[like_new.userId]
+            var employer = dataUser[store.createdBy]
+
+
             if (like_new.interviewTime) {
-                var store = dataStore[like_new.storeId]
-                var profile = dataProfile[like_new.userId]
-                var job = dataJob[like_new.jobId]
-                var user = dataUser[like_new.userId]
-                var employer = dataUser[store.createdBy]
+
 
                 sendNotification(employer, {
                     title: 'Ứng viên đặt lịch phỏng vấn',
-                    body: `Có ứng viên mới đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} vào lúc ${strTime(like_new.interviewTime)}`,
-                    payload :{
-                        text: `Có ứng viên mới đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
+                    body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
+                    payload: {
+                        text: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
                         metadata: JSON.stringify({
                             type: 'confirmJob',
                         }),
@@ -1645,20 +1649,30 @@ app.post('/like', function (req, res, next) {
                 })
 
                 // set remind
-                sendNotification(dataUser[like_new.userId], {
+                sendNotification(user, {
                     title: 'Nhắc lịch phỏng vấn',
-                    body: `${dataProfile[like_new.userId].name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+                    body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
                 }, null, like_new.interviewTime - 30 * 60000)
 
                 sendNotification(dataUser[like_new.userId], {
                     title: 'Bắt đầu phỏng vấn',
-                    body: `${dataProfile[like_new.userId].name} ơi, \n Bắt đầu buổi phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
+                    body: `${profile.name} ơi, \n Bắt đầu buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
                 }, null, like_new.interviewTime)
 
-            } else {
+            } else setTimeout(function () {
+                var like_after = likeActivity[like_new.actId]
+                if (!like_after.interviewTime) {
 
 
-            }
+                    sendNotification(user, {
+                        body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`
+                    })
+
+                }
+
+
+            }, 60000)
+
 
             sendNotificationToAdmin({
                 body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
@@ -5439,7 +5453,7 @@ function remind_Interview() {
                 var profile = dataProfile[likeData.userId]
                 var job = dataJob[likeData.jobId]
                 var store = dataStore[job.storeId]
-                if(profile && job && store){
+                if (profile && job && store) {
 
                     console.log('profile', profile.name, store.storeName)
                     //nhắc đầu ngày!
@@ -5448,11 +5462,10 @@ function remind_Interview() {
                         body: profile.name + ' ơi!,' + ` Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`
                     };
                     sendNotification(dataUser[likeData.userId], mail)
-                    var str = '⚡'+ new Date(likeData.interviewTime).getHours() +'h ' +profile.name + ' => ' + job.jobName + ' | ' + store.storeName + '\n'
+                    var str = '⚡' + new Date(likeData.interviewTime).getHours() + 'h ' + profile.name + ' => ' + job.jobName + ' | ' + store.storeName + '\n'
                     liststr = liststr + str
 
                 }
-
 
 
                 return str
