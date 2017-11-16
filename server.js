@@ -680,6 +680,7 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
 })
 
+
 app.get('/checkStatic', function (req, res) {
 
     checkStatic()
@@ -5376,8 +5377,8 @@ app.get('/remind_Interview', function (req, res) {
 });
 
 function remind_Interview() {
-    for (var i in likeActivity) {
-        var likeData = likeActivity[i]
+    var liststr = ''
+    var map = _.map(likeActivity, likeData => {
         if (likeData.interviewTime) {
             if (likeData.interviewTime > Date.now() && likeData.interviewTime < Date.now() + 86400 * 1000) {
 
@@ -5387,14 +5388,18 @@ function remind_Interview() {
                 console.log('profile', profile.name, store.storeName)
                 //nhắc đầu ngày!
                 var mail = {
-                    title: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
-                    body: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`,
+                    title: `Nhắc lịch phỏng vấn`,
+                    body: profile.name + ' ơi!,' + ` Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy chuẩn bị thật tốt nhé^^`,
                     description1: profile.name + ' ơi!',
                     description2: `Đừng quên rằng bạn sẽ buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé!`,
 
                 };
                 sendNotification(dataUser[likeData.userId], mail)
+                var str = profile.userName + '=>' + job.jobName + '|' + store.storeName + '\n'
+                liststr = liststr + str
 
+
+                return str
 
             } else {
 
@@ -5402,8 +5407,14 @@ function remind_Interview() {
             }
         }
 
+    })
 
-    }
+    sendNotificationToAdmin({
+        title: 'Phỏng vấn hôm nay',
+        body: liststr
+    })
+
+
 }
 
 function isWhere(storeId) {
@@ -5814,7 +5825,7 @@ app.get('/groupFB', function (req, res) {
 
 ///
 function sequence_jobseeker(sequence) {
-    if(!sequence.day_1){
+    if (!sequence.day_1) {
 
     }
 }
