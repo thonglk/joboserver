@@ -662,6 +662,8 @@ function checkStatic() {
 schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
     scheduleJobPushEveryday()
+    sendFullJob('hn');
+    sendFullJob('hcm');
 
     setTimeout(function () {
         checkStatic()
@@ -674,6 +676,7 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
     setTimeout(function () {
         analyticsRemind()
     }, 3 * 60000)
+
     setTimeout(function () {
         remind_Interview()
     }, 3 * 60000)
@@ -683,16 +686,16 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
 app.get('/checkStatic', function (req, res) {
 
-    checkStatic()
+    checkStatic();
     res.send('done')
-})
+});
 
 
 app.get('/updateDeadline', function (req, res) {
 
     updateDeadline();
     res.send('done')
-})
+});
 
 function updateDeadline() {
     var deadline = Date.now() + 1000 * 86400 * 7
@@ -889,13 +892,7 @@ function scheduleJobPushEveryday() {
         linktoaction: 'https://www.messenger.com/t/979190235520989',
         image: ''
     }
-    var time = Date.now()
-    for (var i in dataUser) {
-        if (dataUser[i].admin == true) {
-            time = time + 5000
-            sendNotification(dataUser[i], mail, {letter: true, web: true, messenger: true, mobile: true}, time)
-        }
-    }
+    sendNotificationToAdmin(mail)
     return {code: 'success'}
 
 
@@ -5207,15 +5204,8 @@ function analyticsRemind() {
             linktoaction: 'https://m.me/t/979190235520989',
             image: ''
         }
-        var time = Date.now()
-        for (var i in dataUser) {
-            if (dataUser[i].admin == true) {
-                time = time + 5000
-                sendNotification(dataUser[i], mail, null, time)
-            }
-        }
+        sendNotificationToAdmin(mail)
     })
-    checkStatic()
 
 
 }
@@ -5263,6 +5253,56 @@ app.get('/admin/analytics', function (req, res) {
         })
     }
 );
+app.get('/sendFullJob', function (req, res) {
+        var where = req.param('where')
+        sendFullJob(where).then(function (data) {
+            res.send(data)
+        })
+    }
+);
+
+function sendFullJob(where) {
+    var jobArrHn = createListPremiumJob(where, 'array')
+    var text = ''
+    var contentStr = _.map(jobArrHn, job => {
+
+        var str = `✔️ ${job.storeName} – ${job.jobName}
+🆕 https://m.me/385066561884380?ref=${job.jobId}_full \n`
+        text = text + str
+    })
+
+    var content_job_list = `❗HOT HOT!!!! VÔ VÀN CÔNG VIỆC FULLTIME HẤP DẪN ĐANG CHỜ ĐÓN BẠN #Jobo
+💪Không cần CV – Không cần kinh nghiệm
+💪Lương từ 5 triệu trở lên
+💪Lương thưởng tăng định kỳ nếu gắn bó lâu dài
+💪Hỗ trợ chi phí đào tạo từ nhà tuyển dụng
+☎ ☎ ☎ Inbox để tư vấn tìm việc và đặt lịch PHỎNG VẤN, hoàn toàn MIỄN PHÍ, đi làm NGAY !
+🔖 m.me/jobo.asia?ref=start_full
+💁‍♀️💁‍♀️💁‍♀️CÁC CÔNG VIỆC NỔI BẬT (UPDATE LIÊN TỤC)
+#Saigon #Hanoi
+
+${text}
+
+————————————
+
+📢 Jobo Technologies, Inc. – Ứng dụng tìm việc nhanh 100% miễn phí và sẽ luôn như vậy!
+📢 Email: contact@jobo.asia
+📢 Hotline: 0968 269 860
+📢 Chi nhánh HN: Tòa nhà 25T2 Hoàng Đạo Thúy, Quận Cầu Giấy, Hà Nội
+📢 Chi nhánh SG: Số 162 Pasteur, Quận 1, Sài Gòn`
+
+
+    var content = {
+        text: content_job_list,
+        image: 'https://scontent.fsgn2-2.fna.fbcdn.net/v/t1.0-9/23316305_609803696077331_1895316263462309682_n.jpg?oh=ad48504aa0a11c08c5ba9d827f2db7f5&oe=5AA9B55E',
+        type: 'image'
+    };
+    return new Promise(function (resolve, reject) {
+        PostStore(null, null, null, null, where, null, null, content)
+            .then(result => resolve(result))
+            .catch(err => reject(err));
+    })
+}
 
 //
 // // Remind:
@@ -5440,7 +5480,7 @@ app.get('/admin/analytics', function (req, res) {
 
 
 app.get('/remind_Interview', function (req, res) {
-    remind_Interview()
+    remind_Interview();
     res.send('done')
 });
 
