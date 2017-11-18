@@ -327,7 +327,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
 var publishChannel = {
     Jobo: {
         pageId: '385066561884380',
-        token: 'EAAEMfZASjMhgBAOWKcfIFZBPvH1OSdZAg2VFH103o0cNimDFg0wxtcSn5E3eaY4C8sDGQYBiaSZAxY8WRpaIj51hB2UfYZAqk3Wd1UiUoc393wgRZBpkiFR1iEGjfb1oE272ZCxkxECLiT1x6UcqYRZCemdpVmt1TnPupJgL8jlcdgZDZD'
+        token: 'EAAD9XakCxvEBAAdLBZBIX7ZBHFaeHBWSPpA9ZBCqwjZBeN7Go38uFeby36Yj0DwDCgP0PqgucOqceiG0wEsa7VzjxT4oaZB9Y9vZBNVaDbdXdkHSiCuCXC5CZCtXwtjErJSTAUXc1KdZCoulJZCQY2JRfYXqNmK1qvpCG5mV2pLyTEcIS6GFk3Ve589jfD3WBPH43HXpzOPzkXwZDZD'
     }
 };
 
@@ -355,14 +355,6 @@ function sendStoretoPage(storeId) {
     }
 }
 
-
-app.get('/PublishPost', function (req, res) {
-    let {message, accessToken} = req.query
-    var userId = ""
-    var text = {text: message}
-    PublishPost(userId, text, accessToken)
-    res.send('done')
-})
 
 function PublishPost(userId, text, accessToken) {
     if (text && accessToken) {
@@ -658,12 +650,21 @@ function checkStatic() {
     CONFIG.popular = popular
 }
 
+//do work everyweek
+schedule.scheduleJob({hour: 7, minute: 0, dayOfWeek: 1}, function () {
+
+})
+
+schedule.scheduleJob({hour: 19, minute: 0, dayOfWeek: 1}, function () {
+
+})
+
 //do work everyday
+
 schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
     scheduleJobPushEveryday()
-    sendFullJob('hn');
-    sendFullJob('hcm');
+
 
     setTimeout(function () {
         checkStatic()
@@ -681,8 +682,40 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
         remind_Interview()
     }, 3 * 60000)
 
+    setTimeout(function () {
+        sendFullJob('hn');
+        sendFullJob('hcm');
+    }, 4 * 60000)
+
 })
 
+app.get('/dowork', function (req, res) {
+
+    scheduleJobPushEveryday()
+
+
+    setTimeout(function () {
+        checkStatic()
+    }, 60000)
+
+    setTimeout(function () {
+        getMoreJobEveryDay()
+    }, 2 * 60000)
+
+    setTimeout(function () {
+        analyticsRemind()
+    }, 3 * 60000)
+
+    setTimeout(function () {
+        remind_Interview()
+    }, 3 * 60000)
+
+    setTimeout(function () {
+        sendFullJob('hn');
+        sendFullJob('hcm');
+    }, 4 * 60000)
+    res.send('done')
+});
 
 app.get('/checkStatic', function (req, res) {
 
@@ -1038,7 +1071,7 @@ function callToAction({link = ''}, type) {
     cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${link}`;
     cta[2] = `Đặt lịch phỏng vấn ngay tại: ${link}`;
     cta[3] = `Ứng tuyển tại: ${link} (Không cần CV)`;
-
+    cta[4] = `Tìm hiểu thêm về các vị trí tại đây nhé: ${link}`
     return _.sample(cta)
 
 }
@@ -2131,6 +2164,25 @@ function getRandomJob(industry) {
     }
 
 }
+
+
+app.get('/queryFB', function (req, res) {
+    var id = req.param('id')
+    graph.post(id + "/posts?access_token=" + accessToken,
+        {
+            "message": text
+        },
+        function (err, result) {
+            // returns the post id
+            console.log(result, err);
+            if (err) {
+                reject(err)
+            } else {
+                resolve(result)
+            }
+        }
+    )
+})
 
 
 app.get('/places', function (req, res) {
@@ -5020,15 +5072,24 @@ function StaticCountingNewUser(dateStart, dateEnd) {
         total: 0
     }
 
+    var ref = {}
+
     for (var i in dataUser) {
         var userData = dataUser[i];
         if (userData.createdAt) {
             if ((userData.createdAt > dateStart || dateStart == 0) && (userData.createdAt < dateEnd || dateEnd == 0)) {
                 total++
+
+                if (userData.ref) {
+                    var split = userData.ref.split('_')
+                    var refer = split[1]
+                    if (!ref[refer]) ref[refer] = 1
+                    else ref[refer]++
+                }
+
+
                 if (userData.type == 1) {
                     employer.employer++
-
-
                 } else if (userData.type == 2) {
                     if (dataProfile && dataProfile[i] && dataProfile[i].location) {
                         var profileData = Object.assign({}, dataProfile[i])
@@ -5177,7 +5238,8 @@ function StaticCountingNewUser(dateStart, dateEnd) {
             provider,
             act,
             lead,
-            googleJob
+            googleJob,
+            ref
         };
         console.log(data);
         resolve(data)
@@ -5190,9 +5252,12 @@ function analyticsRemind() {
     var dateStart = new Date()
     dateStart.setHours(0, 0, 0, 0)
     var datenow = dateStart.getTime()
-    var dayy = dateStart.getDate() + '/' + dateStart.getMonth()
+    var dayy = dateStart.getDate() + '/' + dateStart.getMonth();
+    var dayend = new Date(data.dateEnd);
+    var days = dayend.getDate() + '/' + dateStart.getMonth();
+    var refstr = ''
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
-        var long = `Từ ${dayy} đến ${new Date(data.dateEnd)}: \n Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var long = `Từ ${dayy} đến ${days}: \n Ref: ${JSON.stringify(data.ref)} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
             title: dayy + '| Jobo KPI Result ',
             body: long,
@@ -5255,23 +5320,65 @@ app.get('/admin/analytics', function (req, res) {
 );
 app.get('/sendFullJob', function (req, res) {
         var where = req.param('where')
-        sendFullJob(where).then(function (data) {
+        var channel = req.param('channel')
+
+        sendFullJob(where, channel).then(function (data) {
             res.send(data)
         })
     }
 );
 
-function sendFullJob(where) {
-    var jobArrHn = createListPremiumJob(where, 'array')
-    var text = ''
-    var contentStr = _.map(jobArrHn, job => {
+function sendFullJob(where, channel) {
+    return new Promise(function (resolve, reject) {
 
-        var str = `✔️ ${job.storeName} – ${job.jobName}
-🆕 https://m.me/385066561884380?ref=${job.jobId}_full \n`
-        text = text + str
-    })
+        var jobArrHn = createListPremiumJob(where, 'array')
+        var text = ''
 
-    var content_job_list = `❗HOT HOT!!!! VÔ VÀN CÔNG VIỆC FULLTIME HẤP DẪN ĐANG CHỜ ĐÓN BẠN #Jobo
+        if (channel) {
+
+            var contentStr = _.map(jobArrHn, job => {
+
+                var str = `✔️ ${job.storeName} – ${job.jobName}
+🆕 https://m.me/385066561884380?ref=${job.jobId}_${channel} \n`
+                text = text + str
+            })
+
+            var time = Date.now()
+            var a = 0
+            var sending = _.map(dataUser, user => {
+                if ((user.type == 2 || !user.type) && user.messengerId) {
+
+                    var name = user.name
+                    var content_job_list = `Dear ${name} 💪,
+Hiện tại Jobo đang có 1 số công việc cần tuyển gấp, bạn thử xem qua có công việc nào phù hợp với bạn không, hoặc bạn có thể giới thiệu bạn bè người thân đi làm để nhận thưởng từ Jobo nha,
+Danh sách việc làm:
+
+${text}
+
+P/s:
+❗ Bạn thấy những công việc này có phù hợp với mong muốn của bạn không? Nếu không thì công việc mong muốn của bạn là gì?
+❗ Nếu bạn không có nhu cầu nhận tin việc làm nữa thì hãy báo cho Jobo nhé!
+`
+                    a++
+                    sendNotification(user, {
+                        body: text
+                    }, null, time + a * 100)
+
+                    return user
+                }
+
+            })
+            resolve(text)
+
+        } else {
+            var contentStr = _.map(jobArrHn, job => {
+
+                var str = `✔️ ${job.storeName} – ${job.jobName}
+🆕 https://m.me/jobo.asia?ref=${job.jobId}_full \n`
+                text = text + str
+            });
+
+            var content_job_list = `❗HOT HOT!!!! VÔ VÀN CÔNG VIỆC FULLTIME HẤP DẪN ĐANG CHỜ ĐÓN BẠN #Jobo
 💪Không cần CV – Không cần kinh nghiệm
 💪Lương từ 5 triệu trở lên
 💪Lương thưởng tăng định kỳ nếu gắn bó lâu dài
@@ -5292,15 +5399,16 @@ ${text}
 📢 Chi nhánh SG: Số 162 Pasteur, Quận 1, Sài Gòn`
 
 
-    var content = {
-        text: content_job_list,
-        image: 'https://scontent.fsgn2-2.fna.fbcdn.net/v/t1.0-9/23316305_609803696077331_1895316263462309682_n.jpg?oh=ad48504aa0a11c08c5ba9d827f2db7f5&oe=5AA9B55E',
-        type: 'image'
-    };
-    return new Promise(function (resolve, reject) {
-        PostStore(null, null, null, null, where, null, null, content)
-            .then(result => resolve(result))
-            .catch(err => reject(err));
+            var content = {
+                text: content_job_list,
+                image: 'https://scontent.fsgn2-2.fna.fbcdn.net/v/t1.0-9/23316305_609803696077331_1895316263462309682_n.jpg?oh=ad48504aa0a11c08c5ba9d827f2db7f5&oe=5AA9B55E',
+                type: 'image'
+            };
+            PostStore(null, null, null, null, where, null, null, content)
+                .then(result => resolve(result))
+                .catch(err => reject(err));
+        }
+
     })
 }
 
@@ -5543,10 +5651,10 @@ function isWhere(storeId) {
 
 app.route('/PostFacebook')
     .post(function (req, res) {
-        var {text, image, poster, groupId, job, where, time, type} = req.body;
+        var {text, image, poster, groupId, job, where, time, type, channel} = req.body;
         console.log('req.body', req.body);
         var content = {text, image, type};
-        PostStore(null, null, groupId, job, where, poster, time, content)
+        PostStore(null, null, groupId, job, where, poster, time, content, channel)
             .then(result => res.status(200).json(result))
             .catch(err => res.status(500).json(err));
     });
@@ -5573,7 +5681,7 @@ app.get('/PostStore', function (req, res) {
 });
 
 
-function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
+function PostStore(storeId, jobId, groupId, job, where, poster, time, content, channel = {}) {
     return new Promise((resolve, reject) => {
 
         if (jobId) {
@@ -5610,7 +5718,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
         console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
         if (groupId) {
-            groupId.push('')
             for (var a in groupId) {
 
                 var i = groupId[a];
@@ -5637,7 +5744,8 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content) {
                     poster,
                     content,
                     time,
-                    to
+                    to,
+                    channel
                 }).then(function (result) {
                     console.log('PostStore', postId)
                 })

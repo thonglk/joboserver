@@ -399,5 +399,41 @@ JD[13] = function ({storeName, address = '', jobName = '', salary = '', hourly_w
  Bạn nào đăng ký thì inbox mình hoặc liên hệ ${contact} nhé, mình sẽ gửi JD và cách thức đăng ký. Cực nhanh, cực tiện lợi.\n ${callToAction} \n    `;
     return text;
 }
+JD[14] = function ({storeName, address = '', jobName = '', salary = '', hourly_wages = '', working_type = '', time = '', jobUrl = '', storeUrl = '', figure = '', unit = '', experience = '', sex = '', deadline = '', description = '', contact = '0971456089 (Mai)',callToAction = 'Chat với nhà tuyển dụng để đặt lịch phỏng vấn tại đây: https://m.me/jobo.asia?ref=start'}) {
+    if (salary) salary = `lương cứng ${salary} triệu/tháng`;
+    if (hourly_wages) hourly_wages = `lương theo giờ: ${hourly_wages} k/h + cơm + TIP 600-800 + thưởng Target`;
+    if (working_type) working_type = `Hình thức làm việc: ${working_type}\n`;
+    let timeStr = '';
+    if (time) {
+        if (time.length > 1) {
+            timeStr = ' làm ca';
+            time.forEach(t => timeStr += ` ${t.start} giờ đến ${t.end} giờ,`);
+        } else timeStr = ` làm ca ${time[0].start} giờ đến ${time[0].end} giờ,`;
+    }
+    if (description) description = `Mô tả công việc: ${description}\n`;
+    if (unit) unit = `Mình đang cần tuyển gấp ${unit} bạn cho`;
+    else unit = 'Mình đang cần tuyển gấp nhân viên cho';
+    if (experience) experience = `Yêu cầu kinh nghiệm\n`;
+    else experience = 'Không cần kinh nghiệm\n';
+    if (sex === 'female') sex = `Giới tính: Nữ\n`;
+    else if (sex === 'male') sex = `Giới tính: Nam\n`;
+    if (figure) figure = 'Yêu cầu ngoại hình\n';
+    else figure = 'Không yêu cầu ngoại hình\n';
+
+    const text = `QUA RỒI THỜI KÌ ĐỢI THẦY U TRỢ CẤP ...
+LÀM VIỆC PARTTIME - LƯƠNG THOẢI MÁI ĂN CHƠI
+
+${storeName} đang tuyển dụng hàng loạt vị trí ${jobName} để bạn quẩy hết mình
+Bạn có thể: 
+- Đăng ký theo ca hoàn toàn linh hoạt theo lịch học
+- Thu nhập mà bạn bè phải "lác mắt"
+- Công việc ổn định, cơ hội thăng tiến lên 3 tháng/lần, khỏi đắn đo suy nghĩ
+
+${callToAction}
+Hoặc comment số điện thoại và email, chúng tôi sẽ liên lạc với bạn`;
+    return text;
+}
+
+
 
 module.exports = JD;
