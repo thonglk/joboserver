@@ -5252,12 +5252,16 @@ function analyticsRemind() {
     var dateStart = new Date()
     dateStart.setHours(0, 0, 0, 0)
     var datenow = dateStart.getTime()
-    var dayy = dateStart.getDate() + '/' + dateStart.getMonth();
-    var dayend = new Date(data.dateEnd);
-    var days = dayend.getDate() + '/' + dateStart.getMonth();
+    var dayend = new Date();
+    var dayy = dateStart.getHours()+'h '+ dateStart.getDate() + '/' + dateStart.getMonth();
+    var days = dayend.getHours()+'h '+ dayend.getDate() + '/' + dateStart.getMonth();
     var refstr = ''
+    for(var i in data.ref){
+        var ref = data.ref[i]
+        refstr = refstr +'☀ ' + i +': '+ref +'\n'
+    }
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
-        var long = `Từ ${dayy} đến ${days}: \n Ref: ${JSON.stringify(data.ref)} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var long = `Từ ${dayy} đến ${days}: \n Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
             title: dayy + '| Jobo KPI Result ',
             body: long,
