@@ -1401,7 +1401,6 @@ function checkStoreAlone(storeData, a) {
 
 }
 
-
 function checkActivityAlone(likeData, a) {
     return new Promise(function (resolve, reject) {
         var like = Object.assign({}, likeData);
@@ -1410,6 +1409,22 @@ function checkActivityAlone(likeData, a) {
         if (!a) reject({err: 'no a'})
 
         if (!like.actId) like.actId = a;
+        if (!like.userId || !like.storeId || !like.jobId) {
+            if(!an){
+                var an = 0
+            }
+            an++
+            setTimeout(function () {
+                likeActivityRef.child(like.actId)
+                    .remove(result => {
+                        console.log('remove ', like, like.actId)
+                        resolve(result)
+                    })
+                    .catch(err => reject(err))
+            },10*an)
+
+        }
+
 
         if (!like.storeId) like.storeId = dataJob[like.jobId].storeId;
 
@@ -1714,17 +1729,19 @@ app.post('/like', function (req, res, next) {
 })
 
 function sendNotificationToAdmin(noti) {
-    noti.body = noti.body + ' \n P/s: Sent with <3 from JOBO team'
-    var adminList = _.where(dataUser, {admin: true})
-    var sended = _.map(adminList, function (admin) {
-        sendNotification(admin, noti).then(result => {
-            admin.send = 'sucess'
+    return new Promise(function (resolve, reject) {
+        noti.body = noti.body + ' \n P/s: Sent with <3 from JOBO team'
+        var adminList = _.where(dataUser, {admin: true})
+        var sended = _.map(adminList, function (admin) {
+            sendNotification(admin, noti).then(result => {
+
+            })
+            return admin
+
+
         })
-        return admin
-
-
+        resolve(sended)
     })
-    return sended
 
 
 }
@@ -3577,19 +3594,26 @@ app.get('/log/activity', function (req, res) {
 
 
 app.get('/newfeed', function (req, res) {
-    var page = req.param('page') || 1
+    var query = req.query
     var dataLike = Object.assign({}, likeActivity);
-    var sorded = _.sortBy(dataLike, function (card) {
+    var filterDataLike = _.filter(dataLike, function (card) {
+        if ((card.interviewTime < query.interviewTime_to || !query.interviewTime_to) &&
+            (card.interviewTime > query.interviewTime_from || !query.interviewTime_from) &&
+            (card.jobId == query.jobId || !query.jobId)
+        ) return true
+
+    });
+    var sorded = _.sortBy(filterDataLike, function (card) {
         return -card.likeAt
     });
-    var dataAdd = _.map(sorded, function (card) {
-        var profileData = Object.assign({}, dataProfile[card.userId])
-        card.profile = profileData
-        var jobData = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId]);
-        card.job = jobData
-        return card;
-    });
-    var cards = getPaginatedItems(dataAdd, page);
+    // var dataAdd = _.map(sorded, function (card) {
+    //     var profileData = Object.assign({}, dataProfile[card.userId])
+    //     card.profile = profileData
+    //     var jobData = Object.assign({}, dataStore[card.storeId], dataJob[card.jobId]);
+    //     card.job = jobData
+    //     return card;
+    // });
+    var cards = getPaginatedItems(sorded, query.page);
 
     res.send(JSON.stringify(cards, circular()))
 });
@@ -5247,21 +5271,68 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
 }
 
+//
+// schedule.scheduleJob({},function () {
+//     weeklyReport();
+// })
+app.get('/weeklyReport', function (req, res) {
+    weeklyReport().then(result => res.send(result))
+        .catch(err => res.json(500).json(err))
+    ;
+})
+
+function weeklyReport() {
+    return new Promise(function (resolve, reject) {
+
+
+        var dateEnd = new Date()
+
+        var dateEndTime = dateEnd.getTime()
+        var dateStartTime = dateEndTime - 7 * 24 * 60 * 60 * 1000
+        var dateStart = new Date(dateStartTime)
+
+
+        var dateEndStr = dateEnd.getHours() + 'h ' + dateEnd.getDate() + '/' + dateEnd.getMonth();
+        var dateStartStr = dateStart.getHours() + 'h ' + dateStart.getDate() + '/' + dateStart.getMonth();
+        var refstr = ''
+
+        StaticCountingNewUser(dateStartTime, dateEndTime)
+            .then(function (data) {
+                for (var i in data.ref) {
+                    var ref = data.ref[i]
+                    refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
+                }
+
+                var long =
+                    `Từ ${dateStartStr} đến ${dateEndStr}:\n #Ref: \n ${refstr} #Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>#Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>#Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+                var mail = {
+                    title: 'Jobo | Weekly_Report from ' + dateStartStr,
+                    body: long,
+                };
+                sendNotificationToAdmin(mail).then(result => resolve(result))
+            }).catch(err => reject(err))
+
+    })
+}
+
 
 function analyticsRemind() {
     var dateStart = new Date()
     dateStart.setHours(0, 0, 0, 0)
     var datenow = dateStart.getTime()
     var dayend = new Date();
-    var dayy = dateStart.getHours()+'h '+ dateStart.getDate() + '/' + dateStart.getMonth();
-    var days = dayend.getHours()+'h '+ dayend.getDate() + '/' + dateStart.getMonth();
+    var dayy = dateStart.getHours() + 'h ' + dateStart.getDate() + '/' + dateStart.getMonth();
+    var days = dayend.getHours() + 'h ' + dayend.getDate() + '/' + dateStart.getMonth();
     var refstr = ''
-    for(var i in data.ref){
-        var ref = data.ref[i]
-        refstr = refstr +'☀ ' + i +': '+ref +'\n'
-    }
+
     StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
-        var long = `Từ ${dayy} đến ${days}: \n Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        for (var i in data.ref) {
+            var ref = data.ref[i]
+            refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
+        }
+
+        var long =
+            `Từ ${dayy} đến ${days}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
             title: dayy + '| Jobo KPI Result ',
             body: long,
