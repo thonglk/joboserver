@@ -1663,70 +1663,81 @@ app.post('/like', function (req, res, next) {
             var user = dataUser[like_new.userId]
             var employer = dataUser[store.createdBy]
 
+            if (like_new.status == 0) {
 
-            if (like_new.interviewTime) {
-
-
-                sendNotification(employer, {
-                    title: 'Ứng viên đặt lịch phỏng vấn',
-                    body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
-                    payload: {
-                        text: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
-                        metadata: JSON.stringify({
-                            type: 'confirmJob',
-                        }),
-                        quick_replies: [
-                            {
-                                "content_type": "text",
-                                "title": "Có tham gia (Y)",
-                                "payload": JSON.stringify({
-                                    type: 'confirmInterview_employer',
-                                    answer: 'yes',
-                                    actId: likeData.actId
-                                })
-                            },
-                            {
-                                "content_type": "text",
-                                "title": "Không",
-                                "payload": JSON.stringify({
-                                    type: 'confirmInterview_employer',
-                                    answer: 'no',
-                                    actId: likeData.actId
-                                })
-                            },
-                        ]
-                    }
-                })
-
-                // set remind
                 sendNotification(user, {
-                    title: 'Nhắc lịch phỏng vấn',
-                    body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
-                }, null, like_new.interviewTime - 30 * 60000)
+                    title: 'Kết quả ứng tuyển',
+                    body: `${profile.name} ơi, \n Vị trí ${job.jobName} của ${store.storeName} đã tuyển đủ người rồi, bạn hãy tìm các công việc khác bằng cách chọn [Tìm việc xung quanh ] nhé!`
+                }, null, Date.now() + 2 * 60 * 60 * 1000)
 
-                sendNotification(dataUser[like_new.userId], {
-                    title: 'Bắt đầu phỏng vấn',
-                    body: `${profile.name} ơi, \n Bắt đầu buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
-                }, null, like_new.interviewTime)
-
-            } else setTimeout(function () {
-                var like_after = likeActivity[like_new.actId]
-                if (!like_after.interviewTime) {
+                sendNotificationToAdmin({
+                    body: `${dataUser[like_new.userId].name} ms ứng tuyển job hết hạn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
+                })
+            } else {
+                if (like_new.interviewTime) {
 
 
-                    sendNotification(user, {
-                        body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`
+                    sendNotification(employer, {
+                        title: 'Ứng viên đặt lịch phỏng vấn',
+                        body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
+                        payload: {
+                            text: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
+                            metadata: JSON.stringify({
+                                type: 'confirmJob',
+                            }),
+                            quick_replies: [
+                                {
+                                    "content_type": "text",
+                                    "title": "Có tham gia (Y)",
+                                    "payload": JSON.stringify({
+                                        type: 'confirmInterview_employer',
+                                        answer: 'yes',
+                                        actId: likeData.actId
+                                    })
+                                },
+                                {
+                                    "content_type": "text",
+                                    "title": "Không",
+                                    "payload": JSON.stringify({
+                                        type: 'confirmInterview_employer',
+                                        answer: 'no',
+                                        actId: likeData.actId
+                                    })
+                                },
+                            ]
+                        }
                     })
 
-                }
+                    // set remind
+                    sendNotification(user, {
+                        title: 'Nhắc lịch phỏng vấn',
+                        body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+                    }, null, like_new.interviewTime - 30 * 60000)
+
+                    sendNotification(dataUser[like_new.userId], {
+                        title: 'Bắt đầu phỏng vấn',
+                        body: `${profile.name} ơi, \n Bắt đầu buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
+                    }, null, like_new.interviewTime)
+
+                } else setTimeout(function () {
+                    var like_after = likeActivity[like_new.actId]
+                    if (!like_after.interviewTime) {
 
 
-            }, 60000)
+                        sendNotification(user, {
+                            body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`
+                        })
+
+                    }
 
 
-            sendNotificationToAdmin({
-                body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
-            })
+                }, 60000)
+
+                sendNotificationToAdmin({
+                    body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
+                })
+            }
+
 
         })
         .then(result => res.send(result))
@@ -2658,7 +2669,7 @@ app.get('/api/users', function (req, res) {
 
     for (var i in data) {
         var card = data[i];
-        card.match = 0;
+
         if (!card.hide
             && ((card.job && card.job[jobfilter]) || !jobfilter)
             && ((card.working_type == working_typefilter) || !working_typefilter)
@@ -2681,7 +2692,7 @@ app.get('/api/users', function (req, res) {
 
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 if (distance < distancefilter) {
-                    var obj = Object.assign({}, card, dataUser[i])
+                    var obj = Object.assign({}, dataProfile[i], dataUser[i])
                     obj.distance = distance;
                     usercard.push(obj)
                 }
@@ -2698,7 +2709,7 @@ app.get('/api/users', function (req, res) {
     }).then(function (usercard) {
 
             var sorded
-            if (sort == 'match' || sort == 'rate') {
+            if (sort == 'match' || sort == 'rate' || sort == 'updatedAt') {
                 sorded = _.sortBy(usercard, function (card) {
                     return -card[sort]
                 })
@@ -3481,6 +3492,7 @@ app.get('/initData', function (req, res) {
             user.reactList.like = _.where(likeActivity, {storeId: storeId, status: 0, type: 1});
             user.reactList.liked = _.where(likeActivity, {storeId: storeId, status: 0, type: 2});
         }
+
         if (dataUser[userId].type == 2) {
             if (dataProfile[userId]) user.userData = Object.assign({}, dataProfile[userId], dataUser[userId]);
 
@@ -3489,12 +3501,10 @@ app.get('/initData', function (req, res) {
             user.reactList.like = _.where(likeActivity, {userId: userId, status: 0, type: 2});
             user.reactList.liked = _.where(likeActivity, {userId: userId, status: 0, type: 1});
         }
-
         res.send(JSON.stringify(user))
     } else {
         res.send({err: 'Kiểm tra lại thông tin tài khoản'})
     }
-
 });
 
 app.get('/view/profile', function (req, res) {
