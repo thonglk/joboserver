@@ -2596,7 +2596,7 @@ app.get('/api/employer', function (req, res) {
                     })
                 } else {
                     sorded = _.sortBy(usercard, function (card) {
-                        return -card.createdAt
+                        return -card.updatedAt
                     })
                 }
                 var sendData = getPaginatedItems(sorded, page)
@@ -2701,7 +2701,7 @@ app.get('/api/users', function (req, res) {
                 })
             } else {
                 sorded = _.sortBy(usercard, function (card) {
-                    return -card.createdAt
+                    return -card.updatedAt
                 })
             }
             if (all == 'true') {
@@ -2916,9 +2916,7 @@ app.post('/update/job', function (req, res) {
                     jobData.jobId = 'j' + Math.round(10000 * Math.random());
                 }
 
-                if (dataJob[jobData.jobId]) {
-                    jobData.updatedAt = Date.now()
-                }
+                jobData.updatedAt = Date.now()
 
                 if (!jobData.jobName) {
                     jobData.jobName = Lang[jobData.job]
@@ -2963,6 +2961,8 @@ app.get('/update/user', function (req, res) {
 
         if (userDataStr) {
             var userData = JSON.parse(userDataStr);
+            userData.updatedAt = Date.now()
+
             if (dataUser[userId]) {
                 //update
                 userRef.child(userId).update(userData)
@@ -2999,6 +2999,7 @@ app.get('/update/user', function (req, res) {
                 }
             }
         }
+
         if (profileDataStr) {
             var profileData = JSON.parse(profileDataStr)
 
@@ -3010,6 +3011,8 @@ app.get('/update/user', function (req, res) {
 
         if (storeDataStr) {
             var storeData = JSON.parse(storeDataStr)
+            storeData.updatedAt = Date.now()
+
             if (dataStore[storeId]) {
                 //update
                 storeRef.child(storeId).update(storeData)
