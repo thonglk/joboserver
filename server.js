@@ -1415,7 +1415,7 @@ function checkActivityAlone(likeData, a) {
 
         if (!like.actId) like.actId = a;
         if (!like.userId || !like.storeId || !like.jobId) {
-            if(!an){
+            if (!an) {
                 var an = 0
             }
             an++
@@ -1426,7 +1426,7 @@ function checkActivityAlone(likeData, a) {
                         resolve(result)
                     })
                     .catch(err => reject(err))
-            },10*an)
+            }, 10 * an)
 
         }
 
@@ -2508,7 +2508,7 @@ app.get('/api/job', function (req, res) {
                 newfilter.sort = 'updatedAt'
             }
 
-            if (sort == 'viewed' ||sort == 'updatedAt'|| sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
+            if (sort == 'viewed' || sort == 'updatedAt' || sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
                 return -card[sort]
             });
             else if (sort == 'distance') sorded = _.sortBy(joblist, function (card) {
@@ -2633,8 +2633,9 @@ app.get('/api/users', function (req, res) {
     var age1filter = req.param('age1');
     var age2filter = req.param('age2');
     var urgentfilter = req.param('urgent');
-    var adminNotefilter = req.param('note')
-    var type = req.param('type')
+    var adminNotefilter = req.param('note');
+    var type = req.param('type');
+    var reffilter = req.param('ref');
 
     var mylng = req.param('lng');
     var mylat = req.param('lat');
@@ -2668,8 +2669,10 @@ app.get('/api/users', function (req, res) {
             && (card.figure || !figurefilter)
             && (card.adminNote || !adminNotefilter)
             && ((card.languages && card.languages[langfilter]) || !langfilter)
+
             && (!age1filter || (card.birth && calculateAge(card.birth) > age1filter))
             && (!age2filter || (card.birth && calculateAge(card.birth) < age2filter))
+            && (!reffilter || (card.ref == 'reffilter'))
 
         ) {
             if (mylat && mylng && card.location) {
