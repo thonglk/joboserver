@@ -2499,8 +2499,8 @@ app.get('/api/job', function (req, res) {
             console.log(joblist.length)
             var sorded;
             if (!sort) {
-                sort = 'createdAt'
-                newfilter.sort = 'createdAt'
+                sort = 'updatedAt'
+                newfilter.sort = 'updatedAt'
             }
 
             if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
