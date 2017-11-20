@@ -2672,7 +2672,7 @@ app.get('/api/users', function (req, res) {
 
             && (!age1filter || (card.birth && calculateAge(card.birth) > age1filter))
             && (!age2filter || (card.birth && calculateAge(card.birth) < age2filter))
-            && (!reffilter || (card.ref == 'reffilter'))
+            && (!reffilter || (card.ref == reffilter))
 
         ) {
             if (mylat && mylng && card.location) {
