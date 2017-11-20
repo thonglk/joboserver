@@ -2508,7 +2508,7 @@ app.get('/api/job', function (req, res) {
                 newfilter.sort = 'updatedAt'
             }
 
-            if (sort == 'viewed' || sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
+            if (sort == 'viewed' ||sort == 'updatedAt'|| sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
                 return -card[sort]
             });
             else if (sort == 'distance') sorded = _.sortBy(joblist, function (card) {
