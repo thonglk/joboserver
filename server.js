@@ -1352,6 +1352,7 @@ function checkStoreAlone(storeData, a) {
             store.storeId = a
         }
 
+
         if (store.storeId != a) {
             console.log(store.storeName, a)
             storeRef.child(a).remove()
@@ -1362,6 +1363,10 @@ function checkStoreAlone(storeData, a) {
         if (!store.createdAt) {
             console.log('store.createdAt ', a)
             store.createdAt = Date.now()
+        }
+        if (!store.updatedAt) {
+            console.log('store.updatedAt ', a)
+            store.updatedAt = Date.now()
         }
         //
         // if (store.job) {
