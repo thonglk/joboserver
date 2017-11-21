@@ -30,6 +30,7 @@ var imgNocache = require('nocache');
 
 var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
+var verifier = require('email-verify');
 
 
 var credentials = {key: privateKey, cert: certificate};
@@ -146,7 +147,47 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.get('/emailVerifier', (req, res) => {
 
+    //
+    // const {email, test} = req.query;
+    // verifier.verify(email, function (err, info) {
+    //     if (err) res.send(err);
+    //     else {
+    //         res.json(info);
+    //     }
+    // });
+    var dataArray = _.toArray(dataUser)
+    var a = -1
+    function loop() {
+        a++
+        if(a < dataArray.length){
+
+            var user = dataArray[a]
+
+            if(user.email) verifier.verify(user.email, function (err, info) {
+                if (err){
+                    console.log(err)
+                    loop()
+                };
+
+                if(info && info.success == false) userRef.child(user.userId).update({wrongEmail: true})
+                    .then(result =>{
+                    console.log('wrongEmail',user.email, user.name )
+                    loop()
+                })
+                else loop()
+
+            })
+            else loop()
+        } else res.send('done')
+
+    }
+    loop()
+
+
+
+});
 // PXL FOR Emails initialize
 
 app.get('/sendNotification', function (req, res) {
@@ -516,6 +557,9 @@ function init() {
             console.log('thieu userId,', snap.key)
             userRef.child(snap.key).update({userId: snap.key})
         }
+
+
+
     });
     userRef.on('child_changed', function (snap) {
         dataUser[snap.key] = snap.val()
@@ -691,29 +735,29 @@ schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
 app.get('/dowork', function (req, res) {
 
-    scheduleJobPushEveryday()
+    // scheduleJobPushEveryday()
 
 
     setTimeout(function () {
         checkStatic()
-    }, 60000)
+    }, 6000)
 
     setTimeout(function () {
         getMoreJobEveryDay()
-    }, 2 * 60000)
+    }, 2 * 6000)
 
     setTimeout(function () {
         analyticsRemind()
-    }, 3 * 60000)
+    }, 3 * 6000)
 
     setTimeout(function () {
         remind_Interview()
-    }, 3 * 60000)
+    }, 4 * 6000)
 
     setTimeout(function () {
         sendFullJob('hn');
         sendFullJob('hcm');
-    }, 4 * 60000)
+    }, 5 * 6000)
     res.send('done')
 });
 
@@ -1125,8 +1169,8 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
         storeData.Url = link;
     }
     if (Job.working_type) working_type = `${CONFIG.data.working_type[Job.working_type]}`;
-    if (Job.salary) salary = `${Job.salary}`;
-    if (Job.hourly_wages) hourly_wages = `${Job.hourly_wages}`;
+    if (Job.salary) salary = `${Job.salary} - ${Job.salary + 2}`;
+    if (Job.hourly_wages && Job.hourly_wages > 16) hourly_wages = `${Job.hourly_wages}`;
     if (Job.salary && Job.hourly_wages && Job.working_type != 'fulltime') salary = '';
     if (Job.figure) figure = 'Cần ngoại hình ưa nhìn cởi mở 😊\n';
     if (Job.deadline) {
@@ -1136,8 +1180,8 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
     if (Job.experience) experience = Job.experience;
     if (Job.unit) unit = `${Job.unit}`;
     if (Job.sex) sex = Job.sex;
-    if (Job.work_time) work_time = _.toArray(Job.work_time);
-    if (Job.description) description = `${Job.description}`;
+    if (Job.work_time) work_time = [];
+    if (Job.description) description = ``;
 
     text = JD[job][random]({
         storeName,
@@ -1348,9 +1392,7 @@ function checkStoreAlone(storeData, a) {
 
         if (!a) reject({err: 'no a'})
 
-        if (!store.storeId) {
-            store.storeId = a
-        }
+        if (!store.storeId) store.storeId = a
 
 
         if (store.storeId != a) {
@@ -1414,21 +1456,6 @@ function checkActivityAlone(likeData, a) {
         if (!a) reject({err: 'no a'})
 
         if (!like.actId) like.actId = a;
-        if (!like.userId || !like.storeId || !like.jobId) {
-            if (!an) {
-                var an = 0
-            }
-            an++
-            setTimeout(function () {
-                likeActivityRef.child(like.actId)
-                    .remove(result => {
-                        console.log('remove ', like, like.actId)
-                        resolve(result)
-                    })
-                    .catch(err => reject(err))
-            }, 10 * an)
-
-        }
 
 
         if (!like.storeId) like.storeId = dataJob[like.jobId].storeId;
@@ -5336,26 +5363,26 @@ function weeklyReport() {
     })
 }
 
+function datefily(dateTime) {
+    if(dateTime){
+        var date = new Date(dateTime)
+        return date.getHours() + 'h ' + date.getDate() + '/' + date.getMonth();
+    }
+}
 
 function analyticsRemind() {
-    var dateStart = new Date()
-    dateStart.setHours(0, 0, 0, 0)
-    var datenow = dateStart.getTime()
-    var dayend = new Date();
-    var dayy = dateStart.getHours() + 'h ' + dateStart.getDate() + '/' + dateStart.getMonth();
-    var days = dayend.getHours() + 'h ' + dayend.getDate() + '/' + dateStart.getMonth();
-    var refstr = ''
+    StaticCountingNewUser(Date.now() - 86400 * 1000, Date.now()).then(function (data) {
 
-    StaticCountingNewUser(datenow, datenow + 86400 * 1000).then(function (data) {
+        var refstr = ''
         for (var i in data.ref) {
             var ref = data.ref[i]
             refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
         }
 
         var long =
-            `Từ ${dayy} đến ${days}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+            `Từ ${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
-            title: dayy + '| Jobo KPI Result ',
+            title: data.dateStart + '| Jobo KPI Result ',
             body: long,
             subtitle: '',
             description1: 'Dear friend,',
@@ -5434,8 +5461,7 @@ function sendFullJob(where, channel) {
 
             var contentStr = _.map(jobArrHn, job => {
 
-                var str = `✔️ ${job.storeName} – ${job.jobName}
-🆕 https://m.me/385066561884380?ref=${job.jobId}_${channel} \n`
+                var str = `✔️ ${job.storeName} – ${job.jobName} \n`
                 text = text + str
             })
 
@@ -5457,7 +5483,7 @@ P/s:
 `
                     a++
                     sendNotification(user, {
-                        body: text
+                        body: content_job_list
                     }, null, time + a * 100)
 
                     return user
@@ -5469,8 +5495,8 @@ P/s:
         } else {
             var contentStr = _.map(jobArrHn, job => {
 
-                var str = `✔️ ${job.storeName} – ${job.jobName}
-🆕 https://m.me/jobo.asia?ref=${job.jobId}_full \n`
+                var str = `✔️ ${job.storeName} – ${job.jobName} \n`
+
                 text = text + str
             });
 
@@ -5479,8 +5505,12 @@ P/s:
 💪Lương từ 5 triệu trở lên
 💪Lương thưởng tăng định kỳ nếu gắn bó lâu dài
 💪Hỗ trợ chi phí đào tạo từ nhà tuyển dụng
+
 ☎ ☎ ☎ Inbox để tư vấn tìm việc và đặt lịch PHỎNG VẤN, hoàn toàn MIỄN PHÍ, đi làm NGAY !
-🔖 m.me/jobo.asia?ref=start_full
+
+TẠI ĐÂY: 🔖 m.me/jobo.asia?ref=start_full
+
+
 💁‍♀️💁‍♀️💁‍♀️CÁC CÔNG VIỆC NỔI BẬT (UPDATE LIÊN TỤC)
 #Saigon #Hanoi
 
