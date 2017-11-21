@@ -166,21 +166,18 @@ app.get('/emailVerifier', (req, res) => {
             var user = dataArray[a]
 
             if(user.email) verifier.verify(user.email, function (err, info) {
-                if (err){
-                    console.log(err)
-                    loop()
-                };
 
-                if(info && info.success == false) userRef.child(user.userId).update({wrongEmail: true})
+                if(err || (info && info.success == false)) userRef.child(user.userId).update({wrongEmail: true})
+
                     .then(result =>{
-                    console.log('wrongEmail',user.email, user.name )
+                    console.log('wrongEmail',user.email, user.name ,err)
                     loop()
                 })
                 else loop()
 
             })
             else loop()
-        } else res.send('done')
+        } else console.log('done')
 
     }
     loop()
@@ -1344,6 +1341,10 @@ function checkProfileAlone(profileData, i) {
         var profile = Object.assign({}, profileData);
         console.log(profile.name);
 
+        if (!profile.userId) {
+            console.log('profile.userId ', i)
+            profile.userId = i
+        }
 
         if (!profile.createdAt) {
             console.log('profile.createdAt ', i)
@@ -1354,10 +1355,7 @@ function checkProfileAlone(profileData, i) {
             console.log('profile.updatedAt ', i)
             profile.updatedAt = Date.now()
         }
-        if (!profile.userId) {
-            console.log('profile.userId ', i)
-            profile.userId = i
-        }
+
 
         var profileStr = 'userId,avatar,name,birthArray,birth,sex,industry,job,address,location,createdAt,createdBy,updatedAt,interview,description,photo,height,weight,figure,school,languages,urgent,expect_salary,working_type,work_time,time,expect_distance,experience,videourl,adminNote,verify,feature,hide'
         for (var key in profile) {
@@ -2875,7 +2873,15 @@ app.post('/update/user', function (req, res) {
             var user_old = dataUser[userId] || {}
             userRef.child(userId).update(user).then(result => {
                 var user_new = Object.assign({}, user, user_old)
+                if(user_new && user_new.email) verifier.verify(user_new.email, function (err, info) {
 
+                    if(err || (info && info.success == false)) userRef.child(user_new.userId).update({wrongEmail: true})
+                        .then(result =>{
+                            console.log('wrongEmail',user_new.email, user_new.name ,err)
+                        })
+
+
+                })
                 if (user_new.ref && !user_old.ref) {
 
                     sendNotificationToAdmin({
