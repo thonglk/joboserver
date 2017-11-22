@@ -159,20 +159,21 @@ app.get('/emailVerifier', (req, res) => {
     // });
     var dataArray = _.toArray(dataUser)
     var a = -1
+
     function loop() {
         a++
-        if(a < dataArray.length){
+        if (a < dataArray.length) {
 
             var user = dataArray[a]
 
-            if(user.email) verifier.verify(user.email, function (err, info) {
+            if (user.email) verifier.verify(user.email, function (err, info) {
 
-                if(err || (info && info.success == false)) userRef.child(user.userId).update({wrongEmail: true})
+                if (err || (info && info.success == false)) userRef.child(user.userId).update({wrongEmail: true})
 
-                    .then(result =>{
-                    console.log('wrongEmail',user.email, user.name ,err)
-                    loop()
-                })
+                    .then(result => {
+                        console.log('wrongEmail', user.email, user.name, err)
+                        loop()
+                    })
                 else loop()
 
             })
@@ -180,8 +181,8 @@ app.get('/emailVerifier', (req, res) => {
         } else console.log('done')
 
     }
-    loop()
 
+    loop()
 
 
 });
@@ -554,7 +555,6 @@ function init() {
             console.log('thieu userId,', snap.key)
             userRef.child(snap.key).update({userId: snap.key})
         }
-
 
 
     });
@@ -1682,11 +1682,13 @@ app.post('/like', function (req, res, next) {
         .update(likeData)
         .then(result => {
             var like_new = likeActivity[likeData.actId]
+
             var store = dataStore[like_new.storeId]
+            var employer = dataUser[store.createdBy]
+
             var profile = dataProfile[like_new.userId]
             var job = dataJob[like_new.jobId]
             var user = dataUser[like_new.userId]
-            var employer = dataUser[store.createdBy]
 
             if (like_new.status == 0) {
 
@@ -1700,7 +1702,6 @@ app.post('/like', function (req, res, next) {
                 })
             } else {
                 if (like_new.interviewTime) {
-
 
                     sendNotification(employer, {
                         title: 'Ứng viên đặt lịch phỏng vấn',
@@ -1762,8 +1763,6 @@ app.post('/like', function (req, res, next) {
                     body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
                 })
             }
-
-
         })
         .then(result => res.send(result))
         .catch(err => res.send(err))
@@ -1779,11 +1778,9 @@ function sendNotificationToAdmin(noti) {
             })
             return admin
 
-
         })
         resolve(sended)
     })
-
 
 }
 
@@ -2680,20 +2677,21 @@ app.get('/api/users', function (req, res) {
     var page = req.param('p');
 
     var all = req.param('all')
+    var hasPhone = req.param('phone')
+    var hasEmail = req.param('email')
+    var hasMessenger = req.param('messenger')
 
     if (!CONFIG.data.job[jobfilter]) {
         jobfilter = ''
     }
-    var data = dataProfile
+    var data = Object.assign({},dataProfile)
     var usercard = [];
     if (type == 'marketing') {
-        data = dataUser
-    } else if (type == 'lead') {
-        data = dataProfileCC || {}
+        data = Object.assign({},dataUser)
     }
 
     for (var i in data) {
-        var card = data[i];
+        var card = Object.assign({},dataProfile,dataUser);
 
         if (!card.hide
             && ((card.job && card.job[jobfilter]) || !jobfilter)
@@ -2709,7 +2707,9 @@ app.get('/api/users', function (req, res) {
             && (!age1filter || (card.birth && calculateAge(card.birth) > age1filter))
             && (!age2filter || (card.birth && calculateAge(card.birth) < age2filter))
             && (!reffilter || (card.ref == reffilter))
-
+            && (!hasPhone || card.phone)
+            && (!hasEmail || card.email)
+            && (!hasMessenger || card.messenger)
         ) {
             if (mylat && mylng && card.location) {
 
@@ -2717,13 +2717,11 @@ app.get('/api/users', function (req, res) {
 
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, card.location.lat, card.location.lng);
                 if (distance < distancefilter) {
-                    var obj = Object.assign({}, dataProfile[i], dataUser[i])
-                    obj.distance = distance;
-                    usercard.push(obj)
+                    card.distance = distance;
+                    usercard.push(card)
                 }
             } else {
-                var obj = Object.assign({}, dataProfile[i], dataUser[i])
-                usercard.push(obj)
+                usercard.push(card)
             }
 
 
@@ -2873,11 +2871,11 @@ app.post('/update/user', function (req, res) {
             var user_old = dataUser[userId] || {}
             userRef.child(userId).update(user).then(result => {
                 var user_new = Object.assign({}, user, user_old)
-                if(user_new && user_new.email) verifier.verify(user_new.email, function (err, info) {
+                if (user_new && user_new.email) verifier.verify(user_new.email, function (err, info) {
 
-                    if(err || (info && info.success == false)) userRef.child(user_new.userId).update({wrongEmail: true})
-                        .then(result =>{
-                            console.log('wrongEmail',user_new.email, user_new.name ,err)
+                    if (err || (info && info.success == false)) userRef.child(user_new.userId).update({wrongEmail: true})
+                        .then(result => {
+                            console.log('wrongEmail', user_new.email, user_new.name, err)
                         })
 
 
@@ -5370,7 +5368,7 @@ function weeklyReport() {
 }
 
 function datefily(dateTime) {
-    if(dateTime){
+    if (dateTime) {
         var date = new Date(dateTime)
         return date.getHours() + 'h ' + date.getDate() + '/' + date.getMonth();
     }
@@ -5456,6 +5454,49 @@ app.get('/sendFullJob', function (req, res) {
         })
     }
 );
+app.get('/pushUVTM', function (req, res) {
+    var a = 0
+    var send = _.map(dataUser, user => {
+        if (!time) {
+            var time = Date.now() + 10000
+        }
+        time = time + 1000
+        if (user.messengerId && (user.type == 2 || !user.type)) {
+            a++
+            sendNotification(user, {
+                title: "Việc làm mới!",
+                description1: `Dear ${user.name}`,
+                description2: 'Mình vừa mới update thêm các công việc mới, hãy tìm xem có công việc nào phù hợp với bạn nhé! \n Thân!',
+                payload: {
+                    attachment: {
+                        type: "template",
+                        payload: {
+                            template_type: "button",
+                            text: `Dear ${user.name} \n Mình vừa mới update thêm các công việc mới, hãy tìm xem có công việc nào phù hợp với bạn nhé! \n Thân`,
+                            buttons: [{
+                                "title": "🍔 Tìm việc xung quanh",
+                                "type": "postback",
+                                "payload": JSON.stringify({
+                                    type: 'confirmPolicy',
+                                    answer: 'yes',
+                                })
+                            }, {
+                                "title": "Không có nhu cầu tìm việc",
+                                "type": "postback",
+                                "payload": JSON.stringify({
+                                    type: 'segment_jobseeker',
+                                    answer: 'no',
+                                })
+                            }]
+                        }
+                    }
+                }
+            }, null, time)
+        }
+    })
+    res.send('done'+ a)
+
+});
 
 function sendFullJob(where, channel) {
     return new Promise(function (resolve, reject) {
@@ -5494,7 +5535,6 @@ P/s:
 
                     return user
                 }
-
             })
             resolve(text)
 
@@ -5506,7 +5546,7 @@ P/s:
                 text = text + str
             });
 
-            var content_job_list = `❗HOT HOT!!!! VÔ VÀN CÔNG VIỆC FULLTIME HẤP DẪN ĐANG CHỜ ĐÓN BẠN #Jobo
+            var content_job_list = `❗HOT HOT!!!! VÔ VÀN CÔNG VIỆC THEO CA HẤP DẪN ĐANG CHỜ ĐÓN BẠN #Jobo
 💪Không cần CV – Không cần kinh nghiệm
 💪Lương từ 5 triệu trở lên
 💪Lương thưởng tăng định kỳ nếu gắn bó lâu dài
