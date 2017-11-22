@@ -2691,7 +2691,7 @@ app.get('/api/users', function (req, res) {
     }
 
     for (var i in data) {
-        var card = Object.assign({},dataProfile,dataUser);
+        var card = Object.assign({},dataProfile[i],dataUser[i]);
 
         if (!card.hide
             && ((card.job && card.job[jobfilter]) || !jobfilter)
@@ -2709,7 +2709,7 @@ app.get('/api/users', function (req, res) {
             && (!reffilter || (card.ref == reffilter))
             && (!hasPhone || card.phone)
             && (!hasEmail || card.email)
-            && (!hasMessenger || card.messenger)
+            && (!hasMessenger || card.messengerId)
         ) {
             if (mylat && mylng && card.location) {
 
