@@ -1107,13 +1107,22 @@ app.get('/createJDStore', function (req, res) {
 const JD = require('./JDContent');
 
 function callToAction({link = ''}, type) {
+
+    var random = _.random(0,6)
+    link = link + '_'+ random
     var cta = [];
     cta[0] = `Chat trực tiếp với nhà tuyển dụng để đặt lịch phỏng vấn tại ${link}`;
     cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${link}`;
     cta[2] = `Đặt lịch phỏng vấn ngay tại: ${link}`;
     cta[3] = `Ứng tuyển tại: ${link} (Không cần CV)`;
-    cta[4] = `Tìm hiểu thêm về các vị trí tại đây nhé: ${link}`
-    return _.sample(cta)
+    cta[4] = `Tìm hiểu thêm về các vị trí tại đây nhé: ${link}`;
+    cta[5] = `Chị quản lý rảnh những giờ này, bạn hãy vào đây để đặt lịch nhé ${link} `;
+    cta[6] = `Chị quản lý rảnh những giờ này: ${link} `;
+    cta[7] = `Đặt lịch hẹn trao đổi: ${link} `;
+
+
+    return cta[random]
+
 
 }
 
@@ -4692,7 +4701,6 @@ function sendVerifyEmail(userData) {
         };
         sendNotification(userData, mail, {letter: true})
     }
-
 
 }
 
