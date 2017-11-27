@@ -1760,7 +1760,34 @@ app.post('/like', function (req, res, next) {
 
 
                         sendNotification(user, {
-                            body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`
+                            body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`,
+                            payload:{
+                                text: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`,
+                                quick_replies: [
+                                    {
+                                        "content_type": "text",
+                                        "title": "Ứng tuyển",
+                                        "payload": JSON.stringify({
+                                            type: 'applyJob',
+                                            answer: 'yes',
+                                            jobId: like_after.jobId
+                                        })
+                                    },
+                                    {
+                                        "content_type": "text",
+                                        "title": "Từ chối ",
+                                        "payload": JSON.stringify({
+                                            type: 'applyJob',
+                                            answer: 'no',
+                                            jobId: like_after.jobId
+                                        })
+                                    }
+                                ],
+                                metadata: JSON.stringify({
+                                    case: 'confirmJob',
+                                    type: 'applyJob'
+                                })
+                            }
                         })
 
                     }
