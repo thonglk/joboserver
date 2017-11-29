@@ -1687,7 +1687,7 @@ function strTime(time) {
 
 app.post('/like', function (req, res, next) {
     let likeData = req.body
-    console.log(likeData)
+    console.log('likeData',likeData)
 
     likeActivityRef.child(likeData.actId)
         .update(likeData)
@@ -1714,6 +1714,7 @@ app.post('/like', function (req, res, next) {
             } else {
                 if (like_new.interviewTime) {
 
+                    console.log('employer',employer)
                     sendNotification(employer, {
                         title: 'Ứng viên đặt lịch phỏng vấn',
                         body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
@@ -1729,7 +1730,7 @@ app.post('/like', function (req, res, next) {
                                     "payload": JSON.stringify({
                                         type: 'confirmInterview_employer',
                                         answer: 'yes',
-                                        actId: likeData.actId
+                                        actId: like_new.actId
                                     })
                                 },
                                 {
@@ -1738,7 +1739,7 @@ app.post('/like', function (req, res, next) {
                                     "payload": JSON.stringify({
                                         type: 'confirmInterview_employer',
                                         answer: 'no',
-                                        actId: likeData.actId
+                                        actId: like_new.actId
                                     })
                                 },
                             ]
@@ -5541,7 +5542,7 @@ function sendFullJob(where, channel) {
     return new Promise(function (resolve, reject) {
 
         var jobArrHn = createListPremiumJob(where, 'array')
-        var text = ''
+        var text = '';
 
         if (channel) {
 
