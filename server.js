@@ -1809,9 +1809,10 @@ function sendNotificationToAdmin(noti) {
         noti.body = noti.body + ' \n P/s: Sent with <3 from JOBO team'
         var adminList = _.where(dataUser, {admin: true})
         var sended = _.map(adminList, function (admin) {
-            sendNotification(admin, noti).then(result => {
+            if(admin.messengerId){
+                sendNotification(admin, noti,{messenger:true})
+            } else sendNotification(admin, noti)
 
-            })
             return admin
 
         })
