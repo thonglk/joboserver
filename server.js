@@ -555,8 +555,10 @@ function init() {
             console.log('thieu userId,', snap.key)
             userRef.child(snap.key).update({userId: snap.key})
         }
-
-
+        if (!dataUser[snap.key].type) {
+            console.log('thieu type,', dataUser[snap.key])
+            userRef.child(snap.key).update({type: 2})
+        }
     });
     userRef.on('child_changed', function (snap) {
         dataUser[snap.key] = snap.val()
@@ -1802,7 +1804,7 @@ app.post('/like', function (req, res, next) {
         })
         .then(result => res.send(result))
         .catch(err => res.send(err))
-})
+});
 
 function sendNotificationToAdmin(noti) {
     return new Promise(function (resolve, reject) {
@@ -3552,8 +3554,8 @@ app.get('/initData', function (req, res) {
         user.userData = Object.assign({}, dataUser[userId])
 
         if (dataUser[userId].type == 1 && dataUser[userId].currentStore) {
-            var storeId = dataUser[userId].currentStore
-            user.storeData = dataStore[storeId]
+            var storeId = dataUser[userId].currentStore;
+            user.storeData = dataStore[storeId];
             user.storeList = _.where(dataStore, {createdBy: userId});
             user.reactList = {}
             user.reactList.match = _.where(likeActivity, {storeId: storeId, status: 1});
@@ -3562,12 +3564,14 @@ app.get('/initData', function (req, res) {
         }
 
         if (dataUser[userId].type == 2) {
+
             if (dataProfile[userId]) user.userData = Object.assign({}, dataProfile[userId], dataUser[userId]);
 
             user.reactList = {}
             user.reactList.match = _.where(likeActivity, {userId: userId, status: 1});
             user.reactList.like = _.where(likeActivity, {userId: userId, status: 0, type: 2});
             user.reactList.liked = _.where(likeActivity, {userId: userId, status: 0, type: 1});
+
         }
         res.send(JSON.stringify(user))
     } else {
@@ -3577,15 +3581,15 @@ app.get('/initData', function (req, res) {
 
 app.get('/view/profile', function (req, res) {
     var userId = req.param('userId')
-    var profileId = req.param('profileId')
+    var profileId = req.param('profileId');
     if (dataProfile[profileId]) {
-        var profileData = Object.assign({}, dataProfile[profileId])
-        profileData.userInfo = dataUser[profileId]
-        profileData.actData = {}
+        var profileData = Object.assign({}, dataProfile[profileId]);
+        profileData.userInfo = dataUser[profileId];
+        profileData.actData = {};
         profileData.actData.match = _.where(likeActivity, {userId: profileId, status: 1});
         profileData.actData.like = _.where(likeActivity, {userId: profileId, status: 0, type: 2});
         profileData.actData.liked = _.where(likeActivity, {userId: profileId, status: 0, type: 1});
-        profileData.static = dataStatic[profileId]
+        profileData.static = dataStatic[profileId];
         if (userId) {
             var act = _.where(likeActivity, {userId: profileId, storeId: userId});
             if (act.length > 0) profileData.act = act
@@ -5492,23 +5496,22 @@ app.get('/sendFullJob', function (req, res) {
 );
 app.get('/pushUVTM', function (req, res) {
     var a = 0
+    if (!time) {
+        var time = Date.now() + 10000
+    }
     var send = _.map(dataUser, user => {
-        if (!time) {
-            var time = Date.now() + 10000
-        }
-        time = time + 1000
         if (user.messengerId && (user.type == 2 || !user.type)) {
             a++
             sendNotification(user, {
-                title: "Việc làm mới!",
+                title: "Việc làm mới tuần 4/11!",
                 description1: `Dear ${user.name}`,
-                description2: 'Mình vừa mới update thêm các công việc mới, hãy tìm xem có công việc nào phù hợp với bạn nhé! \n Thân!',
+                description2: 'Jobo vừa mới update thêm các công việc mới phù hợp hơn với bạn rồi, hãy tìm xem có công việc nào phù hợp với bạn nhé! \n Thân!',
                 payload: {
                     attachment: {
                         type: "template",
                         payload: {
                             template_type: "button",
-                            text: `Dear ${user.name} \n Mình vừa mới update thêm các công việc mới, hãy tìm xem có công việc nào phù hợp với bạn nhé! \n Thân`,
+                            text: `Dear ${user.name} \n Mình vừa mới update thêm các công việc mới, hãy tìm xem có công việc nào phù hợp với bạn nhé!\n Nếu bạn không muốn nhận việc từ Jobo thì hãy nhấn "Không có nhu cầu tìm việc" nhé \n Thân`,
                             buttons: [{
                                 "title": "🍔 Tìm việc xung quanh",
                                 "type": "postback",
@@ -5527,7 +5530,7 @@ app.get('/pushUVTM', function (req, res) {
                         }
                     }
                 }
-            }, null, time)
+            }, null, time + a*1000)
         }
     })
     res.send('done'+ a)
