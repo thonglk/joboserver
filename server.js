@@ -325,15 +325,11 @@ function sendNotification(userData, mail, channel, time, notiId) {
                 messenger: true
             }
         }
-        if (!time) {
-            time = Date.now() + 10000
-        }
+        if (!time) time = Date.now() + 1000
 
-        if (!notiId) {
-            notiId = keygen()
-        }
+        if (!notiId) notiId = keygen()
 
-        if (!mail.from) mail.from = CONFIG.email
+        if (!mail.from) mail.from = CONFIG.email;
 
         if (!mail.description1 && !mail.description2 && !mail.description3) {
             mail.description1 = mail.body
@@ -352,7 +348,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
             .set(notification)
             .then(function () {
                 console.log('sendNotification', notiId);
-                resolve(notification);
+                resolve(notiId);
             })
             .catch(function (err) {
                 console.log('sendNotification failed', notiId);
@@ -1110,8 +1106,8 @@ const JD = require('./JDContent');
 
 function callToAction({link = ''}, type) {
 
-    var random = _.random(0,6)
-    link = link + '_'+ random
+    var random = _.random(0, 6)
+    link = link + '_' + random
     var cta = [];
     cta[0] = `Chat trực tiếp với nhà tuyển dụng để đặt lịch phỏng vấn tại ${link}`;
     cta[1] = `Gia nhập đồng đội ngay hôm nay tại: ${link}`;
@@ -1687,7 +1683,7 @@ function strTime(time) {
 
 app.post('/like', function (req, res, next) {
     let likeData = req.body
-    console.log('likeData',likeData)
+    console.log('likeData', likeData)
 
     likeActivityRef.child(likeData.actId)
         .update(likeData)
@@ -1714,7 +1710,7 @@ app.post('/like', function (req, res, next) {
             } else {
                 if (like_new.interviewTime) {
 
-                    console.log('employer',employer)
+                    console.log('employer', employer)
                     sendNotification(employer, {
                         title: 'Ứng viên đặt lịch phỏng vấn',
                         body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
@@ -1764,7 +1760,7 @@ app.post('/like', function (req, res, next) {
 
                         sendNotification(user, {
                             body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`,
-                            payload:{
+                            payload: {
                                 text: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`,
                                 quick_replies: [
                                     {
@@ -1812,8 +1808,8 @@ function sendNotificationToAdmin(noti) {
         noti.body = noti.body + ' \n P/s: Sent with <3 from JOBO team'
         var adminList = _.where(dataUser, {admin: true})
         var sended = _.map(adminList, function (admin) {
-            if(admin.messengerId){
-                sendNotification(admin, noti,{messenger:true})
+            if (admin.messengerId) {
+                sendNotification(admin, noti, {messenger: true})
             } else sendNotification(admin, noti)
 
             return admin
@@ -2064,6 +2060,9 @@ app.post('/sendEmailMarketing', function (req, res) {
     var param = query.newfilter;
     var mail = query.mail;
     var channel = query.channel;
+    if (mail.payloadStr) {
+        mail.payload = JSON.parse(mail.payloadStr)
+    }
 
     const promiseDEmail = new Promise((resolve, reject) => {
         if (param.dataEmail) {
@@ -2108,17 +2107,19 @@ app.post('/sendEmailMarketing', function (req, res) {
                 console.log('action 0');
                 res.send({code: 'view', numberSent: sendingList.length, data: sendingList})
             } else {
-                for (var i in sendingList) {
-                    var data = sendingList[i]
+                var sending = _.map(sendingList, data => {
                     if (!mail.time) {
                         mail.time = Date.now() + 2000
                     } else {
                         mail.time = mail.time + 100
                     }
                     sendNotification(data, mail, channel, mail.time)
-                }
+                        .then(result => console.log(result))
+                        .catch(err =>console.log(err))
+                    return data
+                })
 
-                res.send({code: 'success', numberSent: sendingList.length, data: sendingList})
+                res.send({code: 'success', numberSent: sending.length, data: sending})
             }
         })
         .catch(err => res.status(500).json(err));
@@ -2724,14 +2725,14 @@ app.get('/api/users', function (req, res) {
     if (!CONFIG.data.job[jobfilter]) {
         jobfilter = ''
     }
-    var data = Object.assign({},dataProfile)
+    var data = Object.assign({}, dataProfile)
     var usercard = [];
     if (type == 'marketing') {
-        data = Object.assign({},dataUser)
+        data = Object.assign({}, dataUser)
     }
 
     for (var i in data) {
-        var card = Object.assign({},dataProfile[i],dataUser[i]);
+        var card = Object.assign({}, dataProfile[i], dataUser[i]);
 
         if (!card.hide
             && ((card.job && card.job[jobfilter]) || !jobfilter)
@@ -5531,10 +5532,10 @@ app.get('/pushUVTM', function (req, res) {
                         }
                     }
                 }
-            }, null, time + a*1000)
+            }, null, time + a * 1000)
         }
     })
-    res.send('done'+ a)
+    res.send('done' + a)
 
 });
 
