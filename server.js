@@ -344,7 +344,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
             channel
         };
 
-        db2.ref('tempNoti/' + notiId)
+        db2.ref('tempNoti2/' + notiId)
             .set(notification)
             .then(function () {
                 console.log('sendNotification', notiId);
@@ -1167,7 +1167,7 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
     var link = '';
 
     if (jobId) {
-        link = 'https://m.me/385066561884380?ref=' + jobId + '_' + postId;
+        link = 'https://messenger.com/t/385066561884380?ref=' + jobId + '_' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -1346,7 +1346,7 @@ function checkUserAlone(userData, i) {
 function checkProfileAlone(profileData, i) {
     return new Promise(function (resolve, reject) {
         var profile = Object.assign({}, profileData);
-        console.log(profile.name);
+        console.log('checkProfileAlone',profile.name);
 
         if (!profile.userId) {
             console.log('profile.userId ', i)
@@ -1960,13 +1960,19 @@ app.get('/api/notification', (req, res) => {
         letter_open,
         letter_click,
         from,
-        to
+        schedule
     } = req.query;
 
 
     var pipeline = {}
     if (email) {
         pipeline['userData.email'] = email
+    }
+    if (schedule) {
+        pipeline.time = {$gt: Date.now()}
+    } else {
+        pipeline.time = {$lt: Date.now()}
+
     }
 
     if (title) {
@@ -2070,7 +2076,9 @@ app.post('/sendEmailMarketing', function (req, res) {
                 .then(dataEmail => resolve(dataEmail))
                 .catch(err => reject(err));
         } else if (param.email) {
-            resolve([{email: param.email}])
+            var dataEmailSend = _.where(dataUser,{email: param.email})
+            if(dataEmailSend)resolve(dataEmailSend)
+            else resolve([{email: param.email}])
         } else resolve([])
     });
 
@@ -2090,7 +2098,11 @@ app.post('/sendEmailMarketing', function (req, res) {
             } else {
                 dataUserArray = _.toArray(dataUser)
             }
-            resolve(dataUserArray);
+            var sorted = _.sortBy(dataUserArray,card => {
+                if(card.messengerId) return 0
+                else return 1
+            })
+            resolve(sorted);
         } else resolve([]);
     });
 
@@ -2371,6 +2383,15 @@ function getGoogleJob(mylat, mylng, industry) {
         });
     }
 }
+
+app.get('/apijob', function (req,res) {
+    var array= _.toArray(dataUser)
+    var sorted = _.sortBy(array,card => {
+        if(card.messengerId) return 0
+        else return 1
+    })
+    res.send(sorted)
+})
 
 app.get('/dash/job', function (req, res) {
 
