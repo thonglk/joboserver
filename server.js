@@ -325,7 +325,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
                 messenger: true
             }
         }
-        if (!time) time = Date.now() + 1000
+        if (!time) time = Date.now() + 5000
 
         if (!notiId) notiId = keygen()
 
