@@ -1677,7 +1677,7 @@ function strTime(time) {
     }
 
     var newtime = new Date(time);
-    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' + newtime.getMonth()
+    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' + newtime.getMonth() + 1
 
 }
 
@@ -1808,10 +1808,7 @@ function sendNotificationToAdmin(noti) {
         noti.body = noti.body + ' \n P/s: Sent with <3 from JOBO team'
         var adminList = _.where(dataUser, {admin: true})
         var sended = _.map(adminList, function (admin) {
-            if (admin.messengerId) {
-                sendNotification(admin, noti, {messenger: true})
-            } else sendNotification(admin, noti)
-
+            sendNotification(admin, noti)
             return admin
 
         })
@@ -1824,6 +1821,7 @@ app.get('/sendNotificationToAdmin', function (req, res) {
     var body = req.param('body')
     res.send(sendNotificationToAdmin({title: 'test', body}))
 })
+
 
 app.get('/api/lead', (req, res) => {
     let {
@@ -2389,9 +2387,19 @@ app.get('/apijob', function (req, res) {
     var sorted = _.sortBy(array, card => {
         if (card.messengerId) return 0
         else return 1
-    })
+    });
     res.send(sorted)
 })
+
+
+function affiliateReport() {
+    var each = _.each(dataUser, user => {
+        if(user.ref && user.ref.match('invitedBy')){
+
+        }
+
+    })
+}
 
 app.get('/dash/job', function (req, res) {
 
