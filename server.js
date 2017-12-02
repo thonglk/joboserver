@@ -325,7 +325,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
                 messenger: true
             }
         }
-        if (!time) time = Date.now() + 5000
+        if (!time) time = Date.now() + 10000
 
         if (!notiId) notiId = keygen()
 
@@ -1346,7 +1346,7 @@ function checkUserAlone(userData, i) {
 function checkProfileAlone(profileData, i) {
     return new Promise(function (resolve, reject) {
         var profile = Object.assign({}, profileData);
-        console.log('checkProfileAlone',profile.name);
+        console.log('checkProfileAlone', profile.name);
 
         if (!profile.userId) {
             console.log('profile.userId ', i)
@@ -2076,8 +2076,8 @@ app.post('/sendEmailMarketing', function (req, res) {
                 .then(dataEmail => resolve(dataEmail))
                 .catch(err => reject(err));
         } else if (param.email) {
-            var dataEmailSend = _.where(dataUser,{email: param.email})
-            if(dataEmailSend)resolve(dataEmailSend)
+            var dataEmailSend = _.where(dataUser, {email: param.email})
+            if (dataEmailSend) resolve(dataEmailSend)
             else resolve([{email: param.email}])
         } else resolve([])
     });
@@ -2098,8 +2098,8 @@ app.post('/sendEmailMarketing', function (req, res) {
             } else {
                 dataUserArray = _.toArray(dataUser)
             }
-            var sorted = _.sortBy(dataUserArray,card => {
-                if(card.messengerId) return 0
+            var sorted = _.sortBy(dataUserArray, card => {
+                if (card.messengerId) return 0
                 else return 1
             })
             resolve(sorted);
@@ -2127,7 +2127,7 @@ app.post('/sendEmailMarketing', function (req, res) {
                     }
                     sendNotification(data, mail, channel, mail.time)
                         .then(result => console.log(result))
-                        .catch(err =>console.log(err))
+                        .catch(err => console.log(err))
                     return data
                 })
 
@@ -2384,10 +2384,10 @@ function getGoogleJob(mylat, mylng, industry) {
     }
 }
 
-app.get('/apijob', function (req,res) {
-    var array= _.toArray(dataUser)
-    var sorted = _.sortBy(array,card => {
-        if(card.messengerId) return 0
+app.get('/apijob', function (req, res) {
+    var array = _.toArray(dataUser)
+    var sorted = _.sortBy(array, card => {
+        if (card.messengerId) return 0
         else return 1
     })
     res.send(sorted)
@@ -5386,15 +5386,16 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
 }
 
-//
+
 // schedule.scheduleJob({},function () {
 //     weeklyReport();
 // })
+
 app.get('/weeklyReport', function (req, res) {
     weeklyReport().then(result => res.send(result))
         .catch(err => res.json(500).json(err))
     ;
-})
+});
 
 function weeklyReport() {
     return new Promise(function (resolve, reject) {
@@ -5440,16 +5441,15 @@ function datefily(dateTime) {
 function analyticsRemind() {
     StaticCountingNewUser(Date.now() - 86400 * 1000, Date.now()).then(function (data) {
 
-        var refstr = ''
+        var refstr = '';
         for (var i in data.ref) {
-            var ref = data.ref[i]
+            var ref = data.ref[i];
             refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
         }
 
-        var long =
-            `Từ ${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var long = `Từ ${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
-            title: data.dateStart + '| Jobo KPI Result ',
+            title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
             body: long,
             subtitle: '',
             description1: 'Dear friend,',
@@ -5471,6 +5471,32 @@ app.get('/sendRemind', function (req, res) {
     res.send('sendRemind done')
 })
 
+
+app.get('/report_monthly', function (req, res) {
+    StaticCountingNewUser(Date.now() - 30 * 86400 * 1000, Date.now()).then(function (data) {
+
+        var refstr = '';
+        for (var i in data.ref) {
+            var ref = data.ref[i];
+            refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
+        }
+
+        var long = `Từ ${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var mail = {
+            title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
+            body: long,
+            subtitle: '',
+            description1: 'Dear friend,',
+            description2: long,
+            description3: 'Keep up guys! We can do it <3',
+            calltoaction: 'Hello the world',
+            linktoaction: 'https://m.me/t/979190235520989',
+            image: ''
+        }
+        sendNotificationToAdmin(mail)
+        res.send(data)
+    })
+})
 
 app.get('/admin/analyticsUser', function (req, res) {
         var dateStart = new Date()
