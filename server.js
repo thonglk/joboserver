@@ -1677,7 +1677,8 @@ function strTime(time) {
     }
 
     var newtime = new Date(time);
-    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' + newtime.getMonth() + 1
+    var month = Number(newtime.getMonth()) +1
+    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' +  month
 
 }
 
@@ -2466,6 +2467,8 @@ app.get('/api/job', function (req, res) {
     var distancefilter = newfilter.distance
     var apply = newfilter.apply
     var like = newfilter.like
+    var incharge = newfilter.incharge
+
 
     var sort = newfilter.sort
     var show = newfilter.show
@@ -2597,6 +2600,7 @@ app.get('/api/job', function (req, res) {
                         && (card.industry == industryfilter || !industryfilter)
                         && (card.salary > salaryfilter || !salaryfilter)
                         && (card.package == typefilter || !typefilter)
+                        && (card.incharge == incharge || !incharge)
                     ) joblist.push(card)
                 }
             }
