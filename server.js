@@ -638,7 +638,6 @@ function init() {
 }
 
 process.on('exit', function (code) {
-    //Notification code when application process is killed
 
     const data = {
         recipientIds: ['1100401513397714', '1460902087301324', '1226124860830528'],
@@ -1677,8 +1676,8 @@ function strTime(time) {
     }
 
     var newtime = new Date(time);
-    var month = Number(newtime.getMonth()) +1
-    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' +  month
+    var month = Number(newtime.getMonth()) + 1
+    return newtime.getHours() + 'h ' + vietnamDay[newtime.getDay()] + ' ' + newtime.getDate() + '/' + month
 
 }
 
@@ -1754,46 +1753,7 @@ app.post('/like', function (req, res, next) {
                         body: `${profile.name} ơi, \n Bắt đầu buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
                     }, null, like_new.interviewTime)
 
-                } else setTimeout(function () {
-                    var like_after = likeActivity[like_new.actId]
-                    if (!like_after.interviewTime) {
-
-
-                        sendNotification(user, {
-                            body: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`,
-                            payload: {
-                                text: `Bạn có muốn đi phỏng vấn vị trí ${job.jobName} của ${store.storeName} k nhỉ?`,
-                                quick_replies: [
-                                    {
-                                        "content_type": "text",
-                                        "title": "Ứng tuyển",
-                                        "payload": JSON.stringify({
-                                            type: 'applyJob',
-                                            answer: 'yes',
-                                            jobId: like_after.jobId
-                                        })
-                                    },
-                                    {
-                                        "content_type": "text",
-                                        "title": "Từ chối ",
-                                        "payload": JSON.stringify({
-                                            type: 'applyJob',
-                                            answer: 'no',
-                                            jobId: like_after.jobId
-                                        })
-                                    }
-                                ],
-                                metadata: JSON.stringify({
-                                    case: 'confirmJob',
-                                    type: 'applyJob'
-                                })
-                            }
-                        })
-
-                    }
-
-
-                }, 60000)
+                }
 
                 sendNotificationToAdmin({
                     body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
@@ -2212,7 +2172,6 @@ app.get('/createuser', function (req, res) {
         }
         var mail = {
             title: "Thông báo đăng tin tuyển dụng",
-            preview: "Em đã đăng tin tuyển dụng vị trí ' + job + ' của anh chị lên web và app của Jobo",
             subtitle: '',
             description1: 'Chào ' + name,
             description2: 'Em đã đăng tin tuyển dụng vị trí ' + job + ' của anh chị lên web và app của Jobo - Chuyên việc làm PG, lễ tân, phục vụ, model',
@@ -2395,7 +2354,7 @@ app.get('/apijob', function (req, res) {
 
 function affiliateReport() {
     var each = _.each(dataUser, user => {
-        if(user.ref && user.ref.match('invitedBy')){
+        if (user.ref && user.ref.match('invitedBy')) {
 
         }
 
@@ -6027,8 +5986,8 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
             for (var i in groupData) {
                 console.log('groupData[i].groupId', groupData[i].groupId)
                 if (groupData[i].groupId
-                    && (groupData[i].area == where || !where)
-                    && (groupData[i].job && groupData[i].job.match(job) || !job )
+                    && (!where || !groupData[i].area || groupData[i].area.match(where))
+                    && (!groupData[i].job || !job || groupData[i].job.match(job) )
                 ) {
                     console.log('groupData[i].name', groupData[i].name)
 
