@@ -1745,7 +1745,8 @@ app.post('/like', function (req, res, next) {
                     // set remind
                     sendNotification(user, {
                         title: 'Nhắc lịch phỏng vấn',
-                        body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`
+                        body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`,
+
                     }, null, like_new.interviewTime - 30 * 60000)
 
                     sendNotification(dataUser[like_new.userId], {
@@ -1756,7 +1757,7 @@ app.post('/like', function (req, res, next) {
                 }
 
                 sendNotificationToAdmin({
-                    body: `${dataUser[like_new.userId].name} ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
+                    body: `${dataUser[like_new.userId].name} (Ref: ${dataUser[like_new.userId].ref}) ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
                 })
             }
         })
