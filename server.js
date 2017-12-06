@@ -1166,7 +1166,7 @@ function createJDStore(storeId, random, jobId, postId, typejob, type) {
     var link = '';
 
     if (jobId) {
-        link = 'https://messenger.com/t/385066561884380?ref=' + jobId + '_' + postId;
+        link = 'https://messenger.com/t/385066561884380?ref=' + jobId + '_tunp_' + postId;
     } else {
         link = CONFIG.WEBURL + '/view/store/' + storeData.storeId + '#ref=' + postId;
         storeData.Url = link;
@@ -1363,7 +1363,7 @@ function checkProfileAlone(profileData, i) {
         }
 
 
-        var profileStr = 'userId,avatar,name,birthArray,birth,sex,industry,job,address,location,createdAt,createdBy,updatedAt,interview,description,photo,height,weight,figure,school,languages,urgent,expect_salary,working_type,work_time,time,expect_distance,experience,videourl,adminNote,verify,feature,hide'
+        var profileStr = 'userId,avatar,name,birthArray,birth,sex,industry,job,address,location,createdAt,createdBy,updatedAt,interview,description,photo,height,weight,figure,school,languages,urgent,expect_salary,working_type,work_time,time,expect_distance,experience,videourl,adminNote,verify,feature,hide,profileType,linkCv'
         for (var key in profile) {
 
             var res = profileStr.match(key);
@@ -5946,12 +5946,13 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
         } else {
             authenic_poster = false
         }
-        console.log(storeId, jobId, groupId, job, where, poster, time, content)
 
+        console.log(storeId, jobId, groupId, job, where, poster, time, content)
+        var willPost = []
         if (groupId) {
             for (var a in groupId) {
-
                 var i = groupId[a];
+                willPost.push(i)
                 if (!authenic_poster) {
                     poster = _.sample(facebookUser[where]);
                 }
@@ -5990,7 +5991,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
                     && (!groupData[i].job || !job || groupData[i].job.match(job) )
                 ) {
                     console.log('groupData[i].name', groupData[i].name)
-
+                    willPost.push(groupData[i].name)
                     if (!authenic_poster) {
                         poster = _.sample(facebookUser[where]);
                     }
@@ -6002,7 +6003,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
                     if (!time) {
                         time = Date.now() + 4 * 1000
                     } else {
-                        time = time + 11 * 60 * 1000
+                        time = time + 16 * 60 * 1000
                     }
 
                     var to = groupData[i].groupId
@@ -6026,7 +6027,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
 
             }
         }
-        resolve({code: 'success'})
+        resolve(willPost)
 
     });
 }
