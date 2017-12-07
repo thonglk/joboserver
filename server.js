@@ -1779,9 +1779,9 @@ function sendNotificationToAdmin(noti) {
 
 }
 
-app.get('/sendNotificationToAdmin', function (req, res) {
-    var body = req.param('body')
-    res.send(sendNotificationToAdmin({title: 'test', body}))
+app.post('/sendNotificationToAdmin', function (req, res) {
+    var {title,body} = req.body
+    res.send(sendNotificationToAdmin({title, body}))
 })
 
 
