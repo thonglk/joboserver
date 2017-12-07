@@ -2920,7 +2920,17 @@ app.post('/update/user', function (req, res) {
                         title: 'Jobo| New User',
                         body: `Name: ${user_new.name} \n Type: ${user_new.type} \n Ref: ${user_new.ref}`
                     })
+                    if(user_new.ref.match('invitedby')){
+                        var split = user_new.ref.split('_')
+                        var dataInvite = split[1]
+                        var splitData = dataInvite.split(':')
+                        var inviter = splitData[1]
+                        sendNotification(dataUser[inviter],{
+                            title: 'Jobo| Giới thiệu bạn bè',
+                            body: `Bạn đã giới thiệu ${user_new.name} sử dụng Jobo, hãy giúp bạn đấy chọn việc phù hợp để nhận phần thưởng thành công\n`
+                        })
 
+                    }
                 }
                 if (user_new.type && !user_old.type) {
 
