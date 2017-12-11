@@ -314,6 +314,7 @@ app.get('/sendNotification', function (req, res) {
     //     .catch(err => res.status(500).send(err));
 })
 
+
 function sendNotification(userData, mail, channel, time, notiId) {
     return new Promise(function (resolve, reject) {
         if (!userData) return;
@@ -1780,7 +1781,7 @@ function sendNotificationToAdmin(noti) {
 }
 
 app.post('/sendNotificationToAdmin', function (req, res) {
-    var {title,body} = req.body
+    var {title, body} = req.body
     res.send(sendNotificationToAdmin({title, body}))
 })
 
@@ -2890,7 +2891,12 @@ app.get('/update/review', function (req, res) {
         })
     }
 });
-
+app.get('/getchat', function (req, res) {
+    var params = req.query
+    axios.get('https://jobo-chat.herokuapp.com/getchat', {params})
+        .then(result => res.send(result.data))
+        .catch(err => res.send(err))
+})
 
 app.post('/update/user', function (req, res) {
     var userId = req.param('userId')
@@ -2920,12 +2926,12 @@ app.post('/update/user', function (req, res) {
                         title: 'Jobo| New User',
                         body: `Name: ${user_new.name} \n Type: ${user_new.type} \n Ref: ${user_new.ref}`
                     })
-                    if(user_new.ref.match('invitedby')){
+                    if (user_new.ref.match('invitedby')) {
                         var split = user_new.ref.split('_')
                         var dataInvite = split[1]
                         var splitData = dataInvite.split(':')
                         var inviter = splitData[1]
-                        sendNotification(dataUser[inviter],{
+                        sendNotification(dataUser[inviter], {
                             title: 'Jobo| Giới thiệu bạn bè',
                             body: `Bạn đã giới thiệu ${user_new.name} sử dụng Jobo, hãy giúp bạn đấy chọn việc phù hợp để nhận phần thưởng thành công\n`
                         })
@@ -5429,11 +5435,10 @@ function analyticsRemind() {
             refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
         }
 
-        var long = `Từ ${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}: Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var long = `Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
         var mail = {
             title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
             body: long,
-            subtitle: '',
             description1: 'Dear friend,',
             description2: long,
             description3: 'Keep up guys! We can do it <3',
