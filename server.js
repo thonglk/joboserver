@@ -5375,7 +5375,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
 }
 
-pp.get('/report', function (req, res) {
+app.get('/report', function (req, res) {
     var {duration = 1, ago = 0} = req.query
     var end = Date.now() - 86400000 * Number(ago)
     var start = end - 86400000 * Number(duration)
