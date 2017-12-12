@@ -5396,7 +5396,7 @@ pp.get('/report', function (req, res) {
             description2: long,
             image: ''
         }
-       resolve(mail.title+ '\n' +long)
+        res.send(mail.title+ '\n' +long)
     })
 
 });
