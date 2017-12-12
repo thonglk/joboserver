@@ -2894,7 +2894,8 @@ app.get('/update/review', function (req, res) {
 app.get('/getchat', function (req, res) {
     var params = req.query
     axios.get('https://jobo-chat.herokuapp.com/getchat', {params})
-        .then(result => res.send(result.data))
+        .then(result => res.send(JSON.stringify(result.data, circular()))
+        )
         .catch(err => res.send(err))
 })
 
@@ -5427,35 +5428,39 @@ function datefily(dateTime) {
 }
 
 function analyticsRemind() {
-    StaticCountingNewUser(Date.now() - 86400 * 1000, Date.now()).then(function (data) {
+    return new Promise(function (resolve, reject) {
+        StaticCountingNewUser(Date.now() - 86400 * 1000, Date.now()).then(function (data) {
 
-        var refstr = '';
-        for (var i in data.ref) {
-            var ref = data.ref[i];
-            refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
-        }
+            var refstr = '';
+            for (var i in data.ref) {
+                var ref = data.ref[i];
+                refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
+            }
 
-        var long = `Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
-        var mail = {
-            title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
-            body: long,
-            description1: 'Dear friend,',
-            description2: long,
-            description3: 'Keep up guys! We can do it <3',
-            calltoaction: 'Hello the world',
-            linktoaction: 'https://m.me/t/979190235520989',
-            image: ''
-        }
-        sendNotificationToAdmin(mail)
+            var long = `Ref: ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+            var mail = {
+                title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
+                body: long,
+                description1: 'Dear friend,',
+                description2: long,
+                description3: 'Keep up guys! We can do it <3',
+                calltoaction: 'Hello the world',
+                linktoaction: 'https://m.me/t/979190235520989',
+                image: ''
+            }
+            sendNotificationToAdmin(mail)
+                .then(result => resolve(long))
+                .catch(err => reject(err))
+        })
     })
 
 
 }
 
 app.get('/sendRemind', function (req, res) {
-    analyticsRemind();
-
-    res.send('sendRemind done')
+    analyticsRemind()
+        .then(result => res.send(result))
+        .catch(err => res.status(500).json(err));
 })
 
 
