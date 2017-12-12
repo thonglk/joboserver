@@ -5457,7 +5457,7 @@ function analyticsRemind() {
 
 }
 
-app.get('/report_dayly', function (req, res) {
+app.get('/report_daily', function (req, res) {
     analyticsRemind()
         .then(result => res.send(result))
         .catch(err => res.status(500).json(err));
