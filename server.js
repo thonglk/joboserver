@@ -5486,7 +5486,7 @@ app.get('/report_monthly', function (req, res) {
             image: ''
         }
         sendNotificationToAdmin(mail)
-        res.send(data)
+        res.send(long)
     })
 })
 
