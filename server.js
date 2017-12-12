@@ -2949,7 +2949,6 @@ app.post('/update/user', function (req, res) {
                 }
 
 
-
             })
 
 
@@ -5376,10 +5375,31 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 
 }
 
+pp.get('/report', function (req, res) {
+    var {duration = 1, ago = 0} = req.query
+    var end = Date.now() - 86400000 * Number(ago)
+    var start = end - 86400000 * Number(duration)
 
-// schedule.scheduleJob({},function () {
-//     weeklyReport();
-// })
+    StaticCountingNewUser(start, end).then(function (data) {
+
+        var refstr = '';
+        for (var i in data.ref) {
+            var ref = data.ref[i];
+            refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
+        }
+
+        var long = `Ref:\n ${refstr} \n Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
+        var mail = {
+            title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
+            body: long,
+            description1: 'Dear friend,',
+            description2: long,
+            image: ''
+        }
+       resolve(mail.title+ '\n' +long)
+    })
+
+});
 
 app.get('/weeklyReport', function (req, res) {
     weeklyReport().then(result => res.send(result))
