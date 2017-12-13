@@ -2415,10 +2415,22 @@ app.get('/dash/job', function (req, res) {
 });
 
 app.get('/api/job', function (req, res) {
-    return new Promise(function (resolve, reject) {
 
     var newfilter = req.query;
     console.log(newfilter);
+
+    if (!newfilter.sort) newfilter.sort = 'distance'
+    var sort = newfilter.sort
+
+    if (!newfilter.distance) newfilter.distance = 10
+    var distancefilter = newfilter.distance
+
+    if (!newfilter.page) newfilter.page = 1
+    var page = newfilter.page
+
+    if (!newfilter.per_page) newfilter.per_page = 15
+    var per_page = newfilter.per_page
+
 
     var typefilter = newfilter.type
     var userId = newfilter.userId
@@ -2426,18 +2438,17 @@ app.get('/api/job', function (req, res) {
     var jobfilter = newfilter.job
     var working_typefilter = newfilter.working_type
     var salaryfilter = newfilter.salary
-    var distancefilter = newfilter.distance || 10
+
+
     var apply = newfilter.apply
     var like = newfilter.like
     var incharge = newfilter.incharge
-
-
-    var sort = newfilter.sort
     var show = newfilter.show
-    var page = newfilter.page
-    var per_page = newfilter.per_page || 15
+
+
 
     var joblist = []
+    return new Promise(function (resolve, reject) {
 
 
         if (userId && dataProfile[userId]) {
@@ -2568,12 +2579,8 @@ app.get('/api/job', function (req, res) {
         }
 
     }).then(function (joblist) {
-            console.log(joblist.length)
+            console.log('joblist.length', joblist.length, sort)
             var sorded;
-            if (!sort) {
-                sort = 'updatedAt'
-                newfilter.sort = 'updatedAt'
-            }
 
             if (sort == 'viewed' || sort == 'updatedAt' || sort == 'createdAt' || sort == 'apply' || sort == "active") sorded = _.sortBy(joblist, function (card) {
                 return -card[sort]
@@ -2581,9 +2588,12 @@ app.get('/api/job', function (req, res) {
             else if (sort == 'distance') sorded = _.sortBy(joblist, function (card) {
                 return card[sort]
             })
+            console.log('sorded', sorded)
+
 
             var sendData = getPaginatedItems(sorded, page, per_page)
             sendData.newfilter = newfilter
+            console.log('sendData', sendData)
             res.send(JSON.stringify(sendData, circular()))
         }
     )
