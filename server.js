@@ -2446,7 +2446,6 @@ app.get('/api/job', function (req, res) {
     var show = newfilter.show
 
 
-
     var joblist = []
     return new Promise(function (resolve, reject) {
 
@@ -2564,8 +2563,9 @@ app.get('/api/job', function (req, res) {
                     }
                     if (card.package != 'premium') card.package = 'basic';
 
-                    if (
-                        (card.job == jobfilter || !jobfilter)
+                    if (card.jobName
+                        && card.storeName
+                        &&(card.job == jobfilter || !jobfilter)
                         && (card.distance < distancefilter || !card.distance)
                         && (card.working_type == working_typefilter || !working_typefilter )
                         && (card.industry == industryfilter || !industryfilter)
