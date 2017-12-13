@@ -332,7 +332,7 @@ function sendNotification(userData, mail, channel, time, notiId) {
 
         if (!mail.from) mail.from = CONFIG.email;
 
-        if (!mail.description1 && !mail.description2 && !mail.description3) {
+        if (!mail.description1 && !mail.description2 && !mail.description3 && mail.body) {
             mail.description1 = mail.body
         }
 
@@ -2415,6 +2415,7 @@ app.get('/dash/job', function (req, res) {
 });
 
 app.get('/api/job', function (req, res) {
+    return new Promise(function (resolve, reject) {
 
     var newfilter = req.query;
     console.log(newfilter);
@@ -2425,7 +2426,7 @@ app.get('/api/job', function (req, res) {
     var jobfilter = newfilter.job
     var working_typefilter = newfilter.working_type
     var salaryfilter = newfilter.salary
-    var distancefilter = newfilter.distance
+    var distancefilter = newfilter.distance || 10
     var apply = newfilter.apply
     var like = newfilter.like
     var incharge = newfilter.incharge
@@ -2439,11 +2440,9 @@ app.get('/api/job', function (req, res) {
     var joblist = []
 
 
-    return new Promise(function (resolve, reject) {
         if (userId && dataProfile[userId]) {
             var userData = dataProfile[userId];
         }
-
         if (newfilter.lng && newfilter.lat) {
             var mylat = newfilter.lat;
             var mylng = newfilter.lng;
@@ -2556,7 +2555,7 @@ app.get('/api/job', function (req, res) {
 
                     if (
                         (card.job == jobfilter || !jobfilter)
-                        && (card.distance < 50 || !card.distance)
+                        && (card.distance < distancefilter || !card.distance)
                         && (card.working_type == working_typefilter || !working_typefilter )
                         && (card.industry == industryfilter || !industryfilter)
                         && (card.salary > salaryfilter || !salaryfilter)
@@ -5396,7 +5395,7 @@ app.get('/report', function (req, res) {
             description2: long,
             image: ''
         }
-        res.send(mail.title+ '\n' +long)
+        res.send(mail.title + '\n' + long)
     })
 
 });
@@ -5444,7 +5443,8 @@ function weeklyReport() {
 function datefily(dateTime) {
     if (dateTime) {
         var date = new Date(dateTime)
-        return date.getHours() + 'h ' + date.getDate() + '/' + date.getMonth();
+        var month = date.getMonth() + 1
+        return date.getHours() + 'h ' + date.getDate() + '/' + month;
     }
 }
 
@@ -5474,39 +5474,6 @@ function analyticsRemind() {
 
 
 }
-
-app.get('/report_daily', function (req, res) {
-    analyticsRemind()
-        .then(result => res.send(result))
-        .catch(err => res.status(500).json(err));
-})
-
-
-app.get('/report_monthly', function (req, res) {
-    StaticCountingNewUser(Date.now() - 30 * 86400 * 1000, Date.now()).then(function (data) {
-
-        var refstr = '';
-        for (var i in data.ref) {
-            var ref = data.ref[i];
-            refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
-        }
-
-        var long = `Từ ${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}: \n Ref:\n ${refstr} Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
-        var mail = {
-            title: `${datefily(data.dateStart)} đến ${datefily(data.dateEnd)}` + '| Jobo KPI Result ',
-            body: long,
-            subtitle: '',
-            description1: 'Dear friend,',
-            description2: long,
-            description3: 'Keep up guys! We can do it <3',
-            calltoaction: 'Hello the world',
-            linktoaction: 'https://m.me/t/979190235520989',
-            image: ''
-        }
-        sendNotificationToAdmin(mail)
-        res.send(long)
-    })
-})
 
 app.get('/admin/analyticsUser', function (req, res) {
         var dateStart = new Date()
@@ -5559,37 +5526,44 @@ app.get('/pushUVTM', function (req, res) {
         var time = Date.now() + 10000
     }
     var send = _.map(dataUser, user => {
-        if (user.messengerId && (user.type == 2 || !user.type)) {
+        if (user.messengerId) {
             a++
+            var body = `Dear ${user.name} \n Cám ơn bạn đã theo dõi Jobo trong thời gian vừa qua \n Thay cho lời cám ơn, mình xin gửi bạn bộ tài liệu gồm : \n - Mẫu CV đẹp \n - Mẫu slide thuyết trình \n - Tài liệu Toeic\n - Content Marketing \n Happy dayyyy <3`;
+
             sendNotification(user, {
-                title: "Việc làm mới tuần 4/11!",
-                description1: `Dear ${user.name}`,
-                description2: 'Jobo vừa mới update thêm các công việc mới phù hợp hơn với bạn rồi, hãy tìm xem có công việc nào phù hợp với bạn nhé! \n Thân!',
+                title: 'Việc làm mới!',
+                body,
                 payload: {
                     attachment: {
                         type: "template",
                         payload: {
                             template_type: "button",
-                            text: `Dear ${user.name} \n Mình vừa mới update thêm các công việc mới, hãy tìm xem có công việc nào phù hợp với bạn nhé!\n Nếu bạn không muốn nhận việc từ Jobo thì hãy nhấn "Không có nhu cầu tìm việc" nhé \n Thân`,
-                            buttons: [{
-                                "title": "🍔 Tìm việc xung quanh",
-                                "type": "postback",
-                                "payload": JSON.stringify({
-                                    type: 'confirmPolicy',
-                                    answer: 'yes',
-                                })
-                            }, {
-                                "title": "Không có nhu cầu tìm việc",
-                                "type": "postback",
-                                "payload": JSON.stringify({
-                                    type: 'segment_jobseeker',
-                                    answer: 'no',
-                                })
-                            }]
+                            text: body,
+                            buttons: [
+                                {
+                                    "title": "Tải tài liệu",
+                                    "type": "web_url",
+                                    "url": "https://goo.gl/2cGVjG"
+                                }, {
+                                    "title": "🍔 Tìm việc xung quanh",
+                                    "type": "postback",
+                                    "payload": JSON.stringify({
+                                        type: 'confirmPolicy',
+                                        answer: 'yes',
+                                    })
+                                }, {
+                                    "title": "💸 Nhận phần thưởng",
+                                    "type": "postback",
+                                    "payload": JSON.stringify({
+                                        type: 'affiliate',
+                                    })
+                                }]
                         }
                     }
                 }
             }, null, time + a * 1000)
+                .then(result => console.log('pushUVTM', result))
+                .catch(err => console.log('pushUVTM_error', err))
         }
     })
     res.send('done' + a)
