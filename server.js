@@ -2565,7 +2565,8 @@ app.get('/api/job', function (req, res) {
 
                     if (card.jobName
                         && card.storeName
-                        &&(card.job == jobfilter || !jobfilter)
+                        && card.deadline > Date.now()
+                        && (card.job == jobfilter || !jobfilter)
                         && (card.distance < distancefilter || !card.distance)
                         && (card.working_type == working_typefilter || !working_typefilter )
                         && (card.industry == industryfilter || !industryfilter)
