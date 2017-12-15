@@ -2915,7 +2915,6 @@ app.post('/update/user', function (req, res) {
 
     let {user, profile, store} = req.body
 
-
     if (userId) {
 
         if (user) {
@@ -6302,6 +6301,28 @@ function sequence_jobseeker(sequence) {
 
     }
 }
+
+app.get('/webhook', function (req, res) {
+    if (req.query['hub.mode'] === 'subscribe' &&
+        req.query['hub.verify_token'] === 'jobohihi') {
+        console.log("Validating webhook");
+        res.status(200).send(req.query['hub.challenge']);
+    } else {
+        console.error("Failed validation. Make sure the validation tokens match.");
+        res.sendStatus(403);
+    }
+});
+app.post('/webhook', function (req, res) {
+    var data = req.body;
+    console.log('webhook', JSON.stringify(data))
+    db.ref('webhook').push(data).then(result => res.sendStatus(200))
+        .catch(err => {
+            console.log('webhook_error', JSON.stringify(err))
+            res.sendStatus(200)
+        })
+    // Make sure this is a page subscription
+})
+
 
 
 // start the server
