@@ -531,32 +531,7 @@ function init() {
         groupData = CONFIG.groupData
         groupArray = _.toArray(groupData)
 
-        // var mapgroup = _.map(groupData, group => {
-        //     var group_new = Object.assign({}, group)
-        //     var str = 'area,finder,groupId,job,link,name'
-        //     for (var key in group_new) {
-        //
-        //         var res = str.match(key);
-        //         if (res) {
-        //
-        //         } else {
-        //             console.log('delete', key)
-        //             delete group_new[key]
-        //         }
-        //     }
-        //
-        //     if (JSON.stringify(group) != JSON.stringify(group_new)) {
-        //
-        //         if (group_new.groupId) {
-        //             configRef.child('groupData').child(group_new.groupId).set(group_new)
-        //                 .then(result => {
-        //                     console.log('update', group_new.name)
-        //                 })
-        //         }
-        //
-        //
-        //     }
-        // })
+
         console.log('CONFIG.APIURL', CONFIG.APIURL)
         facebookUser = {
             vn: [],
@@ -5453,7 +5428,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 }
 
 app.get('/report', function (req, res) {
-    var {duration = 1, ago = 0} = req.query
+    var {duration = 1, ago = 0,send} = req.query
     var end = Date.now() - 86400000 * Number(ago)
     var start = end - 86400000 * Number(duration)
 
@@ -5473,50 +5448,14 @@ app.get('/report', function (req, res) {
             description2: long,
             image: ''
         }
+        if(send) sendNotificationToAdmin(mail)
+
         res.send(mail.title + '\n' + long)
     })
 
 });
 
-app.get('/weeklyReport', function (req, res) {
-    weeklyReport().then(result => res.send(result))
-        .catch(err => res.json(500).json(err))
-    ;
-});
 
-function weeklyReport() {
-    return new Promise(function (resolve, reject) {
-
-
-        var dateEnd = new Date()
-
-        var dateEndTime = dateEnd.getTime()
-        var dateStartTime = dateEndTime - 7 * 24 * 60 * 60 * 1000
-        var dateStart = new Date(dateStartTime)
-
-
-        var dateEndStr = dateEnd.getHours() + 'h ' + dateEnd.getDate() + '/' + dateEnd.getMonth();
-        var dateStartStr = dateStart.getHours() + 'h ' + dateStart.getDate() + '/' + dateStart.getMonth();
-        var refstr = ''
-
-        StaticCountingNewUser(dateStartTime, dateEndTime)
-            .then(function (data) {
-                for (var i in data.ref) {
-                    var ref = data.ref[i]
-                    refstr = refstr + '☀ ' + i + ': ' + ref + '\n'
-                }
-
-                var long =
-                    `Từ ${dateStartStr} đến ${dateEndStr}:\n #Ref: \n ${refstr} #Total User: ${data.total} \n <b>Employer:</b>\n - New account: ${data.employer.employer} \n - New store: ${data.employer.store} \n - New premium: ${data.employer.premium}\n <b>#Jobseeker:</b>\n - HN: ${data.jobseeker.hn} \n -SG: ${data.jobseeker.sg} \n <b>#Operation:</b> \n- Ứng viên thành công: ${data.act.success} \n - Ứng viên đi phỏng vấn:${data.act.meet} \n - Lượt ứng tuyển: ${data.act.userLikeStore} \n - Lượt tuyển: ${data.act.storeLikeUser} \n - Lượt tương hợp: ${data.act.match} \n <b>Sale:</b> \n- Lead :\n${JSON.stringify(data.lead)}\n <b>GoogleJob:</b>\n${JSON.stringify(data.googleJob)}`
-                var mail = {
-                    title: 'Jobo | Weekly_Report from ' + dateStartStr,
-                    body: long,
-                };
-                sendNotificationToAdmin(mail).then(result => resolve(result))
-            }).catch(err => reject(err))
-
-    })
-}
 
 function datefily(dateTime) {
     if (dateTime) {
