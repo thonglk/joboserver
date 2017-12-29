@@ -156,7 +156,7 @@ const MongoClient = require('mongodb');
 
 var uri = 'mongodb://joboapp:joboApp.1234@ec2-54-157-20-214.compute-1.amazonaws.com:27017/joboapp';
 var md, userCol, profileCol, storeCol, jobCol, notificationCol, staticCol, leadCol, emailChannelCol, logCol,
-    facebookPostCol;
+    facebookPostCol, botResponseCol;
 
 MongoClient.connect(uri, function (err, db) {
     console.log(err);
@@ -172,6 +172,10 @@ MongoClient.connect(uri, function (err, db) {
     emailChannelCol = md.collection('emailChannel');
     logCol = md.collection('log');
     facebookPostCol = md.collection('facebookPost');
+
+    // Botform collection
+
+    botResponseCol = md.collection('ladiBot_response');
 
 
     console.log("Connected correctly to server.");
@@ -704,7 +708,6 @@ process.on('uncaughtException', function (err) {
     axios.post('https://jobobot.herokuapp.com/noti', data);
 });
 
-
 function checkStatic() {
     for (var i in dataJob) {
         var job = dataJob[i]
@@ -732,14 +735,12 @@ function checkStatic() {
     CONFIG.popular = popular
 }
 
-//do work everyweek
-schedule.scheduleJob({hour: 7, minute: 0, dayOfWeek: 1}, function () {
+app.get('/checkStatic', function (req, res) {
 
-})
+    checkStatic();
+    res.send('done')
+});
 
-schedule.scheduleJob({hour: 19, minute: 0, dayOfWeek: 1}, function () {
-
-})
 
 //do work everyday
 
@@ -798,13 +799,6 @@ app.get('/dowork', function (req, res) {
     }, 5 * 6000)
     res.send('done')
 });
-
-app.get('/checkStatic', function (req, res) {
-
-    checkStatic();
-    res.send('done')
-});
-
 
 app.get('/updateDeadline', function (req, res) {
 
@@ -972,20 +966,6 @@ var stringWhere = {
     hcm: 'Sài Gòn'
 }
 
-function scheduleJob_ListJob(where, job, industry) {
-
-
-    for (var i in groupData) {
-        var group = groupData[i]
-
-        var text = `Danh sách việc làm `
-        if (job) text = text + `${Lang[job]}`
-        if (industry) text = text + ` trong ${Lang[industry]}`
-        if (where && stringWhere[where]) text = text + ` tại ${stringWhere[where]}`
-        text = text + `\n 
-        ${createListPremiumJob(where, null, job, industry, postId)} `
-    }
-}
 
 function scheduleJobPushEveryday() {
     var jobArr = createListPremiumJob(null, 'array')
@@ -1272,36 +1252,6 @@ app.get('/check', function (req, res) {
 })
 
 
-function checkStore() {
-    return new Promise(function (resolve, reject) {
-        storeRef.once('value', function (a) {
-
-
-            var arrayJob = _.toArray(a.val())
-            var i = 0
-
-            loop(i)
-
-            function loop(i) {
-                console.log('arrayJob.length= ' + i + '/' + arrayJob.length)
-                checkStoreAlone(arrayJob[i], arrayJob[i].storeId).then(result => {
-                    i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    }
-                }).catch(err => {
-                    i++
-                    if (i < arrayJob.length) {
-                        loop(i)
-                    }
-                })
-
-            }
-        })
-
-    })
-}
-
 function checkJobAlone(jobData, i) {
     return new Promise(function (resolve, reject) {
         var job = Object.assign({}, jobData);
@@ -1557,7 +1507,6 @@ app.get('/checkstore', function (req, res) {
     loop(i)
 
 })
-
 
 function shortAddress(fullAddress) {
     if (fullAddress) {
@@ -2143,13 +2092,6 @@ app.post('/sendEmailMarketing', function (req, res) {
 
 })
 
-
-//
-// app.use('/upload', (req, res, next) => {
-//     console.log(req.originalUrl);
-//     next();
-// }, require('./api/routes/index'));
-
 app.get('/api/dashboard', function (req, res) {
     var dashboard = {}
     dashboard.jobseeker = _.where(dataProfile, {feature: true})
@@ -2157,39 +2099,6 @@ app.get('/api/dashboard', function (req, res) {
     res.send(JSON.stringify(dashboard, circular()))
 
 })
-// function createdUserFromCC() {
-//     for (var i in userD) {
-//         var a = 0
-//         var userDa = userD[i]
-//         if (userDa.email) {
-//             secondary.auth().createUser({
-//                 email: userDa.email,
-//                 password: 'tuyendungjobo'
-//             }).then(function (userRecord) {
-//                 // See the UserRecord reference doc for the contents of userRecord.
-//                 console.log("Successfully created new user:", userRecord.uid);
-//
-//                 var userData = {
-//                     type: 2,
-//                     phone: userDa.phone,
-//                     userId: userRecord.uid,
-//                     email: userDa.email,
-//                     name: userDa.name,
-//                     provider: 'normal',
-//                     createdAt: new Date().getTime()
-//                 };
-//                 userRef.child(userRecord.uid).update(userData)
-//                 a++
-//                 console.log(a)
-//             })
-//                 .catch(function (error) {
-//                     console.log("Error creating new user:", error);
-//                 });
-//         }
-//
-//
-//     }
-// }
 
 app.get('/createuser', function (req, res) {
     var userId = req.param('uid')
@@ -2237,7 +2146,6 @@ app.get('/createuser', function (req, res) {
 
 })
 
-
 app.get('/verifyemail', function (req, res) {
     var userId = req.param('id')
     userRef.child(userId).update({verifyEmail: true});
@@ -2276,7 +2184,6 @@ function getRandomJob(industry) {
 
 }
 
-
 app.get('/queryFB', function (req, res) {
     var id = req.param('id')
     graph.post(id + "/posts?access_token=" + accessToken,
@@ -2294,7 +2201,6 @@ app.get('/queryFB', function (req, res) {
         }
     )
 })
-
 
 app.get('/places', function (req, res) {
     var mylat = req.param('lat') || '10.779942';
@@ -2320,7 +2226,6 @@ function getMoreJobEveryDay() {
     }
 
 }
-
 
 function getGoogleJob(mylat, mylng, industry) {
     if (!mylat || !mylng) return
@@ -2882,6 +2787,7 @@ app.get('/on/job', function (req, res) {
 
 
 });
+
 app.get('/on/store', function (req, res) {
     var storeId = req.param('storeId');
 
@@ -2922,16 +2828,6 @@ app.get('/delete/job', function (req, res) {
 
 });
 
-// app.get('/on/setting', function (req, res) {
-//     var userId = req.param('userId')
-//     if (dataSetting[userId]) {
-//
-//         res.send(dataSetting[userId])
-//     } else {
-//         res.send('NO_DATA')
-//     }
-// });
-
 app.get('/update/review', function (req, res) {
 
     var reviewsStr = req.param('reviews')
@@ -2944,13 +2840,14 @@ app.get('/update/review', function (req, res) {
         })
     }
 });
+
 app.get('/getchat', function (req, res) {
     var params = req.query
     axios.get('https://jobo-chat.herokuapp.com/getchat', {params})
         .then(result => res.send(JSON.stringify(result.data, circular()))
         )
         .catch(err => res.send(err))
-})
+});
 
 app.post('/update/user', function (req, res) {
     var userId = req.param('userId')
@@ -3206,7 +3103,6 @@ app.get('/update/user', function (req, res) {
     }
 
 });
-
 
 app.get('/update/job', function (req, res) {
     var userId = req.param('userId')
@@ -3749,7 +3645,6 @@ app.get('/log/activity', function (req, res) {
     res.send(JSON.stringify(cards, circular()))
 });
 
-
 app.get('/newfeed', function (req, res) {
     var query = req.query
     var dataLike = Object.assign({}, likeActivity);
@@ -3774,7 +3669,6 @@ app.get('/newfeed', function (req, res) {
 
     res.send(JSON.stringify(cards, circular()))
 });
-
 
 app.get('/log/profile', function (req, res) {
     var page = req.param('page') || 1
@@ -3905,7 +3799,6 @@ app.get('/checkUser', function (req, res) {
 
 })
 
-
 //admin API
 
 app.get('/admin/createuser', function (req, res) {
@@ -3956,7 +3849,6 @@ app.get('/config', function (req, res) {
 app.get('/lang', function (req, res) {
     res.send(Lang)
 })
-
 
 function getPaginatedItems(items, page, per_page = 15) {
     var page = page || 1,
@@ -4164,7 +4056,6 @@ function addDateToJob(ref) {
 
 }
 
-
 app.get('/sendFirstEmailToTotalStore', function (req, res) {
 
     sendFirstEmailToTotalStore()
@@ -4197,7 +4088,6 @@ function sendFirstEmailToTotalStore() {
     loop()
 
 }
-
 
 app.get('/initStore', function (req, res) {
     var jobId = req.param('jobId');
@@ -4966,6 +4856,7 @@ app.get('/sendNotiSubcribleToProfile', function (req, res) {
 
     res.send('done')
 })
+
 app.get('/sendNotiNewJobSubcribleToProfile', function (req, res) {
     var jobId = req.param('jobId');
     sendNotiNewJobSubcribleToProfile(jobId).then(a => res.send(a))
@@ -5027,7 +4918,6 @@ function sendNotiNewJobSubcribleToProfile(jobId) {
     })
 
 }
-
 
 function sendNotiSubcribleToProfile(storeId, jobId) {
     var time = Date.now()
@@ -5191,7 +5081,6 @@ function sendMailNotiMatchToProfile(card) {
     };
     sendNotification(dataUser[card.userId], notification)
 }
-
 
 app.get('/registerheadhunter', function (req, res) {
     var id = req.param('id')
@@ -5428,7 +5317,7 @@ function StaticCountingNewUser(dateStart, dateEnd) {
 }
 
 app.get('/report', function (req, res) {
-    var {duration = 1, ago = 0,send} = req.query
+    var {duration = 1, ago = 0, send} = req.query
     var end = Date.now() - 86400000 * Number(ago)
     var start = end - 86400000 * Number(duration)
 
@@ -5448,14 +5337,12 @@ app.get('/report', function (req, res) {
             description2: long,
             image: ''
         }
-        if(send) sendNotificationToAdmin(mail)
+        if (send) sendNotificationToAdmin(mail)
 
         res.send(mail.title + '\n' + long)
     })
 
 });
-
-
 
 function datefily(dateTime) {
     if (dateTime) {
@@ -5539,46 +5426,35 @@ app.get('/sendFullJob', function (req, res) {
 );
 app.get('/pushUVTM', function (req, res) {
     var a = 0
+    var {test} = req.query
     if (!time) {
         var time = Date.now() + 10000
     }
     var send = _.map(dataUser, user => {
-        if (user.messengerId) {
+
+        if ((user.messengerId && !test) || (test && user.userId == 'thonglk')) {
             a++
-            var body = `Dear ${user.name} \n Cám ơn bạn đã theo dõi Jobo trong thời gian vừa qua \n Thay cho lời cám ơn, mình xin gửi bạn bộ tài liệu gồm : \n - Mẫu CV đẹp \n - Mẫu slide thuyết trình \n - Tài liệu Toeic\n - Content Marketing \n Happy dayyyy <3`;
 
             sendNotification(user, {
-                title: 'Việc làm mới!',
-                body,
-                payload: {
-                    attachment: {
-                        type: "template",
-                        payload: {
-                            template_type: "button",
-                            text: body,
-                            buttons: [
-                                {
-                                    "title": "Tải tài liệu",
-                                    "type": "web_url",
-                                    "url": "https://goo.gl/2cGVjG"
-                                }, {
-                                    "title": "🍔 Tìm việc xung quanh",
-                                    "type": "postback",
-                                    "payload": JSON.stringify({
-                                        type: 'confirmPolicy',
-                                        answer: 'yes',
-                                    })
-                                }, {
-                                    "title": "💸 Nhận phần thưởng",
-                                    "type": "postback",
-                                    "payload": JSON.stringify({
-                                        type: 'affiliate',
-                                    })
-                                }]
-                        }
-                    }
-                }
-            }, null, time + a * 1000)
+                title: 'Noel vui vẻ cùng Jobo nhé!',
+                body: 'Dear ' + user.name + ',\n Hơn 1 năm giúp các bạn trẻ tìm việc parttime miễn phí và chúng tôi sẽ luôn sẵn lòng bất cứ khi nào bạn cần đến ^^\n' +
+                'Cám ơn hơn 20k+ ứng viên đã tin tưởng và sử dụng Jobo.\n' +
+                'Merry christmas <3^^'
+                // payload: {
+                //     "attachment": {
+                //         "type": "template",
+                //         "payload": {
+                //             "template_type": "media",
+                //             "elements": [
+                //                 {
+                //                     "media_type": "video",
+                //                     "url": "https://www.facebook.com/jobo.asia/videos/633947090329658"
+                //                 }
+                //             ]
+                //         }
+                //     }
+                // }
+            }, null, time + a * 60000)
                 .then(result => console.log('pushUVTM', result))
                 .catch(err => console.log('pushUVTM_error', err))
         }
@@ -5586,91 +5462,24 @@ app.get('/pushUVTM', function (req, res) {
     res.send('done' + a)
 
 });
+app.get('/botform/viewResponse', (req, res) => {
+    viewResponse(req.query)
+        .then(result => res.send(result))
+        .catch(err => res.status(500).json(err))
 
-function sendFullJob(where, channel) {
+})
+
+function viewResponse({page}) {
     return new Promise(function (resolve, reject) {
 
-        var jobArrHn = createListPremiumJob(where, 'array')
-        var text = '';
-
-        if (channel) {
-
-            var contentStr = _.map(jobArrHn, job => {
-
-                var str = `✔️ ${job.storeName} – ${job.jobName} \n`
-                text = text + str
+        botResponseCol.find({page})
+            .toArray((err, results) => {
+                if (err) reject(err)
+                resolve(results)
             })
-
-            var time = Date.now()
-            var a = 0
-            var sending = _.map(dataUser, user => {
-                if ((user.type == 2 || !user.type) && user.messengerId) {
-
-                    var name = user.name
-                    var content_job_list = `Dear ${name} 💪,
-Hiện tại Jobo đang có 1 số công việc cần tuyển gấp, bạn thử xem qua có công việc nào phù hợp với bạn không, hoặc bạn có thể giới thiệu bạn bè người thân đi làm để nhận thưởng từ Jobo nha,
-Danh sách việc làm:
-
-${text}
-
-P/s:
-❗ Bạn thấy những công việc này có phù hợp với mong muốn của bạn không? Nếu không thì công việc mong muốn của bạn là gì?
-❗ Nếu bạn không có nhu cầu nhận tin việc làm nữa thì hãy báo cho Jobo nhé!
-`
-                    a++
-                    sendNotification(user, {
-                        body: content_job_list
-                    }, null, time + a * 100)
-
-                    return user
-                }
-            })
-            resolve(text)
-
-        } else {
-            var contentStr = _.map(jobArrHn, job => {
-
-                var str = `✔️ ${job.storeName} – ${job.jobName} \n`
-
-                text = text + str
-            });
-
-            var content_job_list = `❗HOT HOT!!!! VÔ VÀN CÔNG VIỆC THEO CA HẤP DẪN ĐANG CHỜ ĐÓN BẠN #Jobo
-💪Không cần CV – Không cần kinh nghiệm
-💪Lương từ 5 triệu trở lên
-💪Lương thưởng tăng định kỳ nếu gắn bó lâu dài
-💪Hỗ trợ chi phí đào tạo từ nhà tuyển dụng
-
-☎ ☎ ☎ Inbox để tư vấn tìm việc và đặt lịch PHỎNG VẤN, hoàn toàn MIỄN PHÍ, đi làm NGAY !
-
-TẠI ĐÂY: 🔖 m.me/jobo.asia?ref=start_full
-
-
-💁‍♀️💁‍♀️💁‍♀️CÁC CÔNG VIỆC NỔI BẬT (UPDATE LIÊN TỤC)
-#Saigon #Hanoi
-
-${text}
-
-————————————
-
-📢 Jobo Technologies, Inc. – Ứng dụng tìm việc nhanh 100% miễn phí và sẽ luôn như vậy!
-📢 Email: contact@jobo.asia
-📢 Hotline: 0968 269 860
-📢 Chi nhánh HN: Tòa nhà 25T2 Hoàng Đạo Thúy, Quận Cầu Giấy, Hà Nội
-📢 Chi nhánh SG: Số 162 Pasteur, Quận 1, Sài Gòn`
-
-
-            var content = {
-                text: content_job_list,
-                image: 'https://scontent.fsgn2-2.fna.fbcdn.net/v/t1.0-9/23316305_609803696077331_1895316263462309682_n.jpg?oh=ad48504aa0a11c08c5ba9d827f2db7f5&oe=5AA9B55E',
-                type: 'image'
-            };
-            PostStore(null, null, null, null, where, null, null, content)
-                .then(result => resolve(result))
-                .catch(err => reject(err));
-        }
 
     })
+
 }
 
 //
@@ -6116,24 +5925,6 @@ function Email_happyBirthDayProfile() {
 }
 
 
-app.get('/sendList', function (req, res) {
-    var storeId = req.param('storeId')
-    if (storeId) {
-        Email_sendListLikedToEmployer(storeId)
-    } else {
-        var now = new Date().getTime()
-        var a = 0;
-        for (var i in dataStore) {
-            a++;
-            var time = now + 60000 * a;
-            schedule.scheduleJob(time, function () {
-                Email_sendListLikedToEmployer(i)
-            });
-        }
-    }
-    res.send('done')
-})
-
 // automate Job post facebook
 
 app.post('/unsubscribe', (req, res, next) => {
@@ -6301,13 +6092,6 @@ app.get('/groupFB', function (req, res) {
     } else res.status(500).json({err: 'No data'})
 });
 
-
-///
-function sequence_jobseeker(sequence) {
-    if (!sequence.day_1) {
-
-    }
-}
 
 app.get('/webhook', function (req, res) {
     if (req.query['hub.mode'] === 'subscribe' &&
