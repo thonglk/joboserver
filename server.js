@@ -2513,7 +2513,6 @@ app.get('/api/job', function (req, res) {
 
                     if (card.jobName
                         && card.storeName
-                        && card.deadline > Date.now()
                         && (card.job == jobfilter || !jobfilter)
                         && (card.distance < distancefilter || !card.distance)
                         && (card.working_type == working_typefilter || !working_typefilter )
@@ -5436,9 +5435,8 @@ app.get('/pushUVTM', function (req, res) {
             a++
 
             sendNotification(user, {
-                title: 'Happy new year 2018 cùng Jobo!',
-                body:  user.name + ' ơi,\n Hãy chia sẻ với mình 3 điều bạn muốn thực hiện trong năm 2018, mình sẽ gửi nhắc nhở cho bạn đều đặn mỗi tháng nhé,\n Bắt đầu thôi nàooo?.\n' +
-                'Happy new year 2018 <3^^'
+                title: 'Happy new year 2018 <3!',
+                body:  user.name + ' ơi,\n Hãy chia sẻ với mình 3 điều bạn muốn thực hiện trong năm 2018, mình sẽ gửi nhắc nhở cho bạn đều đặn mỗi tháng nhé,\n Bắt đầu thôi nàooo?'
                 // payload: {
                 //     "attachment": {
                 //         "type": "template",
@@ -5453,7 +5451,7 @@ app.get('/pushUVTM', function (req, res) {
                 //         }
                 //     }
                 // }
-            }, null, time + a * 60000)
+            }, null, time + a * 30000)
                 .then(result => console.log('pushUVTM', result))
                 .catch(err => console.log('pushUVTM_error', err))
         }
