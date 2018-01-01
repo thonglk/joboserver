@@ -5436,10 +5436,9 @@ app.get('/pushUVTM', function (req, res) {
             a++
 
             sendNotification(user, {
-                title: 'Noel vui vẻ cùng Jobo nhé!',
-                body: 'Dear ' + user.name + ',\n Hơn 1 năm giúp các bạn trẻ tìm việc parttime miễn phí và chúng tôi sẽ luôn sẵn lòng bất cứ khi nào bạn cần đến ^^\n' +
-                'Cám ơn hơn 20k+ ứng viên đã tin tưởng và sử dụng Jobo.\n' +
-                'Merry christmas <3^^'
+                title: 'Happy new year 2018 cùng Jobo!',
+                body:  user.name + ' ơi,\n Hãy chia sẻ với mình 3 điều bạn muốn thực hiện trong năm 2018, mình sẽ gửi nhắc nhở cho bạn đều đặn mỗi tháng nhé,\n Bắt đầu thôi nàooo?.\n' +
+                'Happy new year 2018 <3^^'
                 // payload: {
                 //     "attachment": {
                 //         "type": "template",
