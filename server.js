@@ -130,6 +130,7 @@ firebase.initializeApp({
     credential: firebase.credential.cert('adminsdk.json'),
     databaseURL: "https://jobfast-359da.firebaseio.com"
 });
+
 var joboChat = firebase.initializeApp({
     credential: firebase.credential.cert(FIRE_BASE_ADMIN.jobochat.cert),
     databaseURL: FIRE_BASE_ADMIN.jobochat.databaseURL
@@ -221,14 +222,6 @@ app.use(function (req, res, next) {
 
 app.get('/emailVerifier', (req, res) => {
 
-    //
-    // const {email, test} = req.query;
-    // verifier.verify(email, function (err, info) {
-    //     if (err) res.send(err);
-    //     else {
-    //         res.json(info);
-    //     }
-    // });
     var dataArray = _.toArray(dataUser)
     var a = -1
 
@@ -3426,43 +3419,42 @@ app.get('/api/log', function () {
 })
 
 app.post('/update/log', function (req, res) {
-        var userId = req.param('userId')
-        var key = req.param('key')
-        var log = req.body
+    var userId = req.param('userId')
+    var key = req.param('key')
+    var log = req.body
 
 
-        if (userId && log) {
-            logCol.insert(log, function (err, data) {
-                if (err) {
-                    res.status(500).json({err})
-                } else {
-                    res.send({code: 'success'})
-                }
-            })
-        }
-        var action = log.action
-        if (action == 'createProfile'
-            || action == 'createStore'
-            || action == 'updateProfile'
-            || action == 'updateStore'
-            || action == 'viewStore'
-            || action == 'viewProfile'
-            || action == 'like'
-            || action == 'match'
-            || action == 'sendMessage'
-            || action == 'setInterview'
-            || action == 'serviceWorker'
-            || action == 'requestPermission'
-            || action == 'decline'
-
-        ) {
-            actRef.child(key).set(log)
-            console.log("Jobo act", log);
-        }
-
-
+    if (userId && log) {
+        logCol.insert(log, function (err, data) {
+            if (err) {
+                res.status(500).json({err})
+            } else {
+                res.send({code: 'success'})
+            }
+        })
     }
-);
+    var action = log.action
+    if (action == 'createProfile'
+        || action == 'createStore'
+        || action == 'updateProfile'
+        || action == 'updateStore'
+        || action == 'viewStore'
+        || action == 'viewProfile'
+        || action == 'like'
+        || action == 'match'
+        || action == 'sendMessage'
+        || action == 'setInterview'
+        || action == 'serviceWorker'
+        || action == 'requestPermission'
+        || action == 'decline'
+
+    ) {
+        actRef.child(key).set(log)
+        console.log("Jobo act", log);
+    }
+
+
+});
 
 function isObject(a) {
     return (!!a) && (a.constructor === Object);
@@ -5436,7 +5428,7 @@ app.get('/pushUVTM', function (req, res) {
 
             sendNotification(user, {
                 title: 'Happy new year 2018 <3!',
-                body:  user.name + ' ơi,\n Hãy chia sẻ với mình 3 điều bạn muốn thực hiện trong năm 2018, mình sẽ gửi nhắc nhở cho bạn đều đặn mỗi tháng nhé,\n Bắt đầu thôi nàooo?'
+                body: user.name + ' ơi,\n Hãy chia sẻ với mình 3 điều bạn muốn thực hiện trong năm 2018, mình sẽ gửi nhắc nhở cho bạn đều đặn mỗi tháng nhé,\n Bắt đầu thôi nàooo?'
                 // payload: {
                 //     "attachment": {
                 //         "type": "template",
@@ -5459,25 +5451,7 @@ app.get('/pushUVTM', function (req, res) {
     res.send('done' + a)
 
 });
-app.get('/botform/viewResponse', (req, res) => {
-    viewResponse(req.query)
-        .then(result => res.send(result))
-        .catch(err => res.status(500).json(err))
 
-})
-
-function viewResponse({page}) {
-    return new Promise(function (resolve, reject) {
-
-        botResponseCol.find({page})
-            .toArray((err, results) => {
-                if (err) reject(err)
-                resolve(results)
-            })
-
-    })
-
-}
 
 //
 // // Remind:
@@ -5868,60 +5842,6 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
     });
 }
 
-
-function Notification_FirstRoundInterview() {
-    var dataliked = _.where(likeActivity, {storeId: 's35071407305077', status: 0, type: 2});
-
-    for (var i in dataliked) {
-        var likeData = dataliked[i]
-        var userData = dataUser[likeData.userId]
-        var how = ''
-        if (userData.provider == 'facebook') {
-            how = 'bằng tài khoản facebook ' + userData.name + ' (' + userData.email + ')'
-        } else {
-            how = 'bằng tài khoản với Email: ' + userData.email + ' / Password: tuyendungjobo'
-
-        }
-        var mail = {
-            title: likeData.storeName + ' | Chúc mừng bạn đã vượt qua vòng hồ sơ',
-            body: likeData.storeName + ' xin chúc mừng bạn đã vượt qua vòng hô sơ, đến với vòng 2 là vòng phỏng vấn online, Bạn hãy thực hiện vòng phỏng vấn này bằng cách trả lời 2 câu hỏi phỏng vấn dưới đây và ghi hình lại rồi gửi về cho chúng tôi <br> Câu 1: Hãy giới thiệu bản thân trong vòng 30s <br> Câu 2: Tại sao chúng tôi nên chọn bạn? ',
-            subtitle: '',
-            description1: 'Chào ' + getLastName(likeData.userName),
-            description2: likeData.storeName + ' xin chúc mừng bạn đã vượt qua vòng hô sơ, đến với vòng 2 là vòng phỏng vấn online, Bạn hãy thực hiện vòng phỏng vấn này bằng cách trả lời 2 câu hỏi phỏng vấn dưới đây và ghi hình lại rồi gửi về cho chúng tôi <br> Câu 1: Hãy giới thiệu bản thân trong vòng 30s <br> Câu 2: Tại sao chúng tôi nên chọn bạn? ',
-            description3: 'Lưu ý:<br>  - Mỗi câu hỏi tối đa dài 30s <br> - Ghi hình rõ mặt và đủ ánh sáng <br> Cách thức thực hiện: <br> 1. Sử dụng thiết bị ghi hình như điện thoại hoặc laptop, quay liên tục các câu hỏi. <br> 2. Đăng nhập vào Joboapp bằng tài khoản của bạn, đi tới trang "chỉnh sửa hồ sơ", upload video vào phần "video giới thiệu" <br>3. Sau khi thực hiện xong vui lòng thông báo cho chúng tôi bằng cách trả lời email hoặc gọi điện tới 0968269860',
-            calltoaction: 'Truy cập Jobo',
-            linktoaction: CONFIG.WEBURL,
-            description4: 'Hãy vào app hoặc website https://joboapp.com, đăng nhập ' + how,
-            image: ''
-        };
-        sendNotification(userData, mail, true, true, true)
-    }
-}
-
-function Email_happyBirthDayProfile() {
-    for (var i in dataProfile) {
-        var profileData = dataProfile[i]
-        if (profileData.userId && dataProfile && profileData && profileData.birth) {
-            var userData = dataUser[i]
-            var mail = {
-                title: "Chúc mừng sinh nhật " + getLastName(profileData.name) + " <3 <3 <3",
-                body: "Hãy để những lời chúc sâu lắng của chúng tôi luôn ở bên cạnh cuộc sống tuyệt vời của bạn. Jobo hy vọng trong năm tới bạn luôn khỏe mạnh và thuận buồm xuôi gió trong công việc. Sinh nhật vui vẻ!!",
-                subtitle: '',
-                description1: 'Dear ' + getLastName(profileData.name),
-                description2: 'Hãy để những lời chúc sâu lắng của chúng tôi luôn ở bên cạnh cuộc sống tuyệt vời của bạn. Jovo hy vọng trong năm tới bạn luôn khỏe mạnh và thuận buồm xuôi gió trong công việc. Sinh nhật vui vẻ!!',
-                description3: 'Jobo luôn cố gắng giúp bạn tìm được việc làm phù hợp nhanh nhất có thể',
-                calltoaction: 'Xem chi tiết',
-                linktoaction: CONFIG.WEBURL,
-                image: ''
-            };
-            sendNotification(userData, mail, null, profileData.birth)
-
-
-        }
-    }
-}
-
-
 // automate Job post facebook
 
 app.post('/unsubscribe', (req, res, next) => {
@@ -6060,6 +5980,7 @@ app.post('/addFacebookAccount', function (req, res) {
             .catch(err => res.status(500).json({err}))
     }
 });
+
 app.get('/accountFB', function (req, res) {
     let {card, key, action} = req.query
     if (action == 'delete') {
@@ -6089,7 +6010,6 @@ app.get('/groupFB', function (req, res) {
     } else res.status(500).json({err: 'No data'})
 });
 
-
 app.get('/webhook', function (req, res) {
     if (req.query['hub.mode'] === 'subscribe' &&
         req.query['hub.verify_token'] === 'jobohihi') {
@@ -6100,6 +6020,7 @@ app.get('/webhook', function (req, res) {
         res.sendStatus(403);
     }
 });
+
 app.post('/webhook', function (req, res) {
     var data = req.body;
     console.log('webhook', JSON.stringify(data))
@@ -6118,3 +6039,42 @@ https.createServer(credentials, app).listen(8443);
 console.log('Server started!', port);
 
 init();
+
+/// Botform_code
+
+
+function initDataLoad(ref, store) {
+    ref.on('child_added', function (snap) {
+        store[snap.key] = snap.val()
+    });
+    ref.on('child_changed', function (snap) {
+        store[snap.key] = snap.val()
+    });
+}
+
+var botform_dataAccount = {}, botform_accountRef = joboChat_db.ref('account')
+initDataLoad(botform_accountRef, botform_dataAccount)
+
+app.get('/botform/viewResponse', (req, res) => {
+    viewResponse(req.query)
+        .then(result => res.send(result))
+        .catch(err => res.status(500).json(err))
+
+});
+
+function viewResponse({page}) {
+    return new Promise(function (resolve, reject) {
+        var dataFilter = _.where(botform_dataAccount, {pageID: page});
+        resolve(dataFilter)
+        // botResponseCol.find({page})
+        //     .toArray((err, results) => {
+        //         if (err) reject(err)
+        //         var mapData = _.map(dataFilter, data => {
+        //
+        //         })
+        //         resolve(results)
+        //     })
+
+    })
+
+}
