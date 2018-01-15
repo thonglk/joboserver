@@ -891,8 +891,6 @@ function createListPremiumJob(where, type, job, industry, postId, level) {
             && dataStore[jobData.storeId].level
             && (dataStore[jobData.storeId].level == level || !level)
 
-            && jobData.deadline > Date.now()
-
             && (jobData.job == job || !job)
             && (jobData.industry == industry || !industry)
         ) {
@@ -1668,7 +1666,7 @@ function strTime(time) {
 }
 
 app.post('/like', function (req, res, next) {
-    let likeData = req.body
+    let likeData = req.body;
     console.log('likeData', likeData)
 
     likeActivityRef.child(likeData.actId)
@@ -1683,69 +1681,57 @@ app.post('/like', function (req, res, next) {
             var job = dataJob[like_new.jobId]
             var user = dataUser[like_new.userId]
 
-            if (like_new.status == 0) {
+            if (like_new.interviewTime) {
 
+                console.log('employer', employer)
+                sendNotification(employer, {
+                    title: 'Ứng viên đặt lịch phỏng vấn',
+                    body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
+                    payload: {
+                        text: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
+                        metadata: JSON.stringify({
+                            type: 'confirmJob',
+                        }),
+                        quick_replies: [
+                            {
+                                "content_type": "text",
+                                "title": "Có tham gia (Y)",
+                                "payload": JSON.stringify({
+                                    type: 'confirmInterview_employer',
+                                    answer: 'yes',
+                                    actId: like_new.actId
+                                })
+                            },
+                            {
+                                "content_type": "text",
+                                "title": "Không",
+                                "payload": JSON.stringify({
+                                    type: 'confirmInterview_employer',
+                                    answer: 'no',
+                                    actId: like_new.actId
+                                })
+                            },
+                        ]
+                    }
+                })
+
+                // set remind
                 sendNotification(user, {
-                    title: 'Kết quả ứng tuyển',
-                    body: `${profile.name} ơi, \n Vị trí ${job.jobName} của ${store.storeName} đã tuyển đủ người rồi, bạn hãy tìm các công việc khác bằng cách chọn [Tìm việc xung quanh ] nhé!`
-                }, null, Date.now() + 2 * 60 * 60 * 1000)
+                    title: 'Nhắc lịch phỏng vấn',
+                    body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`,
 
-                sendNotificationToAdmin({
-                    body: `${dataUser[like_new.userId].name} ms ứng tuyển job hết hạn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!`
-                })
-            } else {
-                if (like_new.interviewTime) {
+                }, null, like_new.interviewTime - 30 * 60000)
 
-                    console.log('employer', employer)
-                    sendNotification(employer, {
-                        title: 'Ứng viên đặt lịch phỏng vấn',
-                        body: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}`,
-                        payload: {
-                            text: `Có ứng viên mới đặt lịch phỏng vấn ${job.jobName} vào lúc ${strTime(like_new.interviewTime)}, Anh/chị có thể tham gia không ?`,
-                            metadata: JSON.stringify({
-                                type: 'confirmJob',
-                            }),
-                            quick_replies: [
-                                {
-                                    "content_type": "text",
-                                    "title": "Có tham gia (Y)",
-                                    "payload": JSON.stringify({
-                                        type: 'confirmInterview_employer',
-                                        answer: 'yes',
-                                        actId: like_new.actId
-                                    })
-                                },
-                                {
-                                    "content_type": "text",
-                                    "title": "Không",
-                                    "payload": JSON.stringify({
-                                        type: 'confirmInterview_employer',
-                                        answer: 'no',
-                                        actId: like_new.actId
-                                    })
-                                },
-                            ]
-                        }
-                    })
+                sendNotification(dataUser[like_new.userId], {
+                    title: 'Bắt đầu phỏng vấn',
+                    body: `${profile.name} ơi, \n Bắt đầu buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
+                }, null, like_new.interviewTime)
 
-                    // set remind
-                    sendNotification(user, {
-                        title: 'Nhắc lịch phỏng vấn',
-                        body: `${profile.name} ơi, \n Còn 30 phút nữa sẽ diễn ra buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Nếu bạn gặp trở ngại gì hoặc muốn huỷ buổi phỏng vấn ngày thì chat ngay lại cho mình nhé^^`,
-
-                    }, null, like_new.interviewTime - 30 * 60000)
-
-                    sendNotification(dataUser[like_new.userId], {
-                        title: 'Bắt đầu phỏng vấn',
-                        body: `${profile.name} ơi, \n Bắt đầu buổi phỏng vấn ${job.jobName} của ${store.storeName} nhé! Hãy xác nhận đã tới phỏng vấn và gặp người phỏng vấn^^`
-                    }, null, like_new.interviewTime)
-
-                }
-
-                sendNotificationToAdmin({
-                    body: `${dataUser[like_new.userId].name} (Ref: ${dataUser[like_new.userId].ref}) ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!\n Phone: ${dataUser[like_new.userId].phone} , employerPhone: ${employer.phone}}`
-                })
             }
+
+            sendNotificationToAdmin({
+                body: `${dataUser[like_new.userId].name} (Ref: ${dataUser[like_new.userId].ref}) ms đặt lịch phỏng vấn ${dataJob[like_new.jobId].jobName} của ${dataStore[dataJob[like_new.jobId].storeId].storeName} nhé!\n Phone: ${dataUser[like_new.userId].phone} , employerPhone: ${employer.phone}}`
+            })
         })
         .then(result => res.send(result))
         .catch(err => res.send(err))
@@ -5417,7 +5403,7 @@ app.get('/sendFullJob', function (req, res) {
 );
 app.get('/pushUVTM', function (req, res) {
     var a = 0
-    var {test} = req.query
+    var {test, title, body} = req.query
     if (!time) {
         var time = Date.now() + 10000
     }
@@ -5425,10 +5411,8 @@ app.get('/pushUVTM', function (req, res) {
 
         if ((user.messengerId && !test) || (test && user.userId == 'thonglk')) {
             a++
-
-            sendNotification(user, {
-                title: 'Happy new year 2018 <3!',
-                body: user.name + ' ơi,\n Hãy chia sẻ với mình 3 điều bạn muốn thực hiện trong năm 2018, mình sẽ gửi nhắc nhở cho bạn đều đặn mỗi tháng nhé,\n Bắt đầu thôi nàooo?'
+            var mail = {
+                body: user.name + ' ơi,\n ' + body
                 // payload: {
                 //     "attachment": {
                 //         "type": "template",
@@ -5443,7 +5427,9 @@ app.get('/pushUVTM', function (req, res) {
                 //         }
                 //     }
                 // }
-            }, null, time + a * 30000)
+            }
+            if (title) mail.title = title
+            sendNotification(user, mail, null, time + a * 30000)
                 .then(result => console.log('pushUVTM', result))
                 .catch(err => console.log('pushUVTM_error', err))
         }
