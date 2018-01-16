@@ -6051,7 +6051,12 @@ app.get('/botform/viewResponse', (req, res) => {
 function viewResponse({page}) {
     return new Promise(function (resolve, reject) {
         var dataFilter = _.where(botform_dataAccount, {pageID: page});
-        resolve(dataFilter)
+        var sort = _.sortBy(dataFilter,function (data) {
+            if(data.lastActive){
+                return -data.lastActive
+            } return 0
+        })
+        resolve(sort)
         // botResponseCol.find({page})
         //     .toArray((err, results) => {
         //         if (err) reject(err)
