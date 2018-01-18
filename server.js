@@ -204,15 +204,12 @@ var googleJobRef = db.ref('googleJob');
 var logRef = db2.ref('log');
 var actRef = db2.ref('act');
 
-
 var dataUser, dataProfile, dataStore, dataJob, dataStatic, likeActivity, dataLog, dataNoti, dataEmail, dataLead, Lang,
     keyListData, datagoogleJob;
 
 var groupData, groupArray;
 
-
 app.use(cors());
-
 app.use(imgNocache());
 app.use(express.static(__dirname + '/static'));
 app.use(function (req, res, next) {
@@ -2320,7 +2317,7 @@ app.get('/dash/job', function (req, res) {
                 var yourlng = card.location.lng;
                 var distance = getDistanceFromLatLonInKm(mylat, mylng, yourlat, yourlng);
 
-                if (distance < 100 && card.package == 'premium' && card.deadline > Date.now()) {
+                if (distance < 100 && card.package == 'premium') {
 
                     card.distance = distance
                     joblist.push(card)
