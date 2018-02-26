@@ -5409,21 +5409,7 @@ app.get('/pushUVTM', function (req, res) {
         if ((user.messengerId && !test) || (test && user.userId == 'thonglk')) {
             a++
             var mail = {
-                body: user.name + ' ơi,\n ' + body
-                // payload: {
-                //     "attachment": {
-                //         "type": "template",
-                //         "payload": {
-                //             "template_type": "media",
-                //             "elements": [
-                //                 {
-                //                     "media_type": "video",
-                //                     "url": "https://www.facebook.com/jobo.asia/videos/633947090329658"
-                //                 }
-                //             ]
-                //         }
-                //     }
-                // }
+                body: user.name + ' ơi, bạn đã tham gia chương trình giới thiệu việc làm cho bạn bè để nhận hoa hồng từ Jobo chưa? \n\n 📀 Phí hoa hồng: 100k/người giới thiệu thành công \n Khu vực: HN,HCM \n Công việc: Phục vụ hoặc bán hàng \n Hãy tham gia cộng đồng để cùng trao đổi và hướng dẫn tại đây nhé:  \n https://www.facebook.com/groups/212325752665609',
             }
             if (title) mail.title = title
             sendNotification(user, mail, null, time + a * 30000)
@@ -6042,27 +6028,39 @@ app.get('/botform/viewResponse', (req, res) => {
     viewResponse(req.query)
         .then(result => res.send(result))
         .catch(err => res.status(500).json(err))
-
 });
 
-function viewResponse({page}) {
+function viewResponse(query) {
     return new Promise(function (resolve, reject) {
-        var dataFilter = _.where(botform_dataAccount, {pageID: page});
-        var sort = _.sortBy(dataFilter,function (data) {
-            if(data.lastActive){
+        console.log('query', query)
+        var dataFilter = _.filter(botform_dataAccount, account => {
+
+            if (
+                (account.pageID == query.page || !query.page)
+                && ((account.full_name && account.full_name.toLocaleLowerCase().match(query.full_name)) || !query.full_name)
+                && ((account.ref && account.ref.match(query.ref)) || !query.ref)
+                && ((account.gender && account.gender.match(query.gender)) || !query.gender)
+                && ((account.locale && account.locale.match(query.locale)) || !query.locale)
+                && ((account.createdAt && account.createdAt > new Date(query.createdAt_from).getTime()) || !query.createdAt_from)
+                && ((account.createdAt && account.createdAt < new Date(query.createdAt_to).getTime()) || !query.createdAt_to)
+                && ((account.lastActive && account.lastActive > new Date(query.lastActive_from).getTime()) || !query.lastActive_from)
+                && ((account.lastActive && account.lastActive < new Date(query.lastActive_to).getTime()) || !query.lastActive_to)
+            ) return true
+            else return false
+
+        });
+        var sort = _.sortBy(dataFilter, function (data) {
+            if (data.lastActive) {
                 return -data.lastActive
-            } return 0
+            }else return 0
         })
         resolve(sort)
-        // botResponseCol.find({page})
-        //     .toArray((err, results) => {
-        //         if (err) reject(err)
-        //         var mapData = _.map(dataFilter, data => {
-        //
-        //         })
-        //         resolve(results)
-        //     })
+
 
     })
 
+}
+function sendNotificationByBotform(query, blockId, channel, time, notiId) {
+
+    sendNotification(userData, mail, channel, time, notiId)
 }
