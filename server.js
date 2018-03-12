@@ -2816,13 +2816,6 @@ app.get('/update/review', function (req, res) {
     }
 });
 
-app.get('/getchat', function (req, res) {
-    var params = req.query
-    axios.get('https://jobo-chat.herokuapp.com/getchat', {params})
-        .then(result => res.send(JSON.stringify(result.data, circular()))
-        )
-        .catch(err => res.send(err))
-});
 
 app.post('/update/user', function (req, res) {
     var userId = req.param('userId')
@@ -5634,7 +5627,7 @@ function remind_Interview() {
             }
         }
 
-    })
+    });
 
     sendNotificationToAdmin({
         title: 'Phỏng vấn hôm nay',
@@ -6001,7 +5994,6 @@ app.post('/webhook', function (req, res) {
     // Make sure this is a page subscription
 })
 
-
 // start the server
 http.createServer(app).listen(port);
 https.createServer(credentials, app).listen(8443);
@@ -6009,58 +6001,25 @@ console.log('Server started!', port);
 
 init();
 
-/// Botform_code
 
 
-function initDataLoad(ref, store) {
-    ref.on('child_added', function (snap) {
-        store[snap.key] = snap.val()
-    });
-    ref.on('child_changed', function (snap) {
-        store[snap.key] = snap.val()
-    });
-}
-
-var botform_dataAccount = {}, botform_accountRef = joboChat_db.ref('account')
-initDataLoad(botform_accountRef, botform_dataAccount)
-
-app.get('/botform/viewResponse', (req, res) => {
-    viewResponse(req.query)
-        .then(result => res.send(result))
+app.get('/botform/viewResponse', ({query}, res) => {
+    axios.get('https://jobo-chat.herokuapp.com/viewResponse', {params:query})
+        .then(result => res.send(result.data))
         .catch(err => res.status(500).json(err))
 });
+var crypto =
+signature = crypto.createHmac('sha256', secret).update(urlParameters, 'utf8').digest('hex');
+app.get('/pay', (req, res) => {
+    axios.post('https://api.pay.truemoney.com.vn/bank-charging', {
+        access_key: 'clbgp35br12gb6j3oq6h',
+        amount: 1000000,
+        command: "request_transaction",
+        order_id: 'test_50',
+        order_info: 'test order description',
+        return_url: 'https://app.botform.asia/success',
+        signature: 'test_signature'
+    }).then(result => res.send(result))
+        .catch(err => res.status(500).json(err))
 
-function viewResponse(query) {
-    return new Promise(function (resolve, reject) {
-        console.log('query', query)
-        var dataFilter = _.filter(botform_dataAccount, account => {
-
-            if (
-                (account.pageID == query.page || !query.page)
-                && ((account.full_name && account.full_name.toLocaleLowerCase().match(query.full_name)) || !query.full_name)
-                && ((account.ref && account.ref.match(query.ref)) || !query.ref)
-                && ((account.gender && account.gender.match(query.gender)) || !query.gender)
-                && ((account.locale && account.locale.match(query.locale)) || !query.locale)
-                && ((account.createdAt && account.createdAt > new Date(query.createdAt_from).getTime()) || !query.createdAt_from)
-                && ((account.createdAt && account.createdAt < new Date(query.createdAt_to).getTime()) || !query.createdAt_to)
-                && ((account.lastActive && account.lastActive > new Date(query.lastActive_from).getTime()) || !query.lastActive_from)
-                && ((account.lastActive && account.lastActive < new Date(query.lastActive_to).getTime()) || !query.lastActive_to)
-            ) return true
-            else return false
-
-        });
-        var sort = _.sortBy(dataFilter, function (data) {
-            if (data.lastActive) {
-                return -data.lastActive
-            }else return 0
-        })
-        resolve(sort)
-
-
-    })
-
-}
-function sendNotificationByBotform(query, blockId, channel, time, notiId) {
-
-    sendNotification(userData, mail, channel, time, notiId)
-}
+})
