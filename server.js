@@ -32,6 +32,7 @@ var privateKey = fs.readFileSync('server.key', 'utf8');
 var certificate = fs.readFileSync('server.crt', 'utf8');
 var verifier = require('email-verify');
 
+const FB = require('./firebase')
 
 var credentials = {key: privateKey, cert: certificate};
 const FIRE_BASE_ADMIN = {
@@ -734,33 +735,7 @@ app.get('/checkStatic', function (req, res) {
 
 //do work everyday
 
-schedule.scheduleJob({hour: 7, minute: 0}, function () {
 
-    scheduleJobPushEveryday()
-
-
-    setTimeout(function () {
-        checkStatic()
-    }, 60000)
-
-    setTimeout(function () {
-        getMoreJobEveryDay()
-    }, 2 * 60000)
-
-    setTimeout(function () {
-        analyticsRemind()
-    }, 3 * 60000)
-
-    setTimeout(function () {
-        remind_Interview()
-    }, 3 * 60000)
-
-    setTimeout(function () {
-        sendFullJob('hn');
-        sendFullJob('hcm');
-    }, 4 * 60000)
-
-})
 
 app.get('/dowork', function (req, res) {
 
@@ -5991,7 +5966,7 @@ app.post('/webhook', function (req, res) {
 
         data.entry.forEach(pageEntry => {
             pageEntry.time = Date.now()
-            joboChat_db.ref('pageEntry').push(pageEntry).then(result => res.sendStatus(200))
+            FB.botform_hook.database().ref('pageEntry').push(pageEntry).then(result => res.sendStatus(200))
                 .catch(err => {
                     console.log('webhook_error', JSON.stringify(err))
                     res.sendStatus(200)
