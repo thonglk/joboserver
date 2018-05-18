@@ -2402,7 +2402,7 @@ app.get('/api/job', function (req, res) {
                 if (
                     (card.job == jobfilter || !jobfilter)
                     && (card.distance < 50 || !card.distance)
-                    && (card.working_type == working_typefilter || !working_typefilter )
+                    && (card.working_type == working_typefilter || !working_typefilter)
                     && (card.industry == industryfilter || !industryfilter)
                     && (card.salary > salaryfilter || !salaryfilter)
                 ) {
@@ -2491,7 +2491,7 @@ app.get('/api/job', function (req, res) {
                         && card.storeName
                         && (card.job == jobfilter || !jobfilter)
                         && (card.distance < distancefilter || !card.distance)
-                        && (card.working_type == working_typefilter || !working_typefilter )
+                        && (card.working_type == working_typefilter || !working_typefilter)
                         && (card.industry == industryfilter || !industryfilter)
                         && (card.salary > salaryfilter || !salaryfilter)
                         && (card.package == typefilter || !typefilter)
@@ -3897,7 +3897,7 @@ function addCountJob(storeId, userId, job) {
 function countAllPoint(a) {
     if (a) {
 
-        return (a.viewed || 0) * 1 + (a.liked || 0) * 4 + (a.shared || 0 ) * 3 + (a.rated || 0) * (a.rateAverage || 0) * 2 + (a.matched || 0) * 8 + (a.chated || 0) * 4 + (a.like || 0) * 2 + (a.share || 0) * 2 + (a.rate || 0) * 2 + (a.match || 0) * 3 + (a.chat || 0) * 2 + (a.timeOnline || 0) + (a.login || 0) * 3 + (a.profile || 0)
+        return (a.viewed || 0) * 1 + (a.liked || 0) * 4 + (a.shared || 0) * 3 + (a.rated || 0) * (a.rateAverage || 0) * 2 + (a.matched || 0) * 8 + (a.chated || 0) * 4 + (a.like || 0) * 2 + (a.share || 0) * 2 + (a.rate || 0) * 2 + (a.match || 0) * 3 + (a.chat || 0) * 2 + (a.timeOnline || 0) + (a.login || 0) * 3 + (a.profile || 0)
     } else {
         return 0
     }
@@ -5760,7 +5760,7 @@ function PostStore(storeId, jobId, groupId, job, where, poster, time, content, c
                 console.log('groupData[i].groupId', groupData[i].groupId)
                 if (groupData[i].groupId
                     && (!where || !groupData[i].area || groupData[i].area.match(where))
-                    && (!groupData[i].job || !job || groupData[i].job.match(job) )
+                    && (!groupData[i].job || !job || groupData[i].job.match(job))
                 ) {
                     console.log('groupData[i].name', groupData[i].name)
                     willPost.push(groupData[i].name)
@@ -5986,12 +5986,21 @@ app.get('/webhook', function (req, res) {
 app.post('/webhook', function (req, res) {
     var data = req.body;
     console.log('webhook', JSON.stringify(data))
-    joboChat_db.ref('webhook').push(data).then(result => res.sendStatus(200))
-        .catch(err => {
-            console.log('webhook_error', JSON.stringify(err))
-            res.sendStatus(200)
+
+    if (data.object == 'page') {
+
+        data.entry.forEach(pageEntry => {
+            pageEntry.time = Date.now()
+            joboChat_db.ref('pageEntry').push(pageEntry).then(result => res.sendStatus(200))
+                .catch(err => {
+                    console.log('webhook_error', JSON.stringify(err))
+                    res.sendStatus(200)
+                })
         })
-    // Make sure this is a page subscription
+    }
+
+
+// Make sure this is a page subscription
 })
 
 // start the server
@@ -6002,14 +6011,13 @@ console.log('Server started!', port);
 init();
 
 
-
 app.get('/botform/viewResponse', ({query}, res) => {
-    axios.get('https://jobo-chat.herokuapp.com/viewResponse', {params:query})
+    axios.get('https://jobo-chat.herokuapp.com/viewResponse', {params: query})
         .then(result => res.send(result.data))
         .catch(err => res.status(500).json(err))
 });
 var crypto =
-signature = crypto.createHmac('sha256', secret).update(urlParameters, 'utf8').digest('hex');
+    signature = crypto.createHmac('sha256', secret).update(urlParameters, 'utf8').digest('hex');
 app.get('/pay', (req, res) => {
     axios.post('https://api.pay.truemoney.com.vn/bank-charging', {
         access_key: 'clbgp35br12gb6j3oq6h',
