@@ -3,7 +3,7 @@
   "main": "server.js",
   "dependencies": {
     "async": "latest",
-    "axios": "^0.16.2",
+    "axios": "^0.18.1",
     "bluebird": "^3.5.0",
     "body-parser": "~1.9.2",
     "circular": "^1.0.5",
